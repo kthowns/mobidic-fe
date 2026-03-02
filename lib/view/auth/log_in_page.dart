@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
-import 'package:mobidic_flutter/view/util/navigation_helper.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/view/list/vocab_list_page.dart';
 import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
-import 'package:provider/provider.dart';
 
-class LoginPage extends StatelessWidget {
-  LoginPage({super.key});
+class LoginPage extends ConsumerStatefulWidget {
+  const LoginPage({super.key});
 
+  @override
+  ConsumerState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends ConsumerState<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
+  /*
   clickKakaoLoginButton() async {
     OAuthToken token;
     if (await isKakaoTalkInstalled()) {
@@ -41,15 +44,14 @@ class LoginPage extends StatelessWidget {
       }
     }
   }
-
+*/
   @override
   Widget build(BuildContext context) {
-    final authViewModel = context.watch<AuthViewModel>();
+    final authState = ref.watch(authViewModelProvider);
+    final authViewModel = ref.read(authViewModelProvider.notifier);
 
-    void onLoggedIn() async {
-      if (authViewModel.isLoggedIn) {
-        NavigationHelper.navigateToVocabList(context, authViewModel);
-
+    ref.listen<AuthState>(authViewModelProvider, (previous, next) {
+      if (next.currentUser != null && previous?.currentUser == null) {
         showDialog(
           context: context,
           builder:
@@ -58,9 +60,7 @@ class LoginPage extends StatelessWidget {
                   '✅ 로그인 성공',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                content: Text(
-                  '환영합니다, ${authViewModel.currentMember?.nickname} 님!',
-                ),
+                content: Text('환영합니다, ${authState.currentUser?.nickname} 님!'),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
@@ -69,16 +69,18 @@ class LoginPage extends StatelessWidget {
                 ],
               ),
         );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const VocabListPage()),
+        );
       }
-    }
+    });
 
     void handleLogin() async {
       await authViewModel.login(
         emailController.text.trim(),
         passwordController.text.trim(),
       );
-
-      onLoggedIn();
     }
 
     return Scaffold(
@@ -126,16 +128,16 @@ class LoginPage extends StatelessWidget {
               ),
             ),
             Visibility(
-              visible: authViewModel.loginError,
+              visible: authState.loginErrorMessage.isNotEmpty,
               replacement: SizedBox.shrink(),
               child: Text(
-                authViewModel.loginErrorMessage,
+                authState.loginErrorMessage,
                 style: TextStyle(color: Colors.red),
               ),
             ),
             const SizedBox(height: 20),
             InkWell(
-              onTap: clickKakaoLoginButton,
+              onTap: null, //clickKakaoLoginButton,
               child: Image.asset(
                 'assets/images/kakao_login_medium_wide.png',
                 height: 100,
@@ -145,7 +147,7 @@ class LoginPage extends StatelessWidget {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: authViewModel.isLoading ? null : handleLogin,
+                onPressed: authState.isLoading ? null : handleLogin,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.lightBlue,
                   shape: RoundedRectangleBorder(
@@ -153,7 +155,7 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
                 child:
-                    authViewModel.isLoading
+                    authState.isLoading
                         ? const CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
                             Colors.white,
@@ -168,7 +170,12 @@ class LoginPage extends StatelessWidget {
             Center(
               child: TextButton(
                 onPressed: () {
-                  NavigationHelper.navigateToJoin(context);
+                  /*
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const JoinPage()),
+                  );
+                  */
                 },
                 child: const Text(
                   '회원가입',

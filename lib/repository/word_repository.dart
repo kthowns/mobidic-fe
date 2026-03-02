@@ -3,7 +3,7 @@ import 'package:mobidic_flutter/dto/add_def_dto.dart';
 import 'package:mobidic_flutter/dto/add_word_dto.dart';
 import 'package:mobidic_flutter/dto/api_response_dto.dart';
 import 'package:mobidic_flutter/model/definition.dart';
-import 'package:mobidic_flutter/model/rate.dart';
+import 'package:mobidic_flutter/model/word_statistic.dart';
 import 'package:mobidic_flutter/model/vocab.dart';
 import 'package:mobidic_flutter/repository/auth_repository.dart';
 import 'package:mobidic_flutter/type/part_of_speech.dart';
@@ -17,7 +17,7 @@ class WordRepository {
   WordRepository(this._apiClient, this._authRepository);
 
   Future<List<Word>> getWords(String? vocabId) async {
-    String? token = await _authRepository.getToken();
+    String? token = await _authRepository.getAccessToken();
     String? memberId = await _authRepository.getCurrentMemberId();
 
     GeneralResponseDto body = await _apiClient.get(
@@ -52,9 +52,10 @@ class WordRepository {
         defsBody.data,
       );
       List<DefDto> defDtos = defsData.map((d) => DefDto.fromJson(d)).toList();
-      List<Definition> defs = defDtos.map((d) => Definition.fromDto(d)).toList();
+      List<Definition> defs =
+          defDtos.map((d) => Definition.fromDto(d)).toList();
 
-      Word word = Word.fromDto(dto, Rate.fromDto(rateResponse), defs);
+      Word word = Word.fromDto(dto, WordStatistic.fromDto(rateResponse), defs);
 
       words.add(word);
     }
@@ -62,10 +63,12 @@ class WordRepository {
     return words;
   }
 
-  Future<void> addWord(Vocab? vocab,
-      String expression,
-      List<DefWithPart> defs,) async {
-    String? token = await _authRepository.getToken();
+  Future<void> addWord(
+    Vocab? vocab,
+    String expression,
+    List<DefWithPart> defs,
+  ) async {
+    String? token = await _authRepository.getAccessToken();
     String? memberId = await _authRepository.getCurrentMemberId();
 
     GeneralResponseDto wordsBody = await _apiClient.post(
@@ -86,7 +89,7 @@ class WordRepository {
   }
 
   Future<void> deleteWord(Word word) async {
-    String? token = await _authRepository.getToken();
+    String? token = await _authRepository.getAccessToken();
     String? memberId = await _authRepository.getCurrentMemberId();
 
     GeneralResponseDto body = await _apiClient.delete(
@@ -96,7 +99,7 @@ class WordRepository {
   }
 
   Future<void> updateWord(Word word, String exp, List<Definition> defs) async {
-    String? token = await _authRepository.getToken();
+    String? token = await _authRepository.getAccessToken();
 
     GeneralResponseDto body = await _apiClient.patch(
       url: '/word/${word.id}',
@@ -105,7 +108,7 @@ class WordRepository {
     );
 
     for (Definition def in defs) {
-      if(def.id.isEmpty){
+      if (def.id.isEmpty) {
         GeneralResponseDto body = await _apiClient.post(
           url: '/def/${word.id}',
           headers: {'Authorization': 'Bearer $token'},
@@ -122,7 +125,7 @@ class WordRepository {
   }
 
   Future<void> deleteDef(Definition def) async {
-    String? token = await _authRepository.getToken();
+    String? token = await _authRepository.getAccessToken();
     String? memberId = await _authRepository.getCurrentMemberId();
 
     GeneralResponseDto body = await _apiClient.delete(

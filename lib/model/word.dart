@@ -1,5 +1,5 @@
 import 'package:mobidic_flutter/model/definition.dart';
-import 'package:mobidic_flutter/model/rate.dart';
+import 'package:mobidic_flutter/model/word_statistic.dart';
 
 class Word {
   String id;
@@ -22,7 +22,7 @@ class Word {
 
   factory Word.fromDto(
     WordDto wordDto,
-    Rate rate,
+    WordStatistic rate,
     List<Definition> defs,
   ) => Word(
     id: wordDto.id,

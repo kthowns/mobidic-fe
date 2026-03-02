@@ -1,20 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mobidic_flutter/view/util/navigation_helper.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
-import 'package:provider/provider.dart';
 
-class VocabListPage extends StatelessWidget {
+class VocabListPage extends ConsumerStatefulWidget {
   const VocabListPage({super.key});
 
   @override
+  ConsumerState<VocabListPage> createState() => _VocabListPageState();
+}
+
+class _VocabListPageState extends ConsumerState<VocabListPage> {
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController descController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    descController.dispose();
+    searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final vocabViewModel = context.watch<VocabViewModel>();
+    final vocabViewModel = ref.read(vocabListViewModelProvider.notifier);
+    final VocabListState vocabListState = ref.watch(vocabListViewModelProvider);
+
+    searchController.addListener(() {
+      vocabViewModel.setSearchQuery(searchController.text);
+    });
 
     void showAddVocabDialog() {
-      TextEditingController titleController = TextEditingController();
-      TextEditingController descController = TextEditingController();
-
       showDialog(
         context: context,
         builder:
@@ -61,10 +79,10 @@ class VocabListPage extends StatelessWidget {
 
     void showEditVocabDialog(int index) {
       TextEditingController titleController = TextEditingController(
-        text: vocabViewModel.showingVocabs[index].title,
+        text: vocabListState.showingVocabs[index].title,
       );
       TextEditingController descController = TextEditingController(
-        text: vocabViewModel.showingVocabs[index].description,
+        text: vocabListState.showingVocabs[index].description,
       );
 
       showDialog(
@@ -96,7 +114,7 @@ class VocabListPage extends StatelessWidget {
                   onPressed: () {
                     if (titleController.text.trim().isNotEmpty) {
                       vocabViewModel.updateVocab(
-                        vocabViewModel.showingVocabs[index],
+                        vocabListState.showingVocabs[index],
                         titleController.text.trim(),
                         descController.text.trim(),
                       );
@@ -125,7 +143,7 @@ class VocabListPage extends StatelessWidget {
                 TextButton(
                   onPressed: () {
                     vocabViewModel.deleteVocab(
-                      vocabViewModel.showingVocabs[index],
+                      vocabListState.showingVocabs[index],
                     );
                     Navigator.pop(context);
                   },
@@ -175,44 +193,50 @@ class VocabListPage extends StatelessWidget {
                             onPressed: () {
                               Navigator.pop(context);
                               vocabViewModel.selectVocabAt(index);
+                              /*
                               NavigationHelper.navigateToFlashCard(
                                 context,
                                 vocabViewModel,
                                 index,
-                              );
+                              );*/
                             },
                             child: const Text('플래시카드'),
                           ),
                           ElevatedButton(
                             onPressed: () {
                               Navigator.pop(context);
+                              /*
                               NavigationHelper.navigateToOxQuiz(
                                 context,
                                 vocabViewModel,
                                 index,
-                              );
+                              );*/
                             },
                             child: const Text('O/X 퀴즈'),
                           ),
                           ElevatedButton(
                             onPressed: () {
                               Navigator.pop(context);
+                              /*
                               NavigationHelper.navigateToDictationQuiz(
                                 context,
                                 vocabViewModel,
                                 index,
                               );
+                              */
                             },
                             child: const Text('받아쓰기'),
                           ),
                           ElevatedButton(
                             onPressed: () {
                               Navigator.pop(context);
+                              /*
                               NavigationHelper.navigateToBlankQuiz(
                                 context,
                                 vocabViewModel,
                                 index,
                               );
+                              */
                             },
                             child: const Text('빈칸 채우기'),
                           ),
@@ -224,11 +248,12 @@ class VocabListPage extends StatelessWidget {
               },
             );
           } else if (label == '발음 체크') {
+            /*
             NavigationHelper.navigateToPronunciationCheck(
               context,
               vocabViewModel,
               index,
-            );
+            );*/
           }
         },
         child: Text(label),
@@ -243,7 +268,7 @@ class VocabListPage extends StatelessWidget {
     }
 
     Widget buildVocabCard(int index) {
-      final progress = vocabViewModel.showingVocabs[index].learningRate;
+      final progress = vocabListState.showingVocabs[index].learningRate;
 
       return Container(
         margin: const EdgeInsets.only(bottom: 20),
@@ -271,7 +296,7 @@ class VocabListPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        vocabViewModel.showingVocabs[index].title,
+                        vocabListState.showingVocabs[index].title,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -279,7 +304,7 @@ class VocabListPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        vocabViewModel.showingVocabs[index].description,
+                        vocabListState.showingVocabs[index].description,
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.black54,
@@ -288,7 +313,7 @@ class VocabListPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (vocabViewModel.editMode)
+                if (vocabListState.editMode)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -438,7 +463,7 @@ class VocabListPage extends StatelessWidget {
                       bottom: 4,
                     ),
                     child: TextField(
-                      controller: vocabViewModel.searchController,
+                      controller: searchController,
                       decoration: InputDecoration(
                         hintText: '검색어를 입력하세요',
                         prefixIcon: const Icon(Icons.search),
@@ -473,11 +498,11 @@ class VocabListPage extends StatelessWidget {
                                   SizedBox(width: 8), // 텍스트와 프로그레스 바 사이 간격
                                   Expanded(
                                     child: LinearProgressIndicator(
-                                      value: vocabViewModel.avgLearningRate
+                                      value: vocabListState.avgLearningRate
                                           .clamp(0.0, 1.0),
                                       backgroundColor: Colors.grey[300],
                                       color: getRateColor(
-                                        vocabViewModel.avgLearningRate,
+                                        vocabListState.avgLearningRate,
                                       ),
                                       minHeight: 6,
                                     ),
@@ -491,20 +516,20 @@ class VocabListPage extends StatelessWidget {
                                   SizedBox(width: 8), // 텍스트와 프로그레스 바 사이 간격
                                   Expanded(
                                     child: LinearProgressIndicator(
-                                      value: vocabViewModel.avgAccuracy.clamp(
+                                      value: vocabListState.avgAccuracy.clamp(
                                         0.0,
                                         1.0,
                                       ),
                                       backgroundColor: Colors.grey[300],
                                       color: getRateColor(
-                                        vocabViewModel.avgAccuracy,
+                                        vocabListState.avgAccuracy,
                                       ),
                                       minHeight: 6,
                                     ),
                                   ),
                                 ],
                               ),
-                              Text('단어장 개수 : ${vocabViewModel.vocabs.length}'),
+                              Text('단어장 개수 : ${vocabListState.vocabs.length}'),
                             ],
                           ),
                         ),
@@ -537,7 +562,7 @@ class VocabListPage extends StatelessWidget {
                           onPressed: vocabViewModel.toggleEditMode,
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
-                                vocabViewModel.editMode
+                                vocabListState.editMode
                                     ? Colors.blue[300]
                                     : Colors.blue[100],
                             foregroundColor: Colors.black,
@@ -565,20 +590,23 @@ class VocabListPage extends StatelessWidget {
                     child: RefreshIndicator(
                       onRefresh: vocabViewModel.loadData,
                       child:
-                          vocabViewModel.vocabs.isNotEmpty
+                          vocabListState.vocabs.isNotEmpty
                               ? ListView.builder(
                                 padding: const EdgeInsets.all(20),
-                                itemCount: vocabViewModel.showingVocabs.length,
+                                itemCount: vocabListState.showingVocabs.length,
                                 itemBuilder: (context, index) {
                                   return GestureDetector(
+                                    child: buildVocabCard(index),
                                     onTap:
-                                        () =>
+                                        () => {
+                                          /*
                                             NavigationHelper.navigateToWordList(
                                               context,
                                               vocabViewModel,
                                               index,
                                             ),
-                                    child: buildVocabCard(index),
+                                            */
+                                        },
                                   );
                                 },
                               )
@@ -603,7 +631,7 @@ class VocabListPage extends StatelessWidget {
             child: const Icon(Icons.add),
           ),
         ),
-        if (vocabViewModel.isLoading)
+        if (vocabListState.isLoading)
           Container(
             color: const Color(0x80000000), // 배경 어둡게
             child: const Center(child: CircularProgressIndicator()),

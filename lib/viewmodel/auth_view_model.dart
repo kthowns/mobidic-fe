@@ -1,43 +1,44 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/data/secure_storage_data_source.dart';
+import 'package:mobidic_flutter/dto/login_dto.dart';
 import 'package:mobidic_flutter/exception/api_exception.dart';
-import 'package:mobidic_flutter/mixin/LoadingMixin.dart';
 import 'package:mobidic_flutter/repository/auth_repository.dart';
-import 'package:mobidic_flutter/repository/member_repository.dart';
+import 'package:mobidic_flutter/repository/user_repository.dart';
 
-import 'package:mobidic_flutter/model/member.dart';
+import 'package:mobidic_flutter/model/user.dart';
 
-class AuthViewModel extends ChangeNotifier with LoadingMixin {
+final authViewModelProvider = StateNotifierProvider.autoDispose<
+  AuthViewModel,
+  AuthState
+>((ref) {
+  final authRepository = ref.watch(authRepositoryProvider);
+  final userRepository = ref.watch(userRepositoryProvider);
+  final secureStorageDataSource = ref.watch(secureStorageDataSourceProvider);
+
+  return AuthViewModel(authRepository, userRepository, secureStorageDataSource);
+});
+
+class AuthViewModel extends StateNotifier<AuthState> {
   final AuthRepository _authRepository;
-  final MemberRepository _memberRepository;
+  final UserRepository _userRepository;
+  final SecureStorageDataSource _secureStorageDataSource;
 
-  bool _isLoggedIn = false;
-  bool get isLoggedIn => _isLoggedIn;
-
-  Member? _currentMember;
-  Member? get currentMember => _currentMember;
-
-  String? _token;
-
-  bool _loginError = false;
-  bool get loginError => _loginError;
-  String _loginErrorMessage = '';
-  String get loginErrorMessage => _loginErrorMessage;
-
-  AuthViewModel(this._authRepository, this._memberRepository){
+  AuthViewModel(
+    this._authRepository,
+    this._userRepository,
+    this._secureStorageDataSource,
+  ) : super(AuthState()) {
     loadInitialData();
   }
 
   Future<void> loadInitialData() async {
     startLoading();
+
     try {
-      _token = await _authRepository.getToken();
-      _currentMember = await _memberRepository.getMemberDetail(
-          await _authRepository.getCurrentMemberId());
-      _isLoggedIn = _token != null;
+      final currentUser = await _userRepository.getMe();
+      state = state.copyWith(currentUser: currentUser);
     } catch (_) {
-      _isLoggedIn = false;
-      _token = null;
-      _currentMember = null;
+      state = state.copyWith(currentUser: null);
     } finally {
       stopLoading();
     }
@@ -45,39 +46,40 @@ class AuthViewModel extends ChangeNotifier with LoadingMixin {
 
   Future<void> login(String username, String password) async {
     startLoading();
-    _loginErrorMessage = '';
+    state = state.copyWith(loginErrorMessage: '');
 
-    if(username.isEmpty || password.isEmpty){
-      _loginError = true;
-      _loginErrorMessage = '이메일 또는 비밀번호를 입력해주세요.';
+    if (username.isEmpty || password.isEmpty) {
+      state = state.copyWith(loginErrorMessage: '이메일 또는 비밀번호를 입력해주세요.');
       stopLoading();
       return;
     }
 
     try {
-      final response = await _authRepository.login(username, password);
-      _isLoggedIn = true;
-      _token = response.token;
-      _currentMember = await _memberRepository.getMemberDetail(response.memberId);
-      _loginError = false;
+      print('Attempting login with username: $username');
+      final response = await _authRepository.login(
+        LoginRequest(email: username, password: password),
+      );
+      print('Login successful: ${response.accessToken}');
+      _secureStorageDataSource.saveToken(response.accessToken);
+      state = state.copyWith(
+        currentUser: await _userRepository.getMe(),
+        loginErrorMessage: '',
+      );
+      stopLoading();
     } on ApiException catch (e) {
-      _isLoggedIn = false;
-      _loginError = true;
-      if(e.statusCode == 500){
-        _loginErrorMessage = "서버에 문제가 발생했습니다.";
+      state = state.copyWith(loginErrorMessage: e.message);
+      stopLoading();
+      if (e.status == 500) {
+        state = state.copyWith(loginErrorMessage: "서버에 문제가 발생했습니다.");
         return;
       }
-      if(e.errors != null && e.errors is Map<String, dynamic> && e.errors!.isNotEmpty) {
-        for(var entry in e.errors!.entries){
-          _loginErrorMessage += '${entry.value}\n';
-        }
+      if (e.errors.isNotEmpty) {
+        state = state.copyWith(loginErrorMessage: e.errors.values.join('\n'));
       } else {
-        _loginErrorMessage = e.message;
+        state = state.copyWith(loginErrorMessage: e.message);
       }
-    } catch(e){
-      _loginError = true;
-      _isLoggedIn = false;
-      _loginErrorMessage = "로그인 실패";
+    } catch (e) {
+      state = state.copyWith(loginErrorMessage: "로그인 실패");
       rethrow;
     } finally {
       stopLoading();
@@ -85,9 +87,49 @@ class AuthViewModel extends ChangeNotifier with LoadingMixin {
   }
 
   Future<void> logout() async {
-    _authRepository.logout();
-    _isLoggedIn = false;
-    _token = null;
-    _currentMember = null;
+    startLoading();
+    await _authRepository.logout();
+    await _secureStorageDataSource.deleteToken();
+    state = state.copyWith(currentUser: null, loginErrorMessage: '');
+    stopLoading();
+  }
+
+  Future<void> clientLogout() async {
+    startLoading();
+    await _secureStorageDataSource.deleteToken();
+    state = state.copyWith(currentUser: null, loginErrorMessage: '');
+    stopLoading();
+  }
+
+  void startLoading() {
+    state = state.copyWith(isLoading: true);
+  }
+
+  void stopLoading() {
+    state = state.copyWith(isLoading: false);
+  }
+}
+
+class AuthState {
+  final User? currentUser;
+  final String loginErrorMessage;
+  final bool isLoading;
+
+  const AuthState({
+    this.currentUser,
+    this.loginErrorMessage = '',
+    this.isLoading = false,
+  });
+
+  AuthState copyWith({
+    User? currentUser,
+    String? loginErrorMessage,
+    bool? isLoading,
+  }) {
+    return AuthState(
+      currentUser: currentUser ?? this.currentUser,
+      loginErrorMessage: loginErrorMessage ?? this.loginErrorMessage,
+      isLoading: isLoading ?? this.isLoading,
+    );
   }
 }
