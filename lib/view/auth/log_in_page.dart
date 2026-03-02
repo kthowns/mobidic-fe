@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/view/list/vocab_list_page.dart';
 import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -68,12 +69,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ],
               ),
         );
-        /*
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const VocabListPage()),
         );
-        */
       }
     });
 
