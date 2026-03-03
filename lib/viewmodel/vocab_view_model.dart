@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/exception/api_exception.dart';
 import 'package:mobidic_flutter/model/vocab.dart';
 import 'package:mobidic_flutter/repository/statistic_repository.dart';
 import 'package:mobidic_flutter/repository/vocab_repository.dart';
@@ -94,6 +95,7 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
   void searchVocabs() {
     if (state.keyword.isEmpty) {
       state = state.copyWith(showingVocabs: state.vocabs);
+      return;
     }
     final query = state.keyword.toLowerCase();
     state = state.copyWith(
@@ -126,8 +128,25 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
   }
 
   Future<void> addVocab(String title, String description) async {
-    await _vocabRepository.addVocab(title, description);
-    await loadData();
+    setAddingErrorMessage('');
+    try {
+      startLoading();
+      await _vocabRepository.addVocab(title, description);
+      await loadData();
+      stopLoading();
+    } on ApiException catch (e) {
+      setAddingErrorMessage(e.message);
+      stopLoading();
+      rethrow;
+    } catch (e) {
+      setAddingErrorMessage("알 수 없는 오류가 발생했습니다.");
+      stopLoading();
+      rethrow;
+    }
+  }
+
+  void setAddingErrorMessage(String message) {
+    state = state.copyWith(addingErrorMessage: message);
   }
 
   Future<void> updateVocab(
@@ -159,6 +178,7 @@ class VocabListState {
   final double avgLearningRate;
   final bool isLoading;
   final String keyword;
+  final String addingErrorMessage;
 
   VocabListState({
     this.currentVocab,
@@ -169,6 +189,7 @@ class VocabListState {
     this.avgLearningRate = 0.0,
     this.isLoading = false,
     this.keyword = '',
+    this.addingErrorMessage = '',
   });
 
   VocabListState copyWith({
@@ -180,6 +201,7 @@ class VocabListState {
     double? avgLearningRate,
     bool? isLoading,
     String? keyword,
+    String? addingErrorMessage,
   }) {
     return VocabListState(
       currentVocab: currentVocab ?? this.currentVocab,
@@ -190,6 +212,7 @@ class VocabListState {
       avgLearningRate: avgLearningRate ?? this.avgLearningRate,
       isLoading: isLoading ?? this.isLoading,
       keyword: keyword ?? this.keyword,
+      addingErrorMessage: addingErrorMessage ?? this.addingErrorMessage,
     );
   }
 }

@@ -1,136 +1,135 @@
-import 'package:mobidic_flutter/data/api_client.dart';
-import 'package:mobidic_flutter/dto/add_def_dto.dart';
-import 'package:mobidic_flutter/dto/add_word_dto.dart';
-import 'package:mobidic_flutter/dto/api_response_dto.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/api/dio.dart';
+import 'package:mobidic_flutter/dto/def_dto.dart';
+import 'package:mobidic_flutter/dto/word_dto.dart';
 import 'package:mobidic_flutter/model/definition.dart';
-import 'package:mobidic_flutter/model/word_statistic.dart';
 import 'package:mobidic_flutter/model/vocab.dart';
-import 'package:mobidic_flutter/repository/auth_repository.dart';
-import 'package:mobidic_flutter/type/part_of_speech.dart';
+import 'package:mobidic_flutter/repository/repository.dart';
 
 import '../model/word.dart';
 
-class WordRepository {
-  final ApiClient _apiClient;
-  final AuthRepository _authRepository;
+final wordRepositoryProvider = Provider<WordRepository>((ref) {
+  final dio = ref.watch(dioProvider);
+  return WordRepository(dio);
+});
 
-  WordRepository(this._apiClient, this._authRepository);
+class WordRepository extends Repository {
+  final Dio _dio;
 
-  Future<List<Word>> getWords(String? vocabId) async {
-    String? token = await _authRepository.getAccessToken();
-    String? memberId = await _authRepository.getCurrentMemberId();
+  WordRepository(this._dio);
 
-    GeneralResponseDto body = await _apiClient.get(
-      url: '/word/all',
-      headers: {'Authorization': 'Bearer $token'},
-      params: {'vId': vocabId},
-    );
-
-    List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(
-      body.data,
-    );
-
-    List<WordDto> responses = data.map((v) => WordDto.fromJson(v)).toList();
-    List<Word> words = [];
-
-    for (WordDto dto in responses) {
-      GeneralResponseDto rateBody = await _apiClient.get(
-        url: '/rate/w',
-        headers: {'Authorization': 'Bearer $token'},
-        params: {'wId': dto.id},
+  Future<List<Word>> getWords(String vocabId) async {
+    try {
+      final response = await _dio.get(
+        '/words/all',
+        options: Options(extra: {'auth': true}),
+        queryParameters: {'vocabularyId': vocabId},
       );
 
-      RateDto rateResponse = RateDto.fromJson(rateBody.data);
-
-      GeneralResponseDto defsBody = await _apiClient.get(
-        url: '/def/all',
-        headers: {'Authorization': 'Bearer $token'},
-        params: {'wId': dto.id},
+      List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(
+        response.data['data'] as List,
       );
 
-      List<Map<String, dynamic>> defsData = List<Map<String, dynamic>>.from(
-        defsBody.data,
-      );
-      List<DefDto> defDtos = defsData.map((d) => DefDto.fromJson(d)).toList();
-      List<Definition> defs =
-          defDtos.map((d) => Definition.fromDto(d)).toList();
-
-      Word word = Word.fromDto(dto, WordStatistic.fromDto(rateResponse), defs);
-
-      words.add(word);
+      return data.map((v) => Word.fromJson(v)).toList();
+    } on DioException catch (e) {
+      print('/words/all error: ${e.message} $e');
+      throw handleApiException(e);
+    } catch (e) {
+      print('/words/all unknown error: $e');
+      throw handleUnknownException(e);
     }
-
-    return words;
   }
 
   Future<void> addWord(
-    Vocab? vocab,
+    Vocab vocab,
     String expression,
-    List<DefWithPart> defs,
+    List<AddDefRequestDto> definitions,
   ) async {
-    String? token = await _authRepository.getAccessToken();
-    String? memberId = await _authRepository.getCurrentMemberId();
-
-    GeneralResponseDto wordsBody = await _apiClient.post(
-      url: '/word/${vocab?.id}',
-      headers: {'Authorization': 'Bearer $token'},
-      body: AddWordRequestDto(expression: expression),
-    );
-
-    WordDto wordDto = WordDto.fromJson(wordsBody.data);
-
-    for (DefWithPart def in defs) {
-      GeneralResponseDto wordsBody = await _apiClient.post(
-        url: '/def/${wordDto.id}',
-        headers: {'Authorization': 'Bearer $token'},
-        body: AddDefRequestDto(definition: def.definition, part: def.part),
+    try {
+      final response = await _dio.post(
+        '/words/${vocab.id}',
+        options: Options(extra: {'auth': true}),
+        data: AddWordRequestDto(expression: expression).toJson(),
       );
+
+      String wordId = response.data['data']['id'];
+
+      for (AddDefRequestDto def in definitions) {
+        await _dio.post(
+          '/definitions/$wordId',
+          options: Options(extra: {'auth': true}),
+          data: def.toJson(),
+        );
+      }
+    } on DioException catch (e) {
+      print('/words add error: ${e.message} $e');
+      throw handleApiException(e);
+    } catch (e) {
+      print('/words add unknown error: $e');
+      throw handleUnknownException(e);
     }
   }
 
   Future<void> deleteWord(Word word) async {
-    String? token = await _authRepository.getAccessToken();
-    String? memberId = await _authRepository.getCurrentMemberId();
-
-    GeneralResponseDto body = await _apiClient.delete(
-      url: '/word/${word.id}',
-      headers: {'Authorization': 'Bearer $token'},
-    );
+    try {
+      await _dio.delete(
+        '/words/${word.id}',
+        options: Options(extra: {'auth': true}),
+      );
+    } on DioException catch (e) {
+      print('/words delete error: ${e.message} $e');
+      throw handleApiException(e);
+    } catch (e) {
+      print('/words delete unknown error: $e');
+      throw handleUnknownException(e);
+    }
   }
 
   Future<void> updateWord(Word word, String exp, List<Definition> defs) async {
-    String? token = await _authRepository.getAccessToken();
+    try {
+      await _dio.patch(
+        '/words/${word.id}',
+        options: Options(extra: {'auth': true}),
+        data: AddWordRequestDto(expression: exp).toJson(),
+      );
 
-    GeneralResponseDto body = await _apiClient.patch(
-      url: '/word/${word.id}',
-      headers: {'Authorization': 'Bearer $token'},
-      body: AddWordRequestDto(expression: exp),
-    );
-
-    for (Definition def in defs) {
-      if (def.id.isEmpty) {
-        GeneralResponseDto body = await _apiClient.post(
-          url: '/def/${word.id}',
-          headers: {'Authorization': 'Bearer $token'},
-          body: AddDefRequestDto(definition: def.definition, part: def.part),
-        );
-      } else {
-        GeneralResponseDto body = await _apiClient.patch(
-          url: '/def/${def.id}',
-          headers: {'Authorization': 'Bearer $token'},
-          body: AddDefRequestDto(definition: def.definition, part: def.part),
-        );
+      for (Definition def in defs) {
+        if (def.id.isEmpty) {
+          await _dio.post(
+            '/definitions/${word.id}',
+            options: Options(extra: {'auth': true}),
+            data: AddDefRequestDto(definition: def.definition, part: def.part),
+          );
+        } else {
+          await _dio.patch(
+            '/definitions/${def.id}',
+            options: Options(extra: {'auth': true}),
+            data: AddDefRequestDto(definition: def.definition, part: def.part),
+          );
+        }
       }
+    } on DioException catch (e) {
+      print('/words update error: ${e.message} $e');
+      throw handleApiException(e);
+    } catch (e) {
+      print('/words update unknown error: $e');
+      throw handleUnknownException(e);
     }
   }
 
   Future<void> deleteDef(Definition def) async {
-    String? token = await _authRepository.getAccessToken();
-    String? memberId = await _authRepository.getCurrentMemberId();
-
-    GeneralResponseDto body = await _apiClient.delete(
-      url: '/def/${def.id}',
-      headers: {'Authorization': 'Bearer $token'},
-    );
+    try {
+      await _dio.delete(
+        '/definitions/${def.id}',
+        options: Options(extra: {'auth': true}),
+      );
+    } on DioException catch (e) {
+      print('/definitions delete error: ${e.message} $e');
+      throw handleApiException(e);
+    } catch (e) {
+      print('/definitions delete unknown error: $e');
+      throw handleUnknownException(e);
+    }
   }
 }
