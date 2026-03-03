@@ -1,56 +1,60 @@
 import 'package:flutter/cupertino.dart';
-import 'package:mobidic_flutter/mixin/LoadingMixin.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/dto/def_dto.dart';
 import 'package:mobidic_flutter/model/definition.dart';
 import 'package:mobidic_flutter/model/vocab.dart';
 import 'package:mobidic_flutter/model/word.dart';
-import 'package:mobidic_flutter/repository/rate_repository.dart';
+import 'package:mobidic_flutter/repository/statistic_repository.dart';
 import 'package:mobidic_flutter/repository/word_repository.dart';
 import 'package:mobidic_flutter/type/part_of_speech.dart';
 import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
 
-class WordViewModel extends ChangeNotifier with LoadingMixin {
-  final WordRepository _wordRepository;
-  final RateRepository _rateRepository;
-  final VocabViewModel _vocabViewModel;
-  final TextEditingController searchController = TextEditingController();
+final wordViewModelProvider =
+    StateNotifierProvider.autoDispose<WordViewModel, WordListState>((ref) {
+      final wordRepository = ref.read(wordRepositoryProvider);
+      final statisticRepository = ref.read(statisticRepositoryProvider);
+      final vocabListState = ref.watch(vocabListViewModelProvider);
 
-  WordViewModel(
-    this._wordRepository,
-    this._rateRepository,
-    this._vocabViewModel,
-  ) {
+      return WordViewModel(
+        wordRepository,
+        statisticRepository,
+        vocabListState.currentVocab,
+      );
+    });
+
+class WordViewModel extends StateNotifier<WordListState> {
+  final WordRepository _wordRepository;
+  final StatisticRepository _rateRepository;
+
+  WordViewModel(this._wordRepository, this._rateRepository, Vocab? currentVocab)
+    : super(WordListState(currentVocab: currentVocab)) {
     init();
   }
 
   Future<void> init() async {
     await loadData();
-    searchController.addListener(() {
-      searchWords();
-    });
   }
 
   Future<void> loadData() async {
     startLoading();
-    _words = await _wordRepository.getWords(_vocabViewModel.currentVocab?.id);
-    searchWords();
+    final currentVocab = state.currentVocab;
+    if (currentVocab == null) {
+      state = state.copyWith(words: [], showingWords: []);
+      stopLoading();
+      return;
+    }
+    final words = await _wordRepository.getWords(currentVocab.id);
+    state = state.copyWith(words: words);
     sort();
-    updateRates();
+    fetchStatistics();
     stopLoading();
   }
 
-  Future<void> updateRates() async {
-    _accuracy = await getQuizAccuracy();
-    _learningRate = await getLearningRate();
-    notifyListeners();
+  Future<void> fetchStatistics() async {
+    final accuracy = await getQuizAccuracy();
+    final learningRate = await getLearningRate();
+    state = state.copyWith(accuracy: accuracy, learningRate: learningRate);
   }
-
-  @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
-  }
-
-  Vocab? get currentVocab => _vocabViewModel.currentVocab;
 
   final List<String> sortOptions = ['최신순', '난이도순', '알파벳순'];
   int currentSortIndex = 0;
@@ -69,84 +73,37 @@ class WordViewModel extends ChangeNotifier with LoadingMixin {
         break;
     }
     sort();
-    searchWords();
   }
 
-  final TextEditingController _addingExpController = TextEditingController();
-  TextEditingController get addingExpController => _addingExpController;
-
-  String _addingErrorMessage = "";
-  String get addingErrorMessage => _addingErrorMessage;
-
-  final List<DefWithPart> addingDefs = [DefWithPart(definition: "", part: PartOfSpeech.NOUN)];
-
-  final TextEditingController _editingExpController = TextEditingController();
-  TextEditingController get editingExpController => _editingExpController;
-
-  String _editingErrorMessage = "";
-  String get editingErrorMessage => _editingErrorMessage;
-
-  final List<Definition> editingDefs = [];
-  final List<Definition> removingDefs = [];
-
-  List<Word> _words = [];
-
-  List<Word> get words => _words;
-
-  List<Word> _showingWords = [];
-
-  List<Word> get showingVocabs => _showingWords;
-
-  bool _editMode = false;
-
-  bool get editMode => _editMode;
-
-  double _accuracy = 0.0;
-
-  double get accuracy => _accuracy;
-
-  double _learningRate = 0.0;
-
-  double get learningRate => _learningRate;
-
   void toggleEditMode() {
-    _editMode = !_editMode;
-    notifyListeners();
+    state = state.copyWith(editMode: !state.editMode);
   }
 
   Comparator<Word> comparator =
       (w2, w1) => w1.createdAt!.compareTo(w2.createdAt!);
 
-  int selectedCardIndex = -1;
-
-  double get avgLearningRate => _vocabViewModel.avgLearningRate;
-
   void searchWords() {
-    String keyword = searchController.text;
-
-    if (keyword.isEmpty) {
-      _showingWords = _words;
+    if (state.keyword.isEmpty) {
+      state = state.copyWith(showingWords: state.words);
+      return;
     }
-    final query = searchController.text.toLowerCase();
-    _showingWords =
-        _words
-            .where(
-              (w) =>
-                  w.expression.toLowerCase().contains(query) ||
-                  w.defs.any(
-                    (def) => def.definition.toLowerCase().contains(query),
-                  ),
-            )
-            .toList();
-    notifyListeners();
+    final query = state.keyword.toLowerCase();
+    state = state.copyWith(
+      showingWords: state.words.where(
+        (w) =>
+            w.expression.toLowerCase().contains(query) ||
+            w.definitions.any(
+              (def) => def.definition.toLowerCase().contains(query),
+            ),
+      ).toList());
   }
 
-  void setAddingErrorMessage(String message){
+  void setAddingErrorMessage(String message) {
     _addingErrorMessage = message;
     notifyListeners();
   }
 
-  void setEditingErrorMessage(String message){
+  void setEditingErrorMessage(String message) {
     _addingErrorMessage = message;
     notifyListeners();
   }
@@ -161,7 +118,7 @@ class WordViewModel extends ChangeNotifier with LoadingMixin {
     );
   }
 
-  Future<void> addWord(String expression, List<DefWithPart> defs) async {
+  Future<void> addWord(String expression, List<AddWordRequest> defs) async {
     await _wordRepository.addWord(
       _vocabViewModel.currentVocab,
       expression,
@@ -172,8 +129,8 @@ class WordViewModel extends ChangeNotifier with LoadingMixin {
 
   Future<void> updateWord(Word word, String exp, List<Definition> defs) async {
     await _wordRepository.updateWord(word, exp, defs);
-    if(removingDefs.isNotEmpty){
-      for(Definition def in removingDefs){
+    if (removingDefs.isNotEmpty) {
+      for (Definition def in removingDefs) {
         await _wordRepository.deleteDef(def);
       }
     }
@@ -191,7 +148,72 @@ class WordViewModel extends ChangeNotifier with LoadingMixin {
   }
 
   void sort() {
+    searchWords();
     _words.sort(comparator);
     notifyListeners();
+  }
+
+  void startLoading() {
+    state = state.copyWith(isLoading: true);
+  }
+
+  void stopLoading() {
+    state = state.copyWith(isLoading: false);
+  }
+}
+
+class WordListState {
+  final List<Word> words;
+  final List<Word> showingWords;
+  final List<AddDefRequestDto> addingDefs;
+  final String addingErrorMessage;
+  final String editingErrorMessage;
+  final String keyword;
+  final bool isLoading;
+  final bool editMode;
+  final double accuracy;
+  final double learningRate;
+  final Vocab? currentVocab;
+
+  WordListState({
+    this.words = const [],
+    this.showingWords = const [],
+    this.addingDefs = const [],
+    this.addingErrorMessage = '',
+    this.editingErrorMessage = '',
+    this.keyword = '',
+    this.isLoading = false,
+    this.editMode = false,
+    this.accuracy = 0.0,
+    this.learningRate = 0.0,
+    this.currentVocab,
+  });
+
+  WordListState copyWith({
+    List<Word>? words,
+    List<Word>? showingWords,
+    List<AddDefRequestDto>? addingDefs,
+    String? addingErrorMessage,
+    String? editingErrorMessage,
+    String? keyword,
+    bool? isLoading,
+    bool? editMode,
+    double? accuracy,
+    double? learningRate,
+    Vocab? currentVocab,
+  }) {
+    return WordListState(
+      words: words ?? this.words,
+      showingWords: showingWords ?? this.showingWords,
+      addingDefs: addingDefs ?? this.addingDefs,
+      addingErrorMessage: addingErrorMessage ?? this.addingErrorMessage,
+      editingErrorMessage: editingErrorMessage ?? this.editingErrorMessage,
+      keyword: keyword ?? this.keyword,
+      isLoading: isLoading ?? this.isLoading,
+      editMode: editMode ?? this.editMode,
+      accuracy: accuracy ?? this.accuracy,
+      learningRate: learningRate ?? this.learningRate,
+      currentVocab: currentVocab ?? this.currentVocab,
+    );
   }
 }

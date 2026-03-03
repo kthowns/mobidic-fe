@@ -25,52 +25,80 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final vocabViewModel = ref.read(vocabListViewModelProvider.notifier);
-    final VocabListState vocabListState = ref.watch(vocabListViewModelProvider);
+    final vocabListViewModel = ref.read(vocabListViewModelProvider.notifier);
+    final vocabListState = ref.watch(vocabListViewModelProvider);
 
     searchController.addListener(() {
-      vocabViewModel.setSearchQuery(searchController.text);
+      vocabListViewModel.setSearchQuery(searchController.text);
     });
 
     void showAddVocabDialog() {
       showDialog(
         context: context,
         builder:
-            (context) => AlertDialog(
-              title: const Text('단어장 추가'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: titleController,
-                    decoration: const InputDecoration(hintText: '새 단어장 이름'),
+            (context) => Stack(
+              children: [
+                AlertDialog(
+                  title: const Text('단어장 추가'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: titleController,
+                        decoration: const InputDecoration(hintText: '새 단어장 이름'),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: descController,
+                        decoration: const InputDecoration(
+                          hintText: '세부 설명을 입력해주세요',
+                        ),
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      Consumer(
+                        builder: (context, ref, child) {
+                          final state = ref.watch(vocabListViewModelProvider);
+                          return Text(
+                            state.addingErrorMessage,
+                            style: const TextStyle(color: Colors.red),
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: descController,
-                    decoration: const InputDecoration(
-                      hintText: '세부 설명을 입력해주세요',
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('취소'),
                     ),
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('취소'),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (titleController.text.trim().isNotEmpty) {
+                          try {
+                            await vocabListViewModel.addVocab(
+                              titleController.text,
+                              descController.text,
+                            );
+                          } catch (e) {
+                            return;
+                          }
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: const Text('추가'),
+                    ),
+                  ],
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (titleController.text.trim().isNotEmpty) {
-                      vocabViewModel.addVocab(
-                        titleController.text,
-                        descController.text,
+                Consumer(
+                  builder: (context, ref, child) {
+                    if (ref.watch(vocabListViewModelProvider).isLoading) {
+                      return Container(
+                        color: const Color.fromARGB(128, 91, 91, 91), // 배경 어둡게
+                        child: const Center(child: CircularProgressIndicator()),
                       );
-                      Navigator.pop(context);
                     }
+                    return const SizedBox.shrink();
                   },
-                  child: const Text('추가'),
                 ),
               ],
             ),
@@ -113,7 +141,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                 ElevatedButton(
                   onPressed: () {
                     if (titleController.text.trim().isNotEmpty) {
-                      vocabViewModel.updateVocab(
+                      vocabListViewModel.updateVocab(
                         vocabListState.showingVocabs[index],
                         titleController.text.trim(),
                         descController.text.trim(),
@@ -142,7 +170,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                 ),
                 TextButton(
                   onPressed: () {
-                    vocabViewModel.deleteVocab(
+                    vocabListViewModel.deleteVocab(
                       vocabListState.showingVocabs[index],
                     );
                     Navigator.pop(context);
@@ -192,7 +220,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                           ElevatedButton(
                             onPressed: () {
                               Navigator.pop(context);
-                              vocabViewModel.selectVocabAt(index);
+                              vocabListViewModel.selectVocabAt(index);
                               /*
                               NavigationHelper.navigateToFlashCard(
                                 context,
@@ -535,7 +563,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                         ),
                         const SizedBox(width: 10),
                         ElevatedButton(
-                          onPressed: vocabViewModel.cycleSortOption,
+                          onPressed: vocabListViewModel.cycleSortOption,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue[100],
                             foregroundColor: Colors.black,
@@ -549,7 +577,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                             ),
                           ),
                           child: Text(
-                            vocabViewModel.sortOptions[vocabViewModel
+                            vocabListViewModel.sortOptions[vocabListViewModel
                                 .currentSortIndex],
                             style: const TextStyle(
                               fontSize: 14,
@@ -559,7 +587,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                         ),
                         const SizedBox(width: 10),
                         ElevatedButton(
-                          onPressed: vocabViewModel.toggleEditMode,
+                          onPressed: vocabListViewModel.toggleEditMode,
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
                                 vocabListState.editMode
@@ -588,7 +616,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                   ),
                   Expanded(
                     child: RefreshIndicator(
-                      onRefresh: vocabViewModel.loadData,
+                      onRefresh: vocabListViewModel.loadData,
                       child:
                           vocabListState.vocabs.isNotEmpty
                               ? ListView.builder(
