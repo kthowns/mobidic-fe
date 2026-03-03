@@ -1,57 +1,34 @@
 import 'package:mobidic_flutter/model/definition.dart';
-import 'package:mobidic_flutter/model/word_statistic.dart';
 
 class Word {
   String id;
-  String vocabId;
   String expression;
   double difficulty;
+  double accuracy;
   bool isLearned = false;
-  List<Definition> defs = [];
+  List<Definition> definitions = [];
   DateTime? createdAt;
 
   Word({
     required this.id,
-    required this.vocabId,
     required this.expression,
     required this.difficulty,
-    required this.defs,
+    required this.definitions,
     required this.isLearned,
     required this.createdAt,
+    required this.accuracy,
   });
 
-  factory Word.fromDto(
-    WordDto wordDto,
-    WordStatistic rate,
-    List<Definition> defs,
-  ) => Word(
-    id: wordDto.id,
-    vocabId: wordDto.vocabId,
-    expression: wordDto.expression,
-    difficulty: rate.difficulty,
-    defs: defs,
-    isLearned: rate.isLearned != 0 ? true : false,
-    createdAt: wordDto.createdAt,
-  );
-}
-
-class WordDto {
-  final String id;
-  final String vocabId;
-  final String expression;
-  final DateTime? createdAt;
-
-  WordDto({
-    required this.id,
-    required this.vocabId,
-    required this.expression,
-    required this.createdAt,
-  });
-
-  factory WordDto.fromJson(Map<String, dynamic> json) => WordDto(
+  factory Word.fromJson(Map<String, dynamic> json) => Word(
     id: json['id'],
-    vocabId: json['vocabId'],
     expression: json['expression'],
+    difficulty: json['difficulty'],
+    accuracy: json['accuracy'],
+    isLearned: json['isLearned'],
+    definitions:
+        (json['defs'] as List<dynamic>)
+            .map((defJson) => Definition.fromJson(defJson))
+            .toList(),
     createdAt:
         json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
   );
