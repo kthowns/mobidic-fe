@@ -4,7 +4,7 @@ import 'package:mobidic_flutter/model/vocab.dart';
 import 'package:mobidic_flutter/repository/statistic_repository.dart';
 import 'package:mobidic_flutter/repository/vocab_repository.dart';
 
-final vocabListViewModelProvider =
+final vocabListStateProvider =
     StateNotifierProvider.autoDispose<VocabListViewModel, VocabListState>((
       ref,
     ) {
@@ -42,8 +42,9 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
   Future<void> loadData() async {
     startLoading();
     await fetchVocabs();
-    sort();
-    fetchStatistics();
+    searchVocabs();
+    await fetchStatistics();
+    print("평균 학습률 : ${state.avgLearningRate}");
     stopLoading();
   }
 
@@ -108,6 +109,7 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
               )
               .toList(),
     );
+    sort();
   }
 
   void setSearchQuery(String query) {
@@ -120,7 +122,11 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
   }
 
   double getAvgLearningRate() {
-    double result = 0;
+    double result = 0.0;
+    if (state.vocabs.isEmpty) {
+      return 0.0;
+    }
+
     for (Vocab vocab in state.vocabs) {
       result += vocab.learningRate;
     }
@@ -164,7 +170,6 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
   }
 
   void sort() {
-    searchVocabs();
     state = state.copyWith(vocabs: state.vocabs..sort(comparator));
   }
 }

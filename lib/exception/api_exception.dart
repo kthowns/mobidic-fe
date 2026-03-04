@@ -1,7 +1,7 @@
 class ApiException implements Exception {
   final int status;
   final String message;
-  final Map<String, String> errors;
+  final Map<String, dynamic> errors;
 
   ApiException({
     required this.status,
@@ -16,7 +16,7 @@ class ApiException implements Exception {
     return ApiException(
       status: json['status'] ?? 500,
       message: json['message'] ?? 'Unknown error',
-      errors: Map<String, String>.from(json['errors'] ?? {}),
+      errors: Map<String, dynamic>.from(json['errors'] ?? {}),
     );
   }
 }

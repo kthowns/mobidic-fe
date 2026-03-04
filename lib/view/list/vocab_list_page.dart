@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/view/list/word_list_page.dart';
 import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
 
 class VocabListPage extends ConsumerStatefulWidget {
@@ -25,8 +26,8 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final vocabListViewModel = ref.read(vocabListViewModelProvider.notifier);
-    final vocabListState = ref.watch(vocabListViewModelProvider);
+    final vocabListViewModel = ref.read(vocabListStateProvider.notifier);
+    final vocabListState = ref.watch(vocabListStateProvider);
 
     searchController.addListener(() {
       vocabListViewModel.setSearchQuery(searchController.text);
@@ -57,7 +58,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                       ),
                       Consumer(
                         builder: (context, ref, child) {
-                          final state = ref.watch(vocabListViewModelProvider);
+                          final state = ref.watch(vocabListStateProvider);
                           return Text(
                             state.addingErrorMessage,
                             style: const TextStyle(color: Colors.red),
@@ -73,17 +74,22 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                     ),
                     ElevatedButton(
                       onPressed: () async {
-                        if (titleController.text.trim().isNotEmpty) {
-                          try {
-                            await vocabListViewModel.addVocab(
-                              titleController.text,
-                              descController.text,
-                            );
-                          } catch (e) {
-                            return;
-                          }
-                          Navigator.pop(context);
+                        if (titleController.text.trim().isEmpty) {
+                          vocabListViewModel.setAddingErrorMessage(
+                            '단어장 이름은 필수입니다.',
+                          );
+                          return;
                         }
+
+                        try {
+                          await vocabListViewModel.addVocab(
+                            titleController.text,
+                            descController.text,
+                          );
+                        } catch (e) {
+                          return;
+                        }
+                        Navigator.pop(context);
                       },
                       child: const Text('추가'),
                     ),
@@ -91,7 +97,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                 ),
                 Consumer(
                   builder: (context, ref, child) {
-                    if (ref.watch(vocabListViewModelProvider).isLoading) {
+                    if (ref.watch(vocabListStateProvider).isLoading) {
                       return Container(
                         color: const Color.fromARGB(128, 91, 91, 91), // 배경 어둡게
                         child: const Center(child: CircularProgressIndicator()),
@@ -625,16 +631,15 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                                 itemBuilder: (context, index) {
                                   return GestureDetector(
                                     child: buildVocabCard(index),
-                                    onTap:
-                                        () => {
-                                          /*
-                                            NavigationHelper.navigateToWordList(
-                                              context,
-                                              vocabViewModel,
-                                              index,
-                                            ),
-                                            */
-                                        },
+                                    onTap: () {
+                                      vocabListViewModel.selectVocabAt(index);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => WordListPage(),
+                                        ),
+                                      );
+                                    },
                                   );
                                 },
                               )
