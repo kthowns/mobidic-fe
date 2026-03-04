@@ -1,16 +1,10 @@
 import 'package:mobidic_flutter/type/part_of_speech.dart';
 
 class AddDefRequestDto {
-  final String definition;
+  final String meaning;
   final PartOfSpeech part;
 
-  AddDefRequestDto({
-    required this.definition,
-    required this.part,
-  });
+  AddDefRequestDto({required this.meaning, required this.part});
 
-  Map<String, dynamic> toJson() => {
-    'definition': definition,
-    'part': part.name
-  };
+  Map<String, dynamic> toJson() => {'meaning': meaning, 'part': part.name};
 }
