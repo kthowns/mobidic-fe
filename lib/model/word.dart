@@ -26,7 +26,7 @@ class Word {
     accuracy: json['accuracy'],
     isLearned: json['isLearned'],
     definitions:
-        (json['defs'] as List<dynamic>)
+        (json['definitions'] as List<dynamic>)
             .map((defJson) => Definition.fromJson(defJson))
             .toList(),
     createdAt:

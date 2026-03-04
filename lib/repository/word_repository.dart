@@ -22,7 +22,7 @@ class WordRepository extends Repository {
   Future<List<Word>> getWords(String vocabId) async {
     try {
       final response = await _dio.get(
-        '/words/all',
+        '/words',
         options: Options(extra: {'auth': true}),
         queryParameters: {'vocabularyId': vocabId},
       );
@@ -33,43 +33,81 @@ class WordRepository extends Repository {
 
       return data.map((v) => Word.fromJson(v)).toList();
     } on DioException catch (e) {
-      print('/words/all error: ${e.message} $e');
+      print('/words error: ${e.message}');
       throw handleApiException(e);
     } catch (e) {
-      print('/words/all unknown error: $e');
+      print('/words unknown error: $e');
       throw handleUnknownException(e);
     }
   }
 
-  Future<void> addWord(
-    Vocab vocab,
-    String expression,
-    List<AddDefRequestDto> definitions,
-  ) async {
-    try {
-      final response = await _dio.post(
-        '/words/${vocab.id}',
-        options: Options(extra: {'auth': true}),
-        data: AddWordRequestDto(expression: expression).toJson(),
-      );
-
-      String wordId = response.data['data']['id'];
-
-      for (AddDefRequestDto def in definitions) {
-        await _dio.post(
-          '/definitions/$wordId',
+    Future<void> addWord(
+      Vocab vocab,
+      String expression,
+      List<AddDefRequestDto> definitions,
+    ) async {
+      try {
+        final response = await _dio.post(
+          '/words/${vocab.id}',
           options: Options(extra: {'auth': true}),
-          data: def.toJson(),
+          data: AddWordRequestDto(expression: expression).toJson(),
         );
+
+        String wordId = response.data['data']['id'];
+
+        for (AddDefRequestDto def in definitions) {
+          await _dio.post(
+            '/definitions/$wordId',
+            options: Options(extra: {'auth': true}),
+            data: def.toJson(),
+          );
+        }
+      } on DioException catch (e) {
+        print('/words add error: ${e.message}');
+        throw handleApiException(e);
+      } catch (e) {
+        print('/words add unknown error: $e');
+        throw handleUnknownException(e);
       }
-    } on DioException catch (e) {
-      print('/words add error: ${e.message} $e');
-      throw handleApiException(e);
-    } catch (e) {
-      print('/words add unknown error: $e');
-      throw handleUnknownException(e);
     }
-  }
+
+    Future<void> updateWord(
+      String wordId,
+      AddWordRequestDto word,
+      List<Definition> defs,
+    ) async {
+      try {
+        await _dio.patch(
+          '/words/$wordId',
+          options: Options(extra: {'auth': true}),
+          data: word.toJson(),
+        );
+
+        for (Definition def in defs) {
+          if (def.id.isEmpty) {
+            await _dio.post(
+              '/definitions/$wordId',
+              options: Options(extra: {'auth': true}),
+              data:
+                  AddDefRequestDto(meaning: def.meaning, part: def.part).toJson(),
+            );
+          } else {
+            await _dio.patch(
+              '/definitions/${def.id}',
+              options: Options(extra: {'auth': true}),
+              data:
+                  AddDefRequestDto(meaning: def.meaning, part: def.part).toJson(),
+            );
+          }
+        }
+      } on DioException catch (e) {
+        print('/words update error: ${e.message}');
+        throw handleApiException(e);
+      } catch (e) {
+        print('/words update unknown error: $e');
+        throw handleUnknownException(e);
+      }
+    }
 
   Future<void> deleteWord(Word word) async {
     try {
@@ -78,42 +116,10 @@ class WordRepository extends Repository {
         options: Options(extra: {'auth': true}),
       );
     } on DioException catch (e) {
-      print('/words delete error: ${e.message} $e');
+      print('/words delete error: ${e.message}');
       throw handleApiException(e);
     } catch (e) {
       print('/words delete unknown error: $e');
-      throw handleUnknownException(e);
-    }
-  }
-
-  Future<void> updateWord(Word word, String exp, List<Definition> defs) async {
-    try {
-      await _dio.patch(
-        '/words/${word.id}',
-        options: Options(extra: {'auth': true}),
-        data: AddWordRequestDto(expression: exp).toJson(),
-      );
-
-      for (Definition def in defs) {
-        if (def.id.isEmpty) {
-          await _dio.post(
-            '/definitions/${word.id}',
-            options: Options(extra: {'auth': true}),
-            data: AddDefRequestDto(definition: def.definition, part: def.part),
-          );
-        } else {
-          await _dio.patch(
-            '/definitions/${def.id}',
-            options: Options(extra: {'auth': true}),
-            data: AddDefRequestDto(definition: def.definition, part: def.part),
-          );
-        }
-      }
-    } on DioException catch (e) {
-      print('/words update error: ${e.message} $e');
-      throw handleApiException(e);
-    } catch (e) {
-      print('/words update unknown error: $e');
       throw handleUnknownException(e);
     }
   }
@@ -125,7 +131,7 @@ class WordRepository extends Repository {
         options: Options(extra: {'auth': true}),
       );
     } on DioException catch (e) {
-      print('/definitions delete error: ${e.message} $e');
+      print('/definitions delete error: ${e.message}');
       throw handleApiException(e);
     } catch (e) {
       print('/definitions delete unknown error: $e');
