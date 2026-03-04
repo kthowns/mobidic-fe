@@ -1,37 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:mobidic_flutter/viewmodel/join_view_model.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/viewmodel/sign_up_view_model.dart';
 
-class JoinPage extends StatelessWidget {
-  JoinPage({super.key});
+class SignUpPage extends ConsumerStatefulWidget {
+  const SignUpPage({super.key});
 
+  @override
+  ConsumerState<SignUpPage> createState() => SignUpPageState();
+}
+
+class SignUpPageState extends ConsumerState<SignUpPage> {
   final TextEditingController newIdController = TextEditingController();
   final TextEditingController newNicknameController = TextEditingController();
   final TextEditingController newPasswordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
-  bool isValidEmail(String email) {
-    final regex = RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
-    return regex.hasMatch(email);
-  }
-
-  bool isValidPassword(String password) {
-    if (password.length < 8) return false;
-    final forbiddenChars = RegExp(r'[-=]');
-    final specialCharRegex = RegExp(
-      r'''[!@#\$%^&*()_+{}\[\]:;"'<>,.?/\\|`~]''',
-    );
-
-    if (forbiddenChars.hasMatch(password)) return false;
-    if (!specialCharRegex.hasMatch(password)) return false;
-
-    return true;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final JoinViewModel joinViewModel = context.watch<JoinViewModel>();
+    final signUpViewModel = ref.read(signUpStateProvider.notifier);
+    final signUpState = ref.watch(signUpStateProvider);
 
     return Scaffold(
       backgroundColor: Colors.white, // 배경 흰색
@@ -69,7 +57,10 @@ class JoinPage extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: '가입할 이메일을 입력하세요',
                 helperText: 'ex ) example@naver.com',
-                errorText: joinViewModel.emailErrorText,
+                errorText:
+                    signUpState.emailErrorText.isNotEmpty
+                        ? signUpState.emailErrorText
+                        : null,
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -79,27 +70,33 @@ class JoinPage extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: '닉네임을 입력하세요',
                 helperText: '특수문자 제외 2~12자',
-                errorText: joinViewModel.nicknameErrorText,
+                errorText:
+                    signUpState.nicknameErrorText.isNotEmpty
+                        ? signUpState.nicknameErrorText
+                        : null,
                 border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: newPasswordController,
-              obscureText: !joinViewModel.isPasswordVisible,
+              obscureText: !signUpState.isPasswordVisible,
               decoration: InputDecoration(
                 labelText: '사용할 비밀번호를 입력하세요.',
                 helperText: '8자 이상 + 알파벳 + 숫자 ( - 와 = 제외 )',
-                errorText: joinViewModel.passwordErrorText,
+                errorText:
+                    signUpState.passwordErrorText.isNotEmpty
+                        ? signUpState.passwordErrorText
+                        : null,
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: Icon(
-                    joinViewModel.isPasswordVisible
+                    signUpState.isPasswordVisible
                         ? Icons.visibility
                         : Icons.visibility_off,
                   ),
                   onPressed: () {
-                    joinViewModel.togglePasswordVisibility();
+                    signUpViewModel.togglePasswordVisibility();
                   },
                 ),
               ),
@@ -107,33 +104,33 @@ class JoinPage extends StatelessWidget {
             const SizedBox(height: 20),
             TextField(
               controller: confirmPasswordController,
-              obscureText: !joinViewModel.isConfirmPasswordVisible,
+              obscureText: !signUpState.isConfirmPasswordVisible,
               decoration: InputDecoration(
                 labelText: '한 번 더 입력하세요.',
                 helperText: '동일한 비밀번호를 입력하세요.',
-                errorText: joinViewModel.confirmPasswordErrorText,
+                errorText:
+                    signUpState.confirmPasswordErrorText.isNotEmpty
+                        ? signUpState.confirmPasswordErrorText
+                        : null,
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: Icon(
-                    joinViewModel.isConfirmPasswordVisible
+                    signUpState.isConfirmPasswordVisible
                         ? Icons.visibility
                         : Icons.visibility_off,
                   ),
                   onPressed: () {
-                    joinViewModel.toggleConfirmPasswordVisibility();
+                    signUpViewModel.toggleConfirmPasswordVisibility();
                   },
                 ),
               ),
             ),
             const SizedBox(height: 30),
-            Visibility(
-              visible: joinViewModel.isGlobalErrorVisible,
-              replacement: SizedBox.shrink(),
-              child: Text(
-                joinViewModel.globalErrorText ?? '',
+            if (signUpState.globalErrorText.isNotEmpty)
+              Text(
+                signUpState.globalErrorText,
                 style: TextStyle(color: Colors.red),
               ),
-            ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -145,15 +142,16 @@ class JoinPage extends StatelessWidget {
                   final password = newPasswordController.text;
                   final confirm = confirmPasswordController.text;
 
-                  bool hasError = await joinViewModel.join(
+                  await signUpViewModel.signUp(
                     email,
                     nickname,
                     password,
                     confirm,
                   );
 
-                  if (hasError) return;
-
+                  if (signUpViewModel.hasError()) {
+                    return;
+                  }
                   showDialog(
                     barrierDismissible: false,
                     context: context,

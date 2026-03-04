@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/data/secure_storage_data_source.dart';
-import 'package:mobidic_flutter/repository/auth_repository.dart';
 import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
 
 final dioProvider = Provider<Dio>((ref) {

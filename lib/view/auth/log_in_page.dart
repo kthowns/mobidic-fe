@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/view/auth/sign_up_page.dart';
 import 'package:mobidic_flutter/view/list/vocab_list_page.dart';
 import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
+import 'package:mobidic_flutter/viewmodel/sign_up_view_model.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -170,12 +172,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             Center(
               child: TextButton(
                 onPressed: () {
-                  /*
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const JoinPage()),
+                    MaterialPageRoute(builder: (_) => const SignUpPage()),
                   );
-                  */
                 },
                 child: const Text(
                   '회원가입',
