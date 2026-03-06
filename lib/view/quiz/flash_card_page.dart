@@ -12,16 +12,10 @@ class FlashCardPage extends ConsumerStatefulWidget {
 }
 
 class FlashCardPageState extends ConsumerState<FlashCardPage> {
+  final CardSwiperController cardSwiperController = CardSwiperController();
   final int quizColor = 0xFFb3e5fc;
   bool wordVisibility = true;
   bool defVisibility = false;
-  late final CardSwiperController cardSwiperController;
-
-  @override
-  void initState() {
-    super.initState();
-    cardSwiperController = CardSwiperController();
-  }
 
   @override
   void dispose() {
