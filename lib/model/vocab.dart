@@ -4,6 +4,7 @@ class Vocab {
   final String description;
   final double learningRate;
   final double accuracy;
+  final int wordCount;
   final DateTime? createdAt;
 
   Vocab({
@@ -12,6 +13,7 @@ class Vocab {
     required this.description,
     required this.learningRate,
     required this.accuracy,
+    required this.wordCount,
     required this.createdAt,
   });
 
@@ -22,6 +24,7 @@ class Vocab {
       description: json['vocabulary']['description'],
       learningRate: json['learningRate'],
       accuracy: json['accuracy'],
+      wordCount: json['vocabulary']['wordCount'],
       createdAt:
           json['vocabulary']['createdAt'] != null
               ? DateTime.parse(json['vocabulary']['createdAt'])

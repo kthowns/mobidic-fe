@@ -336,7 +336,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         vocabListState.showingVocabs[index].description,
                         style: const TextStyle(
@@ -366,7 +366,15 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
             const SizedBox(height: 8),
             Row(
               spacing: 8,
-              children: [tagButton('퀴즈', index), tagButton('발음 체크', index)],
+              children: [
+                tagButton('퀴즈', index),
+                tagButton('발음 체크', index),
+                Spacer(),
+                Text(
+                  "${vocabListState.showingVocabs[index].wordCount}개",
+                  style: TextStyle(fontSize: 12),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             LayoutBuilder(
