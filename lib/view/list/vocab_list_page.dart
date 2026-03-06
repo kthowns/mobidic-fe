@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/view/list/word_list_page.dart';
+import 'package:mobidic_flutter/view/quiz/flash_card_page.dart';
 import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
 
 class VocabListPage extends ConsumerStatefulWidget {
@@ -227,12 +228,12 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                             onPressed: () {
                               Navigator.pop(context);
                               vocabListViewModel.selectVocabAt(index);
-                              /*
-                              NavigationHelper.navigateToFlashCard(
+                              Navigator.push(
                                 context,
-                                vocabViewModel,
-                                index,
-                              );*/
+                                MaterialPageRoute(
+                                  builder: (context) => FlashCardPage(),
+                                ),
+                              );
                             },
                             child: const Text('플래시카드'),
                           ),
