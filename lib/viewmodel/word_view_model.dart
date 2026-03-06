@@ -66,6 +66,11 @@ class WordListViewModel extends StateNotifier<WordListState> {
     state = state.copyWith(accuracy: accuracy, learningRate: learningRate);
   }
 
+  void setSearchKeyword(String keyword) {
+    state = state.copyWith(keyword: keyword);
+    searchWords();
+  }
+
   final List<String> sortOptions = ['최신순', '난이도순', '알파벳순'];
   int currentSortIndex = 0;
 
@@ -73,7 +78,7 @@ class WordListViewModel extends StateNotifier<WordListState> {
     currentSortIndex = (currentSortIndex + 1) % sortOptions.length;
     switch (sortOptions[currentSortIndex]) {
       case '알파벳순':
-        comparator = (b, a) => a.expression.compareTo(b.expression);
+        comparator = (a, b) => a.expression.compareTo(b.expression);
         break;
       case '난이도순':
         comparator = (b, a) => a.difficulty.compareTo(b.difficulty);

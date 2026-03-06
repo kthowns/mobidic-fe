@@ -1,18 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
-import 'package:mobidic_flutter/viewmodel/flash_card_view_model.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/viewmodel/word_view_model.dart';
 
-class FlashCardPage extends StatelessWidget {
+class FlashCardPage extends ConsumerStatefulWidget {
   const FlashCardPage({super.key});
 
   @override
+  ConsumerState<ConsumerStatefulWidget> createState() => FlashCardPageState();
+}
+
+class FlashCardPageState extends ConsumerState<FlashCardPage> {
+  final int quizColor = 0xFFb3e5fc;
+  bool wordVisibility = true;
+  bool defVisibility = false;
+  late final CardSwiperController cardSwiperController;
+
+  @override
+  void initState() {
+    super.initState();
+    cardSwiperController = CardSwiperController();
+  }
+
+  @override
+  void dispose() {
+    cardSwiperController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final FlashCardViewModel flashCardViewModel =
-        context.watch<FlashCardViewModel>();
-    final int quizColor = 0xFFb3e5fc;
-    final CardSwiperController _cardSwiperController = CardSwiperController();
+    final wordListState = ref.watch(wordListStateProvider);
+
+    print("FlashCardPage. Words : ${wordListState.words}");
 
     return Scaffold(
       appBar: AppBar(
@@ -84,147 +105,162 @@ class FlashCardPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // 카드 내용
-                  if(flashCardViewModel.words.isNotEmpty)
-                  Expanded(
-                    child: CardSwiper(
-                      controller: _cardSwiperController,
-                      isLoop: false,
-                      cardBuilder: (context, index, hPer, vPer) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Colors.black26,
-                                  blurRadius: 6,
-                                  offset: Offset(2, 4),
-                                ),
-                              ],
+                  if (wordListState.words.isNotEmpty)
+                    Expanded(
+                      child: CardSwiper(
+                        controller: cardSwiperController,
+                        isLoop: false,
+                        cardBuilder: (context, index, hPer, vPer) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0,
                             ),
-                            child: Stack(
-                              children: [
-                                // 카드 내용
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    // 영단어 영역
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text(
-                                          '영단어',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        IconButton(
-                                          icon: Icon(
-                                            flashCardViewModel.wordVisibility
-                                                ? Icons.visibility
-                                                : Icons.visibility_off,
-                                          ),
-                                          onPressed:
-                                              flashCardViewModel
-                                                  .toggleWordVisibility,
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 20),
-                                    Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        Text(
-                                          flashCardViewModel
-                                              .words[index]
-                                              .expression,
-                                          style: const TextStyle(
-                                            fontSize: 36,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        if (!flashCardViewModel.wordVisibility)
-                                          Positioned.fill(
-                                            child: Container(
-                                              color: Colors.blue[100],
+                            child: Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 6,
+                                    offset: Offset(2, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Stack(
+                                children: [
+                                  // 카드 내용
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // 영단어 영역
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text(
+                                            '영단어',
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                      ],
-                                    ),
-                                    const Divider(height: 50, thickness: 1),
-                                    // 뜻 영역
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text(
-                                          '뜻',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
+                                          IconButton(
+                                            icon: Icon(
+                                              wordVisibility
+                                                  ? Icons.visibility
+                                                  : Icons.visibility_off,
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                wordVisibility =
+                                                    !wordVisibility;
+                                              });
+                                            },
                                           ),
-                                        ),
-                                        IconButton(
-                                          icon: Icon(
-                                            flashCardViewModel.defVisibility
-                                                ? Icons.visibility
-                                                : Icons.visibility_off,
-                                          ),
-                                          onPressed:
-                                              flashCardViewModel
-                                                  .toggleDefVisibility,
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 20),
-                                    Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        Text(
-                                          flashCardViewModel.words[index].defs
-                                              .map(
-                                                (d) =>
-                                                    "${d.definition} (${d.part.label})",
-                                              )
-                                              .join(", "),
-                                          style: const TextStyle(fontSize: 28),
-                                        ),
-                                        if (!flashCardViewModel.defVisibility)
-                                          Positioned.fill(
-                                            child: Container(
-                                              color: Colors.blue[100],
+                                        ],
+                                      ),
+                                      const SizedBox(height: 20),
+                                      Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          Text(
+                                            wordListState
+                                                .words[index]
+                                                .expression,
+                                            style: const TextStyle(
+                                              fontSize: 36,
+                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                // 진행률 우측 상단
-                                Positioned(
-                                  top: 0,
-                                  right: 0,
-                                  child: Text(
-                                    '${index + 1}/${flashCardViewModel.words.length}',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black54,
+                                          if (!wordVisibility)
+                                            Positioned.fill(
+                                              child: Container(
+                                                color: Colors.blue[100],
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      const Divider(height: 50, thickness: 1),
+                                      // 뜻 영역
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text(
+                                            '뜻',
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(
+                                              defVisibility
+                                                  ? Icons.visibility
+                                                  : Icons.visibility_off,
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                defVisibility = !defVisibility;
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 20),
+                                      Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          Text(
+                                            wordListState
+                                                .words[index]
+                                                .definitions
+                                                .map(
+                                                  (d) =>
+                                                      "${d.meaning} (${d.part.label})",
+                                                )
+                                                .join(", "),
+                                            style: const TextStyle(
+                                              fontSize: 28,
+                                            ),
+                                          ),
+                                          if (!defVisibility)
+                                            Positioned.fill(
+                                              child: Container(
+                                                color: Colors.blue[100],
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  // 진행률 우측 상단
+                                  Positioned(
+                                    top: 0,
+                                    right: 0,
+                                    child: Text(
+                                      '${index + 1}/${wordListState.words.length}',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black54,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                      cardsCount: flashCardViewModel.words.length,
+                          );
+                        },
+                        cardsCount: wordListState.words.length,
+                        numberOfCardsDisplayed:
+                            wordListState.words.length >= 3
+                                ? 3
+                                : wordListState.words.length,
+                      ),
                     ),
-                  ),
 
                   Padding(
                     padding: const EdgeInsets.only(bottom: 30.0, top: 10),
@@ -234,15 +270,17 @@ class FlashCardPage extends StatelessWidget {
                         IconButton(
                           icon: const Icon(Icons.arrow_back_ios),
                           iconSize: 32,
-                          onPressed: _cardSwiperController.undo
+                          onPressed: cardSwiperController.undo,
                         ),
                         const SizedBox(width: 40),
                         IconButton(
                           icon: const Icon(Icons.arrow_forward_ios),
                           iconSize: 32,
                           onPressed: () {
-                            _cardSwiperController.swipe(CardSwiperDirection.right);
-                            },
+                            cardSwiperController.swipe(
+                              CardSwiperDirection.right,
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -251,19 +289,14 @@ class FlashCardPage extends StatelessWidget {
               ),
             ),
           ),
-          if (flashCardViewModel.isLoading)
-            Container(
-              color: const Color(0x80000000), // 배경 어둡게
-              child: const Center(child: CircularProgressIndicator()),
-            ),
-          if (flashCardViewModel.words.isEmpty && !flashCardViewModel.isLoading)
+          if (wordListState.words.isEmpty)
             Container(
               color: const Color(0x80000000), // 배경 어둡게
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.help_outline, size: 64, color: Colors.white70),
+                    //Icon(Icons.help_outline, size: 64, color: Colors.white70),
                     SizedBox(height: 16),
                     Text(
                       '단어장이 비어있습니다.',

@@ -16,11 +16,13 @@ class WordListPage extends ConsumerStatefulWidget {
 class WordListPageState extends ConsumerState<WordListPage> {
   final addingExpController = TextEditingController();
   final editingExpController = TextEditingController();
+  final searchController = TextEditingController();
 
   @override
   void dispose() {
     addingExpController.dispose();
     editingExpController.dispose();
+    searchController.dispose();
     super.dispose();
   }
 
@@ -29,8 +31,12 @@ class WordListPageState extends ConsumerState<WordListPage> {
     final wordListViewModel = ref.read(wordListStateProvider.notifier);
     final wordListState = ref.watch(wordListStateProvider);
 
+    searchController.addListener(() {
+      wordListViewModel.setSearchKeyword(searchController.text);
+    });
+
     void showDeleteDialog(int index) {
-      Word word = wordListState.words[index];
+      Word word = wordListState.showingWords[index];
       showDialog(
         context: context,
         builder:
@@ -70,7 +76,7 @@ class WordListPageState extends ConsumerState<WordListPage> {
     }
 
     Widget buildVocabularyCard(int index) {
-      final word = wordListState.words[index];
+      final word = wordListState.showingWords[index];
 
       return Container(
         margin: const EdgeInsets.only(bottom: 20),
@@ -249,6 +255,7 @@ class WordListPageState extends ConsumerState<WordListPage> {
                       bottom: 4,
                     ),
                     child: TextField(
+                      controller: searchController,
                       decoration: InputDecoration(
                         hintText: '검색어를 입력하세요',
                         prefixIcon: const Icon(Icons.search),
@@ -384,10 +391,11 @@ class WordListPageState extends ConsumerState<WordListPage> {
                           wordListState.words.isNotEmpty
                               ? ListView.builder(
                                 padding: const EdgeInsets.all(20),
-                                itemCount: wordListState.words.length,
+                                itemCount: wordListState.showingWords.length,
                                 itemBuilder: (context, index) {
                                   return GestureDetector(
                                     child: buildVocabularyCard(index),
+                                    onTap: () {},
                                   );
                                 },
                               )

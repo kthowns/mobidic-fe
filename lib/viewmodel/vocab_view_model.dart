@@ -61,14 +61,14 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
     state = state.copyWith(currentVocab: state.vocabs[index]);
   }
 
-  final List<String> sortOptions = ['최신순', '알파벳순', '학습률순', '정답률순'];
+  final List<String> sortOptions = ['최신순', '이름순', '학습률순', '정답률순'];
   int currentSortIndex = 0;
 
   void cycleSortOption() {
     currentSortIndex = (currentSortIndex + 1) % sortOptions.length;
     switch (sortOptions[currentSortIndex]) {
-      case '알파벳순':
-        comparator = (b, a) => a.title.compareTo(b.title);
+      case '이름순':
+        comparator = (a, b) => a.title.compareTo(b.title);
         break;
       case '학습률순':
         comparator = (b, a) => a.learningRate.compareTo(b.learningRate);
