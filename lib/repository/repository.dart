@@ -35,7 +35,7 @@ class Repository {
 
       // 반환값이 없는(void) 경우를 처리
       if (fromJson == null) {
-        if (response.data['data'] == null) {
+        if (response.data.toString().isEmpty) {
           return null as T;
         } else {
           return response.data['data'];
