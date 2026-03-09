@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/view/auth/sign_up_page.dart';
-import 'package:mobidic_flutter/view/list/vocab_list_page.dart';
 import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -53,27 +51,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
       if (next.currentUser != null && previous?.currentUser == null) {
-        showDialog(
-          context: context,
-          builder:
-              (_) => AlertDialog(
-                title: const Text(
-                  '✅ 로그인 성공',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                content: Text('환영합니다, ${authState.currentUser?.nickname} 님!'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('확인'),
-                  ),
-                ],
-              ),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const VocabListPage()),
-        );
+        Navigator.pushReplacementNamed(context, '/vocabularies');
       }
     });
 
@@ -89,7 +67,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: const Icon(Icons.arrow_back, color: Colors.black),
         title: const Text('로그인', style: TextStyle(color: Colors.black)),
         centerTitle: false,
       ),
@@ -171,10 +148,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             Center(
               child: TextButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SignUpPage()),
-                  );
+                  Navigator.pushNamed(context, '/signup');
                 },
                 child: const Text(
                   '회원가입',

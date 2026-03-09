@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/view/list/word_list_page.dart';
-import 'package:mobidic_flutter/view/quiz/flash_card_page.dart';
-import 'package:mobidic_flutter/view/quiz/ox_quiz_page.dart';
+import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
 import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
 
 class VocabListPage extends ConsumerStatefulWidget {
@@ -192,7 +190,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
 
     Widget tagButton(String label, int index) {
       return ElevatedButton(
-        onPressed: () {
+        onPressed: () async {
           if (label == '퀴즈') {
             showModalBottomSheet(
               context: context,
@@ -226,56 +224,38 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                         physics: const NeverScrollableScrollPhysics(),
                         children: [
                           ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               Navigator.pop(context);
                               vocabListViewModel.selectVocabAt(index);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => FlashCardPage(),
-                                ),
-                              );
+                              await Navigator.pushNamed(context, '/flashcard');
+                              vocabListViewModel.loadData();
                             },
                             child: const Text('플래시카드'),
                           ),
                           ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               Navigator.pop(context);
                               vocabListViewModel.selectVocabAt(index);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => OxQuizPage(),
-                                ),
-                              );
+                              await Navigator.pushNamed(context, '/ox');
+                              vocabListViewModel.loadData();
                             },
                             child: const Text('O/X 퀴즈'),
                           ),
                           ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               Navigator.pop(context);
                               vocabListViewModel.selectVocabAt(index);
-                              /*
-                              NavigationHelper.navigateToDictationQuiz(
-                                context,
-                                vocabViewModel,
-                                index,
-                              );
-                              */
+                              await Navigator.pushNamed(context, '/dictation');
+                              vocabListViewModel.loadData();
                             },
                             child: const Text('받아쓰기'),
                           ),
                           ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               Navigator.pop(context);
                               vocabListViewModel.selectVocabAt(index);
-                              /*
-                              NavigationHelper.navigateToBlankQuiz(
-                                context,
-                                vocabViewModel,
-                                index,
-                              );
-                              */
+                              await Navigator.pushNamed(context, '/blank');
+                              vocabListViewModel.loadData();
                             },
                             child: const Text('빈칸 채우기'),
                           ),
@@ -287,12 +267,8 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
               },
             );
           } else if (label == '발음 체크') {
-            /*
-            NavigationHelper.navigateToPronunciationCheck(
-              context,
-              vocabViewModel,
-              index,
-            );*/
+            await Navigator.pushNamed(context, '/pronunciation');
+            vocabListViewModel.loadData();
           }
         },
         child: Text(label),
@@ -438,15 +414,6 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
             elevation: 0,
             systemOverlayStyle: SystemUiOverlayStyle.dark,
             centerTitle: true,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black),
-              onPressed: () {
-                // 원하는 로직
-                print('뒤로가기 누름');
-                // 실제 뒤로 가기
-                Navigator.pop(context);
-              },
-            ),
             title: Row(
               children: [
                 Center(
@@ -468,9 +435,22 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
             actions: [
               PopupMenuButton<String>(
                 icon: const Icon(Icons.menu, color: Colors.black),
-                onSelected: (value) {
+                onSelected: (value) async {
                   if (value == '파닉스') {
                     Navigator.pushNamed(context, '/phonics');
+                  } else if (value == '로그아웃') {
+                    await ref.read(authViewModelProvider.notifier).logout();
+
+                    // 💡 핵심: 이동하기 전에 현재 사용 중인 Provider들을 다 초기화해서 찌꺼기를 없앱니다.
+                    ref.invalidate(authViewModelProvider);
+
+                    if (!mounted) return;
+
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/', // 위에서 루트를 로그인으로 바꿨다면 '/'로 이동
+                      (route) => false,
+                    );
                   }
                 },
                 itemBuilder:
@@ -479,17 +459,22 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                         value: '파닉스',
                         child: Text('파닉스'),
                       ),
+                      const PopupMenuItem<String>(
+                        value: '로그아웃',
+                        child: Text('로그아웃'),
+                      ),
                     ],
               ),
               Padding(
-                padding: EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.only(right: 12),
                 child: IconButton(
                   icon: const Icon(Icons.home, color: Colors.black),
                   onPressed: () {
-                    Navigator.popUntil(context, (route) {
-                      return route.settings.name ==
-                          '/vocabularies'; // 특정 route 이름 기준
-                    });
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/vocabularies',
+                      (route) => false,
+                    );
                   },
                 ),
               ),
@@ -644,14 +629,13 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                                 itemBuilder: (context, index) {
                                   return GestureDetector(
                                     child: buildVocabCard(index),
-                                    onTap: () {
+                                    onTap: () async {
                                       vocabListViewModel.selectVocabAt(index);
-                                      Navigator.push(
+                                      await Navigator.pushNamed(
                                         context,
-                                        MaterialPageRoute(
-                                          builder: (context) => WordListPage(),
-                                        ),
+                                        '/words',
                                       );
+                                      vocabListViewModel.loadData();
                                     },
                                   );
                                 },

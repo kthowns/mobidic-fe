@@ -82,8 +82,10 @@ class FillBlankQuizPage extends StatelessWidget {
             enabled: blankQuizViewModel.isButtonAvailable,
             controller: blankQuizViewModel.userAnswerController,
             maxLines: 1,
-            maxLength: blankQuizViewModel.questions.isNotEmpty ?
-              blankQuizViewModel.currentQuestion.stem.length : 10,
+            maxLength:
+                blankQuizViewModel.questions.isNotEmpty
+                    ? blankQuizViewModel.currentQuestion.stem.length
+                    : 10,
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 30, color: Colors.black),
             decoration: const InputDecoration(
@@ -94,14 +96,18 @@ class FillBlankQuizPage extends StatelessWidget {
               blankQuizViewModel.checkAnswer(s);
             },
           ),
-          SizedBox(height: 30,),
+          SizedBox(height: 30),
           SizedBox(
             width: double.infinity, // 부모 너비를 가득 채움
             child: ElevatedButton(
-              onPressed: blankQuizViewModel.isButtonAvailable ?
-                  (){
-                blankQuizViewModel.checkAnswer(blankQuizViewModel.currentAnswer);
-              } : null,
+              onPressed:
+                  blankQuizViewModel.isButtonAvailable
+                      ? () {
+                        blankQuizViewModel.checkAnswer(
+                          blankQuizViewModel.currentAnswer,
+                        );
+                      }
+                      : null,
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -109,14 +115,12 @@ class FillBlankQuizPage extends StatelessWidget {
                 backgroundColor: Colors.blue[100],
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: const Text("제출하기",
-                style: TextStyle(
-                  fontSize: 30,
-                  color: Colors.blueAccent
-                ),
+              child: const Text(
+                "제출하기",
+                style: TextStyle(fontSize: 30, color: Colors.blueAccent),
               ),
             ),
-          )
+          ),
         ],
       );
     }
@@ -151,24 +155,43 @@ class FillBlankQuizPage extends StatelessWidget {
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.menu, color: Colors.black),
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == '파닉스') {
                 Navigator.pushNamed(context, '/phonics');
+              } else if (value == '로그아웃') {
+                await ref.read(authViewModelProvider.notifier).logout();
+
+                // 💡 핵심: 이동하기 전에 현재 사용 중인 Provider들을 다 초기화해서 찌꺼기를 없앱니다.
+                ref.invalidate(authViewModelProvider);
+
+                if (!mounted) return;
+
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/', // 위에서 루트를 로그인으로 바꿨다면 '/'로 이동
+                  (route) => false,
+                );
               }
             },
             itemBuilder:
                 (BuildContext context) => [
                   const PopupMenuItem<String>(value: '파닉스', child: Text('파닉스')),
+                  const PopupMenuItem<String>(
+                    value: '로그아웃',
+                    child: Text('로그아웃'),
+                  ),
                 ],
           ),
           Padding(
-            padding: EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: 12),
             child: IconButton(
               icon: const Icon(Icons.home, color: Colors.black),
               onPressed: () {
-                Navigator.popUntil(context, (route) {
-                  return route.settings.name == '/vocab_list'; // 특정 route 이름 기준
-                });
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/vocabularies',
+                  (route) => false,
+                );
               },
             ),
           ),
