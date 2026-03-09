@@ -94,6 +94,7 @@ class BlankQuizPageState extends ConsumerState<BlankQuizPage> {
             ),
             onSubmitted: (s) {
               blankQuizViewModel.checkAnswer(s);
+              userAnswerController.text = '';
             },
           ),
           SizedBox(height: 30),
@@ -106,6 +107,7 @@ class BlankQuizPageState extends ConsumerState<BlankQuizPage> {
                         blankQuizViewModel.checkAnswer(
                           userAnswerController.text,
                         );
+                        userAnswerController.text = '';
                       }
                       : null,
               style: ElevatedButton.styleFrom(
@@ -167,7 +169,7 @@ class BlankQuizPageState extends ConsumerState<BlankQuizPage> {
                 if (!mounted) return;
 
                 Navigator.pushNamedAndRemoveUntil(
-                  context,  
+                  context,
                   '/', // 위에서 루트를 로그인으로 바꿨다면 '/'로 이동
                   (route) => false,
                 );

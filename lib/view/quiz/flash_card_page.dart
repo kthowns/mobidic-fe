@@ -66,7 +66,7 @@ class FlashCardPageState extends ConsumerState<FlashCardPage> {
               } else if (value == '로그아웃') {
                 await ref.read(authViewModelProvider.notifier).logout();
 
-                // 💡 핵심: 이동하기 전에 현재 사용 중인 Provider들을 다 초기화해서 찌꺼기를 없앱니다.
+                // 현재 사용 중인 Provider 초기화
                 ref.invalidate(authViewModelProvider);
 
                 if (!mounted) return;

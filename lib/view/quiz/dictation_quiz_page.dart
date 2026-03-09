@@ -24,8 +24,10 @@ class DictationQuizPageState extends ConsumerState<DictationQuizPage> {
   @override
   Widget build(BuildContext context) {
     final int quizColor = 0xFFb3e5fc;
-    final DictationQuizViewModel dictationQuizViewModel =
-        context.watch<DictationQuizViewModel>();
+    final dictationQuizViewModel = ref.read(
+      dictationQuizStateProvider.notifier,
+    );
+    final dictationQuizState = ref.watch(dictationQuizStateProvider);
 
     Widget buildFirstHalf() {
       return GestureDetector(
@@ -43,8 +45,8 @@ class DictationQuizPageState extends ConsumerState<DictationQuizPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    dictationQuizViewModel.words.isNotEmpty
-                        ? "${dictationQuizViewModel.currentWordIndex + 1}번 음성"
+                    dictationQuizState.quizzes.isNotEmpty
+                        ? "${dictationQuizState.currentQuizIndex + 1}번 음성"
                         : "-",
                     style: const TextStyle(
                       color: Colors.black,
@@ -61,7 +63,6 @@ class DictationQuizPageState extends ConsumerState<DictationQuizPage> {
               ),
               Spacer(),
               Text("발음을 들어보세요.", style: const TextStyle(fontSize: 15)),
-              SizedBox(height: 10),
             ],
           ),
         ),
@@ -69,31 +70,20 @@ class DictationQuizPageState extends ConsumerState<DictationQuizPage> {
     }
 
     Widget buildResult() {
+      if (dictationQuizState.quizzes.isEmpty || dictationQuizState.isLoading) {
+        return const SizedBox(height: 20);
+      }
       return Column(
         children: [
           SizedBox(height: 20),
-          if (dictationQuizViewModel.isSolved)
+          if (dictationQuizState.currentQuiz.isSolved)
             Text(
-              dictationQuizViewModel.resultMessage,
+              dictationQuizState.resultMessage,
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
                 color: Colors.green,
               ),
-            ),
-          if (dictationQuizViewModel.isDone)
-            Column(
-              children: [
-                Text(
-                  "정답률 : ${dictationQuizViewModel.correctCount}/"
-                  "${dictationQuizViewModel.correctCount + dictationQuizViewModel.incorrectCount}",
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.amber,
-                  ),
-                ),
-              ],
             ),
         ],
       );
@@ -102,19 +92,22 @@ class DictationQuizPageState extends ConsumerState<DictationQuizPage> {
     Widget buildSecondHalf() {
       return Column(
         children: [
-          SizedBox(height: 20),
           Text(
             "음성을 듣고 단어를 입력해주세요",
             style: const TextStyle(fontSize: 20, color: Colors.black),
           ),
+          Text(
+            "(해당 퀴즈는 서버 미구현으로 학습률에 반영되지 않습니다.)",
+            style: const TextStyle(fontSize: 12, color: Colors.black),
+          ),
           SizedBox(height: 20),
           TextField(
-            enabled: dictationQuizViewModel.isButtonAvailable,
-            controller: dictationQuizViewModel.userAnswerController,
+            enabled: dictationQuizState.isButtonAvailable,
+            controller: userAnswerController,
             maxLines: 1,
             maxLength:
-                dictationQuizViewModel.words.isNotEmpty
-                    ? dictationQuizViewModel.currentWord.expression.length
+                dictationQuizState.quizzes.isNotEmpty
+                    ? dictationQuizState.currentQuiz.stem.length
                     : 10,
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 30, color: Colors.black),
@@ -124,6 +117,7 @@ class DictationQuizPageState extends ConsumerState<DictationQuizPage> {
             ),
             onSubmitted: (s) {
               dictationQuizViewModel.checkAnswer(s);
+              userAnswerController.text = '';
             },
           ),
           SizedBox(height: 30),
@@ -131,11 +125,12 @@ class DictationQuizPageState extends ConsumerState<DictationQuizPage> {
             width: double.infinity, // 부모 너비를 가득 채움
             child: ElevatedButton(
               onPressed:
-                  dictationQuizViewModel.isButtonAvailable
+                  dictationQuizState.isButtonAvailable
                       ? () {
                         dictationQuizViewModel.checkAnswer(
-                          dictationQuizViewModel.currentAnswer,
+                          userAnswerController.text,
                         );
+                        userAnswerController.text = '';
                       }
                       : null,
               style: ElevatedButton.styleFrom(
@@ -284,8 +279,8 @@ class DictationQuizPageState extends ConsumerState<DictationQuizPage> {
                               top: 0,
                               right: 0,
                               child: Text(
-                                '${dictationQuizViewModel.currentWordIndex + 1}/'
-                                '${dictationQuizViewModel.words.length}',
+                                '${dictationQuizState.currentQuizIndex + 1}/'
+                                '${dictationQuizState.quizzes.length}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -297,7 +292,7 @@ class DictationQuizPageState extends ConsumerState<DictationQuizPage> {
                               top: 0,
                               left: 0,
                               child: Text(
-                                '남은 시간: ${dictationQuizViewModel.secondsLeft}\'s',
+                                '남은 시간: ${dictationQuizState.remainingSeconds}\'s',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -314,13 +309,13 @@ class DictationQuizPageState extends ConsumerState<DictationQuizPage> {
               ),
             ),
           ),
-          if (dictationQuizViewModel.isLoading)
+          if (dictationQuizState.isLoading)
             Container(
               color: const Color(0x80000000), // 배경 어둡게
               child: const Center(child: CircularProgressIndicator()),
             ),
-          if (dictationQuizViewModel.words.isEmpty &&
-              !dictationQuizViewModel.isLoading)
+          if (dictationQuizState.quizzes.isEmpty &&
+              !dictationQuizState.isLoading)
             Container(
               color: const Color(0x80000000), // 배경 어둡게
               child: Center(
