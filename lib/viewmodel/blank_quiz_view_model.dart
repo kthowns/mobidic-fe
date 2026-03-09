@@ -1,146 +1,250 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
-import 'package:mobidic_flutter/mixin/LoadingMixin.dart';
-import 'package:mobidic_flutter/model/question.dart';
-import 'package:mobidic_flutter/model/vocab.dart';
-import 'package:mobidic_flutter/repository/question_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/model/quiz.dart';
+import 'package:mobidic_flutter/repository/quiz_repository.dart';
 import 'package:mobidic_flutter/type/quiz_type.dart';
 import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
 
-class BlankQuizViewModel extends ChangeNotifier with LoadingMixin {
-  final QuestionRepository _questionRepository;
-  final VocabViewModel _vocabViewModel;
-  final TextEditingController _userAnswerController = TextEditingController();
-  TextEditingController get userAnswerController => _userAnswerController;
+final blankQuizStateProvider =
+    StateNotifierProvider.autoDispose<BlankQuizViewModel, BlankQuizState>((
+      ref,
+    ) {
+      final quizRepository = ref.watch(quizRepositoryProvider);
+      final vocabListState = ref.read(vocabListStateProvider);
 
-  BlankQuizViewModel(this._questionRepository, this._vocabViewModel) {
+      return BlankQuizViewModel(quizRepository, vocabListState);
+    });
+
+class BlankQuizViewModel extends StateNotifier<BlankQuizState> {
+  final QuizRepository _quizRepository;
+  final VocabListState _vocabListState;
+  final Stopwatch _stopwatch = Stopwatch();
+  Timer? _timer;
+
+  BlankQuizViewModel(this._quizRepository, this._vocabListState)
+    : super(BlankQuizState()) {
     init();
   }
 
   Future<void> init() async {
-    await loadData();
+    await _loadData();
   }
 
-  Future<void> loadData() async {
-    startLoading();
-    _questions = await _questionRepository.getQuestions(
-      currentVocab?.id,
-      QuizType.BLANK,
-    );
-    if(_questions.isNotEmpty){
-      _secondsLeft = questions[0].expMil ~/ 1000;
+  Future<void> _loadData() async {
+    _startLoading();
+
+    await _fetchQuizzes();
+    _initTimer();
+    _stopLoading();
+  }
+
+  void _initTimer() {
+    if (state.quizzes.isNotEmpty) {
+      final totalExpireSeconds = state.quizzes[0].expMil ~/ 1000;
+
+      state = state.copyWith(
+        remainingSeconds: totalExpireSeconds,
+        expireSeconds: totalExpireSeconds,
+      );
+
       startTimer();
     }
-    stopLoading();
+  }
+
+  Future<void> _fetchQuizzes() async {
+    final currentVocab = _vocabListState.currentVocab;
+    if (currentVocab == null) {
+      _stopLoading();
+      return;
+    }
+    try {
+      print("Fetching quizzes");
+      state = state.copyWith(
+        quizzes: await _quizRepository.getQuizzes(
+          currentVocab.id,
+          QuizType.BLANK,
+        ),
+      );
+      print("quizzes ${state.quizzes}");
+    } catch (e) {
+      state = state.copyWith(quizzes: []);
+    }
   }
 
   @override
   void dispose() {
     _timer?.cancel();
-    _userAnswerController.dispose();
+    _stopwatch.stop();
     super.dispose();
   }
 
-  List<Question> _questions = [];
-
-  List<Question> get questions => _questions;
-
-  Question get currentQuestion => _questions[currentQuestionIndex];
-
-  Vocab? get currentVocab => _vocabViewModel.currentVocab;
-
-  int _currentQuestionIndex = 0;
-
-  int get currentQuestionIndex => _currentQuestionIndex;
-
-  bool get isButtonAvailable =>
-      questions.isNotEmpty && currentQuestionIndex >= 0 && !isDone && !isSolved;
-
-  bool _isSolved = false;
-
-  bool get isSolved => _isSolved;
-
-  int _correctCount = 0;
-
-  int get correctCount => _correctCount;
-
-  int _incorrectCount = 0;
-
-  int get incorrectCount => _incorrectCount;
-
-  String get currentAnswer => _userAnswerController.text;
-
-  bool _isDone = false;
-
-  bool get isDone => _isDone;
-
-  String resultMessage = "-";
-
-  int _secondsLeft = 1;
-  int get secondsLeft => _secondsLeft;
-  Timer? _timer;
-
   void startTimer() {
+    _stopwatch.reset();
     _timer?.cancel();
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (secondsLeft == 0 || isDone) {
+
+    _stopwatch.start();
+    _timer = Timer.periodic(Duration(milliseconds: 500), (timer) async {
+      if (!mounted) {
         timer.cancel();
-        _isDone = true;
-        if (secondsLeft == 0) {
-          _isSolved = true;
-          resultMessage = "시간 초과!";
-        }
-        notifyListeners();
-      } else {
-        _secondsLeft--;
-        notifyListeners();
+        return;
+      }
+      state = state.copyWith(
+        remainingSeconds: state.expireSeconds - _stopwatch.elapsed.inSeconds,
+      );
+      if (state.isDone) {
+        timer.cancel();
+        _stopwatch.stop();
+      }
+      if (state.remainingSeconds < 1) {
+        timer.cancel();
+        _stopwatch.stop();
+
+        final newList = [...state.quizzes];
+        newList[state.currentQuizIndex] = state.currentQuiz.copyWith(
+          isSolved: true,
+        ); // Immutable 유지
+
+        state = state.copyWith(
+          isDone: true,
+          resultMessage: "시간 초과!",
+          quizzes: newList,
+        );
+
+        await Future.delayed(Duration(seconds: 2));
+        showResult();
       }
     });
   }
 
   Future<void> checkAnswer(String userAnswer) async {
-    resultMessage = "";
-    _isSolved = true;
-    notifyListeners();
-
-    final result = await _questionRepository.rateQuestion(
-      currentQuestion.token,
-      userAnswer,
+    final newList = [...state.quizzes];
+    newList[state.currentQuizIndex] = state.currentQuiz.copyWith(
+      isSolved: true,
     );
 
-    String correctAnswer = result.correctAnswer;
+    state = state.copyWith(resultMessage: "", quizzes: newList);
+
+    final result = await _quizRepository.rateQuestion(
+      state.currentQuiz.token,
+      userAnswer,
+    );
+    if (!mounted) {
+      return;
+    }
 
     if (result.isCorrect) {
-      resultMessage = "정답입니다!";
-      _correctCount += 1;
+      state = state.copyWith(
+        resultMessage: "정답입니다!",
+        correctCount: state.correctCount + 1,
+      );
+      print("correct Count : ${state.correctCount}");
     } else {
-      resultMessage = "틀렸습니다! 답 : $correctAnswer";
-      _incorrectCount += 1;
+      state = state.copyWith(
+        resultMessage: "틀렸습니다! 답 : ${result.correctAnswer}",
+        incorrectCount: state.incorrectCount + 1,
+      );
     }
-    notifyListeners();
 
     await Future.delayed(Duration(seconds: 2));
-    if (currentQuestionIndex >= questions.length - 1) {
-      _isDone = true;
-      notifyListeners();
-    }
-    _isSolved = false;
-    _userAnswerController.text = "";
     toNextWord();
   }
 
+  void showResult() {
+    if (state.isDone) {
+      print("is Done! : ${state.correctCount}");
+      state = state.copyWith(
+        resultMessage: '정답률: ${state.correctCount}/${state.quizzes.length}',
+      );
+    }
+  }
+
   void toNextWord() {
-    if (!isDone) {
-      _currentQuestionIndex += 1;
-      notifyListeners();
+    if (!mounted) {
+      return;
+    }
+    state = state.copyWith(resultMessage: '');
+    if (state.currentQuizIndex >= state.quizzes.length - 1) {
+      state = state.copyWith(isDone: true);
+      showResult();
+    }
+    if (!state.isDone) {
+      state = state.copyWith(currentQuizIndex: state.currentQuizIndex + 1);
     }
   }
 
   void toPrevWord() {
-    if (_currentQuestionIndex > 0) {
-      _currentQuestionIndex -= 1;
-      notifyListeners();
+    state = state.copyWith(resultMessage: '');
+    if (state.currentQuizIndex > 0) {
+      state = state.copyWith(currentQuizIndex: state.currentQuizIndex - 1);
     }
+  }
+
+  void _startLoading() {
+    state = state.copyWith(isLoading: true);
+  }
+
+  void _stopLoading() {
+    state = state.copyWith(isLoading: false);
+  }
+}
+
+class BlankQuizState {
+  List<Quiz> quizzes;
+  int currentQuizIndex;
+  int correctCount;
+  int incorrectCount;
+  bool isDone;
+  bool isLoading;
+  String resultMessage;
+  int remainingSeconds;
+  int expireSeconds;
+
+  bool get isButtonAvailable =>
+      quizzes.isNotEmpty &&
+      currentQuizIndex < quizzes.length &&
+      currentQuizIndex >= 0 &&
+      !isDone &&
+      !currentQuiz.isSolved;
+
+  Quiz get currentQuiz =>
+      quizzes.isNotEmpty
+          ? quizzes[currentQuizIndex]
+          : Quiz(token: '', stem: '', options: [], expMil: 100);
+
+  BlankQuizState({
+    this.quizzes = const [],
+    this.currentQuizIndex = 0,
+    this.correctCount = 0,
+    this.incorrectCount = 0,
+    this.isDone = false,
+    this.isLoading = false,
+    this.resultMessage = '',
+    this.remainingSeconds = 0,
+    this.expireSeconds = 0,
+  });
+
+  BlankQuizState copyWith({
+    List<Quiz>? quizzes,
+    int? currentQuizIndex,
+    int? correctCount,
+    int? incorrectCount,
+    bool? isDone,
+    bool? isLoading,
+    String? resultMessage,
+    int? remainingSeconds,
+    int? expireSeconds,
+  }) {
+    return BlankQuizState(
+      quizzes: quizzes ?? this.quizzes,
+      currentQuizIndex: currentQuizIndex ?? this.currentQuizIndex,
+      correctCount: correctCount ?? this.correctCount,
+      incorrectCount: incorrectCount ?? this.incorrectCount,
+      isDone: isDone ?? this.isDone,
+      isLoading: isLoading ?? this.isLoading,
+      resultMessage: resultMessage ?? this.resultMessage,
+      remainingSeconds: remainingSeconds ?? this.remainingSeconds,
+      expireSeconds: expireSeconds ?? this.expireSeconds,
+    );
   }
 }

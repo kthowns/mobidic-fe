@@ -1,16 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
 import 'package:mobidic_flutter/viewmodel/blank_quiz_view_model.dart';
-import 'package:provider/provider.dart';
 
-class FillBlankQuizPage extends StatelessWidget {
-  const FillBlankQuizPage({super.key});
+class BlankQuizPage extends ConsumerStatefulWidget {
+  const BlankQuizPage({super.key});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => BlankQuizPageState();
+}
+
+class BlankQuizPageState extends ConsumerState<BlankQuizPage> {
+  final userAnswerController = TextEditingController();
+
+  @override
+  void dispose() {
+    userAnswerController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final int quizColor = 0xFFb3e5fc;
-    final BlankQuizViewModel blankQuizViewModel =
-        context.watch<BlankQuizViewModel>();
+    final blankQuizViewModel = ref.read(blankQuizStateProvider.notifier);
+    final blankQuizState = ref.watch(blankQuizStateProvider);
 
     Widget buildFirstHalf() {
       return Column(
@@ -19,8 +33,8 @@ class FillBlankQuizPage extends StatelessWidget {
           Column(
             children: [
               Text(
-                blankQuizViewModel.questions.isNotEmpty
-                    ? blankQuizViewModel.currentQuestion.stem
+                blankQuizState.quizzes.isNotEmpty
+                    ? blankQuizState.currentQuiz.stem
                     : "-",
                 style: const TextStyle(
                   fontSize: 36,
@@ -30,8 +44,8 @@ class FillBlankQuizPage extends StatelessWidget {
               ),
               const Divider(height: 30, thickness: 1),
               Text(
-                blankQuizViewModel.questions.isNotEmpty
-                    ? blankQuizViewModel.currentQuestion.options.join(', ')
+                blankQuizState.quizzes.isNotEmpty
+                    ? blankQuizState.currentQuiz.options.join(', ')
                     : "-",
                 style: const TextStyle(
                   fontSize: 36,
@@ -39,28 +53,14 @@ class FillBlankQuizPage extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 20),
-              if (blankQuizViewModel.isSolved)
+              if (blankQuizState.currentQuiz.isSolved)
                 Text(
-                  blankQuizViewModel.resultMessage,
+                  blankQuizState.resultMessage,
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
                     color: Colors.green,
                   ),
-                ),
-              if (blankQuizViewModel.isDone)
-                Column(
-                  children: [
-                    Text(
-                      "정답률 : ${blankQuizViewModel.correctCount}/"
-                      "${blankQuizViewModel.correctCount + blankQuizViewModel.incorrectCount}",
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.amber,
-                      ),
-                    ),
-                  ],
                 ),
               SizedBox(height: 40),
             ],
@@ -79,12 +79,12 @@ class FillBlankQuizPage extends StatelessWidget {
           ),
           SizedBox(height: 20),
           TextField(
-            enabled: blankQuizViewModel.isButtonAvailable,
-            controller: blankQuizViewModel.userAnswerController,
+            enabled: blankQuizState.isButtonAvailable,
+            controller: userAnswerController,
             maxLines: 1,
             maxLength:
-                blankQuizViewModel.questions.isNotEmpty
-                    ? blankQuizViewModel.currentQuestion.stem.length
+                blankQuizState.quizzes.isNotEmpty
+                    ? blankQuizState.currentQuiz.stem.length
                     : 10,
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 30, color: Colors.black),
@@ -101,10 +101,10 @@ class FillBlankQuizPage extends StatelessWidget {
             width: double.infinity, // 부모 너비를 가득 채움
             child: ElevatedButton(
               onPressed:
-                  blankQuizViewModel.isButtonAvailable
+                  blankQuizState.isButtonAvailable
                       ? () {
                         blankQuizViewModel.checkAnswer(
-                          blankQuizViewModel.currentAnswer,
+                          userAnswerController.text,
                         );
                       }
                       : null,
@@ -167,7 +167,7 @@ class FillBlankQuizPage extends StatelessWidget {
                 if (!mounted) return;
 
                 Navigator.pushNamedAndRemoveUntil(
-                  context,
+                  context,  
                   '/', // 위에서 루트를 로그인으로 바꿨다면 '/'로 이동
                   (route) => false,
                 );
@@ -236,8 +236,8 @@ class FillBlankQuizPage extends StatelessWidget {
                               top: 0,
                               right: 0,
                               child: Text(
-                                '${blankQuizViewModel.currentQuestionIndex + 1}/'
-                                '${blankQuizViewModel.questions.length}',
+                                '${blankQuizState.currentQuizIndex + 1}/'
+                                '${blankQuizState.quizzes.length}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -249,7 +249,7 @@ class FillBlankQuizPage extends StatelessWidget {
                               top: 0,
                               left: 0,
                               child: Text(
-                                '남은 시간: ${blankQuizViewModel.secondsLeft}\'s',
+                                '남은 시간: ${blankQuizState.remainingSeconds}\'s',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -266,13 +266,12 @@ class FillBlankQuizPage extends StatelessWidget {
               ),
             ),
           ),
-          if (blankQuizViewModel.isLoading)
+          if (blankQuizState.isLoading)
             Container(
               color: const Color(0x80000000), // 배경 어둡게
               child: const Center(child: CircularProgressIndicator()),
             ),
-          if (blankQuizViewModel.questions.isEmpty &&
-              !blankQuizViewModel.isLoading)
+          if (blankQuizState.quizzes.isEmpty && !blankQuizState.isLoading)
             Container(
               color: const Color(0x80000000), // 배경 어둡게
               child: Center(
