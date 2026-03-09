@@ -7,10 +7,7 @@ import 'package:mobidic_flutter/repository/user_repository.dart';
 
 import 'package:mobidic_flutter/model/user.dart';
 
-final authViewModelProvider = StateNotifierProvider.autoDispose<
-  AuthViewModel,
-  AuthState
->((ref) {
+final authViewModelProvider = StateNotifierProvider((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   final userRepository = ref.watch(userRepositoryProvider);
   final secureStorageDataSource = ref.watch(secureStorageDataSourceProvider);

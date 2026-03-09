@@ -13,7 +13,7 @@ final wordListStateProvider =
     StateNotifierProvider.autoDispose<WordListViewModel, WordListState>((ref) {
       final wordRepository = ref.read(wordRepositoryProvider);
       final statisticRepository = ref.read(statisticRepositoryProvider);
-      final vocabListState = ref.watch(vocabListStateProvider);
+      final vocabListState = ref.read(vocabListStateProvider);
 
       return WordListViewModel(
         wordRepository,
@@ -112,13 +112,13 @@ class WordListViewModel extends StateNotifier<WordListState> {
   Future<double> getQuizAccuracy() async {
     final currentVocab = state.currentVocab;
     if (currentVocab == null) return 0.0;
-    return await _statisticRepository.getAccuracy(currentVocab.id);
+    return await _statisticRepository.getVocabAccuracy(currentVocab.id);
   }
 
   Future<double> getLearningRate() async {
     final currentVocab = state.currentVocab;
     if (currentVocab == null) return 0.0;
-    return await _statisticRepository.getLearningRate(currentVocab.id);
+    return await _statisticRepository.getVocabLearningRate(currentVocab.id);
   }
 
   Future<bool> addWord(String expression, List<AddDefRequestDto> defs) async {
@@ -128,7 +128,7 @@ class WordListViewModel extends StateNotifier<WordListState> {
       final currentVocab = state.currentVocab;
       if (currentVocab == null) return false;
 
-      await _wordRepository.addWord(currentVocab, expression, defs);
+      await _wordRepository.addWord(currentVocab.id, expression, defs);
       await loadData();
       return false;
     } on ApiException catch (e) {
@@ -159,7 +159,7 @@ class WordListViewModel extends StateNotifier<WordListState> {
     try {
       if (removingDefs.isNotEmpty) {
         for (Definition def in removingDefs) {
-          await _wordRepository.deleteDef(def);
+          await _wordRepository.deleteDef(def.id);
         }
       }
 
@@ -185,12 +185,12 @@ class WordListViewModel extends StateNotifier<WordListState> {
   }
 
   Future<void> toggleWordIsLearned(Word word) async {
-    await _statisticRepository.toggleWordLearned(word);
+    await _statisticRepository.toggleWordLearned(word.id);
     await loadData();
   }
 
   Future<void> deleteWord(Word word) async {
-    await _wordRepository.deleteWord(word);
+    await _wordRepository.deleteWord(word.id);
     await loadData();
   }
 

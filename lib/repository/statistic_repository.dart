@@ -1,60 +1,68 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/api/api_url.dart';
 import 'package:mobidic_flutter/api/dio.dart';
 import 'package:mobidic_flutter/model/word_statistic.dart';
-import 'package:mobidic_flutter/model/word.dart';
+import 'package:mobidic_flutter/repository/repository.dart';
 
 final statisticRepositoryProvider = Provider<StatisticRepository>((ref) {
   final dio = ref.watch(dioProvider);
   return StatisticRepository(dio);
 });
 
-class StatisticRepository {
+class StatisticRepository extends Repository {
   final Dio _dio;
 
   StatisticRepository(this._dio);
 
-  Future<WordStatistic> getRateByWordId(String wordId) async {
-    final response = await _dio.get(
-      '/statistic/word',
-      options: Options(extra: {'auth': true}),
-      queryParameters: {'wordId': wordId},
-    );
+  Future<WordStatistic> getWordStatistic(String wordId) async {
+    final url = ApiUrl.wordStatistic.withId(wordId);
 
-    return WordStatistic.fromJson(response.data['data']);
+    return await dioRequest(
+      url: url,
+      action:
+          () => _dio.get(
+            url,
+            options: Options(extra: {'auth': true}),
+            queryParameters: {'wordId': wordId},
+          ),
+      fromJson: WordStatistic.fromJson,
+    );
   }
 
   Future<double> getAccuracyOfAll() async {
-    final response = await _dio.get(
-      '/statistics/accuracy/all',
-      options: Options(extra: {'auth': true}),
-    );
+    final url = ApiUrl.totalAccuracy.url;
 
-    return response.data['data'];
-  }
-
-  Future<void> toggleWordLearned(Word word) async {
-    await _dio.patch(
-      '/statistics/word/${word.id}/learned',
-      options: Options(extra: {'auth': true}),
+    return await dioRequest(
+      url: url,
+      action: () => _dio.get(url, options: Options(extra: {'auth': true})),
     );
   }
 
-  Future<double> getAccuracy(String vocabId) async {
-    final response = await _dio.get(
-      '/statistics/vocabulary/$vocabId/accuracy',
-      options: Options(extra: {'auth': true}),
-    );
+  Future<void> toggleWordLearned(String wordId) async {
+    final url = ApiUrl.toggleLearned.withId(wordId);
 
-    return response.data['data'];
+    await dioRequest(
+      url: url,
+      action: () => _dio.patch(url, options: Options(extra: {'auth': true})),
+    );
   }
 
-  Future<double> getLearningRate(String vocabId) async {
-    final response = await _dio.get(
-      '/statistics/vocabulary/$vocabId/learning-rate',
-      options: Options(extra: {'auth': true}),
-    );
+  Future<double> getVocabAccuracy(String vocabId) async {
+    final url = ApiUrl.vocabAccuracy.withId(vocabId);
 
-    return response.data['data'];
+    return await dioRequest(
+      url: url,
+      action: () => _dio.get(url, options: Options(extra: {'auth': true})),
+    );
+  }
+
+  Future<double> getVocabLearningRate(String vocabId) async {
+    final url = ApiUrl.vocabLearningRate.withId(vocabId);
+
+    return dioRequest(
+      url: url,
+      action: () => _dio.get(url, options: Options(extra: {'auth': true})),
+    );
   }
 }

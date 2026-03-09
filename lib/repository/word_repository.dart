@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/api/api_url.dart';
 import 'package:mobidic_flutter/api/dio.dart';
 import 'package:mobidic_flutter/dto/def_dto.dart';
 import 'package:mobidic_flutter/dto/word_dto.dart';
 import 'package:mobidic_flutter/model/definition.dart';
-import 'package:mobidic_flutter/model/vocab.dart';
 import 'package:mobidic_flutter/repository/repository.dart';
 
 import '../model/word.dart';
@@ -20,122 +20,118 @@ class WordRepository extends Repository {
   WordRepository(this._dio);
 
   Future<List<Word>> getWords(String vocabId) async {
-    try {
-      final response = await _dio.get(
-        '/words',
-        options: Options(extra: {'auth': true}),
-        queryParameters: {'vocabularyId': vocabId},
-      );
+    final url = ApiUrl.getWordsByVocab.withId(vocabId);
 
-      List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(
-        response.data['data'] as List,
-      );
-
-      return data.map((v) => Word.fromJson(v)).toList();
-    } on DioException catch (e) {
-      print('/words error: ${e.message}');
-      throw handleApiException(e);
-    } catch (e) {
-      print('/words unknown error: $e');
-      throw handleUnknownException(e);
-    }
+    return await dioRequestToList<Word>(
+      url: url,
+      action: () => _dio.get(url, options: Options(extra: {'auth': true})),
+      fromJson: Word.fromJson,
+    );
   }
 
-    Future<void> addWord(
-      Vocab vocab,
-      String expression,
-      List<AddDefRequestDto> definitions,
-    ) async {
-      try {
-        final response = await _dio.post(
-          '/words/${vocab.id}',
-          options: Options(extra: {'auth': true}),
-          data: AddWordRequestDto(expression: expression).toJson(),
-        );
+  Future<void> addWord(
+    String vocabId,
+    String expression,
+    List<AddDefRequestDto> definitions,
+  ) async {
+    final url = ApiUrl.addWord.withId(vocabId);
 
-        String wordId = response.data['data']['id'];
-
-        for (AddDefRequestDto def in definitions) {
-          await _dio.post(
-            '/definitions/$wordId',
+    final savedWord = await dioRequest(
+      url: url,
+      action:
+          () => _dio.post(
+            url,
             options: Options(extra: {'auth': true}),
-            data: def.toJson(),
-          );
-        }
-      } on DioException catch (e) {
-        print('/words add error: ${e.message}');
-        throw handleApiException(e);
-      } catch (e) {
-        print('/words add unknown error: $e');
-        throw handleUnknownException(e);
-      }
-    }
+            data: AddWordRequestDto(expression: expression),
+          ),
+      fromJson: AddWordResponseDto.fromJson,
+    );
 
-    Future<void> updateWord(
-      String wordId,
-      AddWordRequestDto word,
-      List<Definition> defs,
-    ) async {
-      try {
-        await _dio.patch(
-          '/words/$wordId',
-          options: Options(extra: {'auth': true}),
-          data: word.toJson(),
-        );
+    String wordId = savedWord.id;
+    final defUrl = ApiUrl.addDefinition.withId(wordId);
 
-        for (Definition def in defs) {
-          if (def.id.isEmpty) {
-            await _dio.post(
-              '/definitions/$wordId',
+    for (AddDefRequestDto def in definitions) {
+      await dioRequest(
+        url: defUrl,
+        action:
+            () => _dio.post(
+              defUrl,
               options: Options(extra: {'auth': true}),
-              data:
-                  AddDefRequestDto(meaning: def.meaning, part: def.part).toJson(),
-            );
-          } else {
-            await _dio.patch(
-              '/definitions/${def.id}',
-              options: Options(extra: {'auth': true}),
-              data:
-                  AddDefRequestDto(meaning: def.meaning, part: def.part).toJson(),
-            );
-          }
-        }
-      } on DioException catch (e) {
-        print('/words update error: ${e.message}');
-        throw handleApiException(e);
-      } catch (e) {
-        print('/words update unknown error: $e');
-        throw handleUnknownException(e);
-      }
-    }
-
-  Future<void> deleteWord(Word word) async {
-    try {
-      await _dio.delete(
-        '/words/${word.id}',
-        options: Options(extra: {'auth': true}),
+              data: def,
+            ),
       );
-    } on DioException catch (e) {
-      print('/words delete error: ${e.message}');
-      throw handleApiException(e);
-    } catch (e) {
-      print('/words delete unknown error: $e');
-      throw handleUnknownException(e);
     }
   }
 
-  Future<void> deleteDef(Definition def) async {
-    try {
-      await _dio.delete(
-        '/definitions/${def.id}',
-        options: Options(extra: {'auth': true}),
-      );
-    } on DioException catch (e) {
-      print('/definitions delete error: ${e.message}');
-      throw handleApiException(e);
-    } catch (e) {
-      print('/definitions delete unknown error: $e');
-      throw handleUnknownException(e);
+  Future<void> updateWord(
+    String wordId,
+    AddWordRequestDto word,
+    List<Definition> defs,
+  ) async {
+    final url = ApiUrl.updateWord.withId(wordId);
+
+    await dioRequest(
+      url: url,
+      action:
+          () => _dio.patch(
+            url,
+            options: Options(extra: {'auth': true}),
+            data: word.toJson(),
+          ),
+    );
+
+    for (Definition def in defs) {
+      if (def.id.isEmpty) {
+        final addDefUrl = ApiUrl.addDefinition.withId(wordId);
+
+        await dioRequest(
+          url: addDefUrl,
+          action:
+              () => _dio.post(
+                addDefUrl,
+                options: Options(extra: {'auth': true}),
+                data:
+                    AddDefRequestDto(
+                      meaning: def.meaning,
+                      part: def.part,
+                    ).toJson(),
+              ),
+        );
+      } else {
+        final updateDefUrl = ApiUrl.updateDefinition.withId(def.id);
+
+        await dioRequest(
+          url: updateDefUrl,
+          action:
+              () => _dio.patch(
+                updateDefUrl,
+                options: Options(extra: {'auth': true}),
+                data:
+                    AddDefRequestDto(
+                      meaning: def.meaning,
+                      part: def.part,
+                    ).toJson(),
+              ),
+        );
+      }
     }
+  }
+
+  Future<void> deleteWord(String wordId) async {
+    final url = ApiUrl.deleteWord.withId(wordId);
+
+    await dioRequest(
+      url: url,
+      action: () => _dio.delete(url, options: Options(extra: {'auth': true})),
+    );
+  }
+
+  Future<void> deleteDef(String defId) async {
+    final url = ApiUrl.deleteDefinition.withId(defId);
+
+    await dioRequest(
+      url: url,
+      action: () => _dio.delete(url, options: Options(extra: {'auth': true})),
+    );
   }
 }

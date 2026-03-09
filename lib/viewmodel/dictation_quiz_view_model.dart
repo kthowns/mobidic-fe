@@ -1,154 +1,272 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:mobidic_flutter/mixin/LoadingMixin.dart';
-import 'package:mobidic_flutter/model/vocab.dart';
+import 'package:mobidic_flutter/model/definition.dart';
+import 'package:mobidic_flutter/model/quiz.dart';
 import 'package:mobidic_flutter/model/word.dart';
 import 'package:mobidic_flutter/repository/word_repository.dart';
 import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
 
-class DictationQuizViewModel extends ChangeNotifier with LoadingMixin {
+final dictationQuizStateProvider = StateNotifierProvider.autoDispose<
+  DictationQuizViewModel,
+  DictationQuizState
+>((ref) {
+  final flutterTts = FlutterTts();
+  final vocabListState = ref.read(vocabListStateProvider);
+  final wordRepository = ref.read(wordRepositoryProvider);
+
+  return DictationQuizViewModel(flutterTts, vocabListState, wordRepository);
+});
+
+class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
+  final FlutterTts _flutterTts;
+  final Stopwatch _stopwatch = Stopwatch();
+  final VocabListState _vocabListState;
   final WordRepository _wordRepository;
-  final VocabViewModel _vocabViewModel;
-  final TextEditingController _userAnswerController = TextEditingController();
-  final FlutterTts flutterTts = FlutterTts();
+  Timer? _timer;
 
-  TextEditingController get userAnswerController => _userAnswerController;
-
-  DictationQuizViewModel(this._wordRepository, this._vocabViewModel) {
+  DictationQuizViewModel(
+    this._flutterTts,
+    this._vocabListState,
+    this._wordRepository,
+  ) : super(DictationQuizState()) {
     init();
-  }
-
-  Future<void> init() async {
-    await loadData();
-    await _initTts();
-    await flutterTts.setLanguage('en-US');
-  }
-
-  Future<void> loadData() async {
-    startLoading();
-    _words = await _wordRepository.getWords(_currentVocab?.id);
-    if(_words.isNotEmpty){
-      _secondsLeft = _words.length * 15;
-      startTimer();
-    }
-    stopLoading();
-  }
-
-  Future<void> _initTts() async {
-    await flutterTts.setLanguage("en-US"); // 한국어: "ko-KR"
-    await flutterTts.setPitch(1.0);
-    await flutterTts.setSpeechRate(0.5); // 속도 조절 (0.0 ~ 1.0)
   }
 
   @override
   void dispose() {
     _timer?.cancel();
-    _userAnswerController.dispose();
-    flutterTts.stop();
+    _stopwatch.stop();
+    _flutterTts.stop();
     super.dispose();
   }
 
-  Vocab? get _currentVocab => _vocabViewModel.currentVocab;
+  Future<void> _initTts() async {
+    await _flutterTts.setLanguage("en-US"); // 한국어: "ko-KR"
+    await _flutterTts.setPitch(1.0);
+    await _flutterTts.setSpeechRate(0.5); // 속도 조절 (0.0 ~ 1.0)
+  }
 
-  List<Word> _words = [];
+  Future<void> init() async {
+    await _initTts();
+    await _flutterTts.setLanguage('en-US');
+    await _loadData();
+  }
 
-  List<Word> get words => _words;
+  Future<void> _loadData() async {
+    _startLoading();
 
-  Word get currentWord => _words[currentWordIndex];
+    await _fetchQuizzes();
+    _initTimer();
+    _stopLoading();
+  }
 
-  int _currentWordIndex = 0;
+  Future<void> _fetchQuizzes() async {
+    final currentVocab = _vocabListState.currentVocab;
+    if (currentVocab == null) {
+      _stopLoading();
+      return;
+    }
+    try {
+      print("Fetching quizzes");
+      final currentVocab = _vocabListState.currentVocab;
 
-  int get currentWordIndex => _currentWordIndex;
+      if (currentVocab == null) return;
+      List<Word> words = await _wordRepository.getWords(currentVocab.id);
+      List<Quiz> quizzes = [];
 
-  bool get isButtonAvailable =>
-      words.isNotEmpty && currentWordIndex >= 0 && !isDone && !isSolved;
+      for (Word word in words) {
+        Definition def = word.definitions.first;
+        quizzes.add(
+          Quiz(
+            expMil: 15000 * words.length,
+            stem: word.expression,
+            options: ['${def.meaning} (${def.part})'],
+            token: '',
+          ),
+        );
+      }
 
-  bool _isSolved = false;
+      state = state.copyWith(quizzes: quizzes);
+      print("quizzes ${state.quizzes}");
+    } catch (e) {
+      state = state.copyWith(quizzes: []);
+    }
+  }
 
-  bool get isSolved => _isSolved;
+  void _initTimer() {
+    if (state.quizzes.isNotEmpty) {
+      final totalExpireSeconds = state.quizzes[0].expMil ~/ 1000;
 
-  int _correctCount = 0;
+      state = state.copyWith(
+        remainingSeconds: totalExpireSeconds,
+        expireSeconds: totalExpireSeconds,
+      );
 
-  int get correctCount => _correctCount;
-
-  int _incorrectCount = 0;
-
-  int get incorrectCount => _incorrectCount;
-
-  String get currentAnswer => _userAnswerController.text;
-
-  bool _isDone = false;
-
-  bool get isDone => _isDone;
-
-  String resultMessage = "-";
-
-  int _secondsLeft = 1;
-
-  int get secondsLeft => _secondsLeft;
-  Timer? _timer;
+      startTimer();
+    }
+  }
 
   void startTimer() {
+    _stopwatch.reset();
     _timer?.cancel();
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (secondsLeft == 0 || isDone) {
+
+    _stopwatch.start();
+    _timer = Timer.periodic(Duration(milliseconds: 500), (timer) async {
+      if (!mounted) {
         timer.cancel();
-        _isDone = true;
-        if (secondsLeft == 0) {
-          _isSolved = true;
-          resultMessage = "시간 초과!";
-        }
-        notifyListeners();
-      } else {
-        _secondsLeft--;
-        notifyListeners();
+        return;
+      }
+      state = state.copyWith(
+        remainingSeconds: state.expireSeconds - _stopwatch.elapsed.inSeconds,
+      );
+      if (state.isDone) {
+        timer.cancel();
+        _stopwatch.stop();
+      }
+      if (state.remainingSeconds < 1) {
+        timer.cancel();
+        _stopwatch.stop();
+
+        final newList = [...state.quizzes];
+        newList[state.currentQuizIndex] = state.currentQuiz.copyWith(
+          isSolved: true,
+        ); // Immutable 유지
+
+        state = state.copyWith(
+          isDone: true,
+          resultMessage: "시간 초과!",
+          quizzes: newList,
+        );
+
+        await Future.delayed(Duration(seconds: 2));
+        showResult();
       }
     });
   }
 
   Future<void> speak() async {
-    if (words.isNotEmpty) {
-      await flutterTts.speak(words[currentWordIndex].expression);
+    if (state.quizzes.isNotEmpty) {
+      await _flutterTts.speak(state.currentQuiz.stem);
     }
   }
 
   Future<void> checkAnswer(String userAnswer) async {
-    resultMessage = "";
-    _isSolved = true;
-    notifyListeners();
+    final newList = [...state.quizzes];
+    newList[state.currentQuizIndex] = state.currentQuiz.copyWith(
+      isSolved: true,
+    );
 
-    if (currentWord.expression.toLowerCase() == userAnswer.toLowerCase()) {
-      resultMessage = "정답입니다!";
-      _correctCount += 1;
+    state = state.copyWith(resultMessage: "", quizzes: newList);
+
+    if (state.currentQuiz.stem.toLowerCase() == userAnswer.toLowerCase()) {
+      state = state.copyWith(
+        resultMessage: "정답입니다!",
+        correctCount: state.correctCount + 1,
+      );
+      print("correct Count : ${state.correctCount}");
     } else {
-      resultMessage = "틀렸습니다! 답 : ${currentWord.expression}";
-      _incorrectCount += 1;
+      state = state.copyWith(
+        resultMessage: "틀렸습니다! 답 : ${state.currentQuiz.stem}",
+        incorrectCount: state.incorrectCount + 1,
+      );
     }
-    notifyListeners();
 
     await Future.delayed(Duration(seconds: 2));
-    if (currentWordIndex >= words.length - 1) {
-      _isDone = true;
-      notifyListeners();
-    }
-    _isSolved = false;
-    _userAnswerController.text = "";
     toNextWord();
   }
 
+  void showResult() {
+    if (state.isDone) {
+      print("is Done! : ${state.correctCount}");
+      state = state.copyWith(
+        resultMessage: '정답률: ${state.correctCount}/${state.quizzes.length}',
+      );
+    }
+  }
+
   void toNextWord() {
-    if (!isDone) {
-      _currentWordIndex += 1;
-      notifyListeners();
+    if (!mounted) {
+      return;
+    }
+    state = state.copyWith(resultMessage: '');
+    if (state.currentQuizIndex >= state.quizzes.length - 1) {
+      state = state.copyWith(isDone: true);
+      showResult();
+    }
+    if (!state.isDone) {
+      state = state.copyWith(currentQuizIndex: state.currentQuizIndex + 1);
     }
   }
 
   void toPrevWord() {
-    if (_currentWordIndex > 0) {
-      _currentWordIndex -= 1;
-      notifyListeners();
+    state = state.copyWith(resultMessage: '');
+    if (state.currentQuizIndex > 0) {
+      state = state.copyWith(currentQuizIndex: state.currentQuizIndex - 1);
     }
+  }
+
+  void _startLoading() {
+    state = state.copyWith(isLoading: true);
+  }
+
+  void _stopLoading() {
+    state = state.copyWith(isLoading: false);
+  }
+}
+
+class DictationQuizState {
+  List<Quiz> quizzes;
+  int currentQuizIndex;
+  int correctCount;
+  int incorrectCount;
+  bool isDone;
+  bool isLoading;
+  String resultMessage;
+  int remainingSeconds;
+  int expireSeconds;
+
+  Quiz get currentQuiz => quizzes[currentQuizIndex];
+  bool get isButtonAvailable =>
+      quizzes.isNotEmpty &&
+      currentQuizIndex >= 0 &&
+      !isDone &&
+      !currentQuiz.isSolved;
+
+  DictationQuizState({
+    this.quizzes = const [],
+    this.currentQuizIndex = 0,
+    this.correctCount = 0,
+    this.incorrectCount = 0,
+    this.isDone = false,
+    this.isLoading = false,
+    this.resultMessage = '',
+    this.remainingSeconds = 0,
+    this.expireSeconds = 0,
+  });
+
+  DictationQuizState copyWith({
+    List<Quiz>? quizzes,
+    int? currentQuizIndex,
+    int? correctCount,
+    int? incorrectCount,
+    bool? isDone,
+    bool? isLoading,
+    String? resultMessage,
+    int? remainingSeconds,
+    int? expireSeconds,
+  }) {
+    return DictationQuizState(
+      quizzes: quizzes ?? this.quizzes,
+      currentQuizIndex: currentQuizIndex ?? this.currentQuizIndex,
+      correctCount: correctCount ?? this.correctCount,
+      incorrectCount: incorrectCount ?? this.incorrectCount,
+      isDone: isDone ?? this.isDone,
+      isLoading: isLoading ?? this.isLoading,
+      resultMessage: resultMessage ?? this.resultMessage,
+      remainingSeconds: remainingSeconds ?? this.remainingSeconds,
+      expireSeconds: expireSeconds ?? this.expireSeconds,
+    );
   }
 }

@@ -1,16 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
 import 'package:mobidic_flutter/viewmodel/dictation_quiz_view_model.dart';
-import 'package:provider/provider.dart';
 
-class DictationQuizPage extends StatelessWidget {
+class DictationQuizPage extends ConsumerStatefulWidget {
   const DictationQuizPage({super.key});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      DictationQuizPageState();
+}
+
+class DictationQuizPageState extends ConsumerState<DictationQuizPage> {
+  final TextEditingController userAnswerController = TextEditingController();
+
+  @override
+  void dispose() {
+    userAnswerController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final int quizColor = 0xFFb3e5fc;
-    final DictationQuizViewModel dictationQuizViewModel =
-        context.watch<DictationQuizViewModel>();
+    final dictationQuizViewModel = ref.read(
+      dictationQuizStateProvider.notifier,
+    );
+    final dictationQuizState = ref.watch(dictationQuizStateProvider);
 
     Widget buildFirstHalf() {
       return GestureDetector(
@@ -28,8 +45,8 @@ class DictationQuizPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    dictationQuizViewModel.words.isNotEmpty
-                        ? "${dictationQuizViewModel.currentWordIndex+1}번 음성"
+                    dictationQuizState.quizzes.isNotEmpty
+                        ? "${dictationQuizState.currentQuizIndex + 1}번 음성"
                         : "-",
                     style: const TextStyle(
                       color: Colors.black,
@@ -46,7 +63,6 @@ class DictationQuizPage extends StatelessWidget {
               ),
               Spacer(),
               Text("발음을 들어보세요.", style: const TextStyle(fontSize: 15)),
-              SizedBox(height: 10),
             ],
           ),
         ),
@@ -54,31 +70,20 @@ class DictationQuizPage extends StatelessWidget {
     }
 
     Widget buildResult() {
+      if (dictationQuizState.quizzes.isEmpty || dictationQuizState.isLoading) {
+        return const SizedBox(height: 20);
+      }
       return Column(
         children: [
           SizedBox(height: 20),
-          if (dictationQuizViewModel.isSolved)
+          if (dictationQuizState.currentQuiz.isSolved)
             Text(
-              dictationQuizViewModel.resultMessage,
+              dictationQuizState.resultMessage,
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
                 color: Colors.green,
               ),
-            ),
-          if (dictationQuizViewModel.isDone)
-            Column(
-              children: [
-                Text(
-                  "정답률 : ${dictationQuizViewModel.correctCount}/"
-                  "${dictationQuizViewModel.correctCount + dictationQuizViewModel.incorrectCount}",
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.amber,
-                  ),
-                ),
-              ],
             ),
         ],
       );
@@ -87,19 +92,22 @@ class DictationQuizPage extends StatelessWidget {
     Widget buildSecondHalf() {
       return Column(
         children: [
-          SizedBox(height: 20),
           Text(
             "음성을 듣고 단어를 입력해주세요",
             style: const TextStyle(fontSize: 20, color: Colors.black),
           ),
+          Text(
+            "(해당 퀴즈는 서버 미구현으로 학습률에 반영되지 않습니다.)",
+            style: const TextStyle(fontSize: 12, color: Colors.black),
+          ),
           SizedBox(height: 20),
           TextField(
-            enabled: dictationQuizViewModel.isButtonAvailable,
-            controller: dictationQuizViewModel.userAnswerController,
+            enabled: dictationQuizState.isButtonAvailable,
+            controller: userAnswerController,
             maxLines: 1,
             maxLength:
-                dictationQuizViewModel.words.isNotEmpty
-                    ? dictationQuizViewModel.currentWord.expression.length
+                dictationQuizState.quizzes.isNotEmpty
+                    ? dictationQuizState.currentQuiz.stem.length
                     : 10,
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 30, color: Colors.black),
@@ -109,6 +117,7 @@ class DictationQuizPage extends StatelessWidget {
             ),
             onSubmitted: (s) {
               dictationQuizViewModel.checkAnswer(s);
+              userAnswerController.text = '';
             },
           ),
           SizedBox(height: 30),
@@ -116,11 +125,12 @@ class DictationQuizPage extends StatelessWidget {
             width: double.infinity, // 부모 너비를 가득 채움
             child: ElevatedButton(
               onPressed:
-                  dictationQuizViewModel.isButtonAvailable
+                  dictationQuizState.isButtonAvailable
                       ? () {
                         dictationQuizViewModel.checkAnswer(
-                          dictationQuizViewModel.currentAnswer,
+                          userAnswerController.text,
                         );
+                        userAnswerController.text = '';
                       }
                       : null,
               style: ElevatedButton.styleFrom(
@@ -170,24 +180,43 @@ class DictationQuizPage extends StatelessWidget {
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.menu, color: Colors.black),
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == '파닉스') {
                 Navigator.pushNamed(context, '/phonics');
+              } else if (value == '로그아웃') {
+                await ref.read(authViewModelProvider.notifier).logout();
+
+                // 💡 핵심: 이동하기 전에 현재 사용 중인 Provider들을 다 초기화해서 찌꺼기를 없앱니다.
+                ref.invalidate(authViewModelProvider);
+
+                if (!mounted) return;
+
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/', // 위에서 루트를 로그인으로 바꿨다면 '/'로 이동
+                  (route) => false,
+                );
               }
             },
             itemBuilder:
                 (BuildContext context) => [
                   const PopupMenuItem<String>(value: '파닉스', child: Text('파닉스')),
+                  const PopupMenuItem<String>(
+                    value: '로그아웃',
+                    child: Text('로그아웃'),
+                  ),
                 ],
           ),
           Padding(
-            padding: EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: 12),
             child: IconButton(
               icon: const Icon(Icons.home, color: Colors.black),
               onPressed: () {
-                Navigator.popUntil(context, (route) {
-                  return route.settings.name == '/vocab_list'; // 특정 route 이름 기준
-                });
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/vocabularies',
+                  (route) => false,
+                );
               },
             ),
           ),
@@ -250,8 +279,8 @@ class DictationQuizPage extends StatelessWidget {
                               top: 0,
                               right: 0,
                               child: Text(
-                                '${dictationQuizViewModel.currentWordIndex + 1}/'
-                                '${dictationQuizViewModel.words.length}',
+                                '${dictationQuizState.currentQuizIndex + 1}/'
+                                '${dictationQuizState.quizzes.length}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -263,7 +292,7 @@ class DictationQuizPage extends StatelessWidget {
                               top: 0,
                               left: 0,
                               child: Text(
-                                '남은 시간: ${dictationQuizViewModel.secondsLeft}\'s',
+                                '남은 시간: ${dictationQuizState.remainingSeconds}\'s',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -280,13 +309,13 @@ class DictationQuizPage extends StatelessWidget {
               ),
             ),
           ),
-          if (dictationQuizViewModel.isLoading)
+          if (dictationQuizState.isLoading)
             Container(
               color: const Color(0x80000000), // 배경 어둡게
               child: const Center(child: CircularProgressIndicator()),
             ),
-          if (dictationQuizViewModel.words.isEmpty &&
-              !dictationQuizViewModel.isLoading)
+          if (dictationQuizState.quizzes.isEmpty &&
+              !dictationQuizState.isLoading)
             Container(
               color: const Color(0x80000000), // 배경 어둡게
               child: Center(

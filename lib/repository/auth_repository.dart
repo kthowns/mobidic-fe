@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/api/api_url.dart';
 import 'package:mobidic_flutter/api/dio.dart';
 import 'package:mobidic_flutter/data/secure_storage_data_source.dart';
 import 'package:mobidic_flutter/dto/login_dto.dart';
@@ -14,49 +15,36 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 
 class AuthRepository extends Repository {
   final SecureStorageDataSource _secureStorageDataSource;
-  final Dio dio;
+  final Dio _dio;
 
-  AuthRepository(this._secureStorageDataSource, this.dio);
+  AuthRepository(this._secureStorageDataSource, this._dio);
 
-  Future<LoginResponse> login(LoginRequest request) async {
-    try {
-      final response = await dio.post('/auth/login', data: request.toJson());
-      print('success /auth/login ${response.data}');
+  Future<LoginResponse> login(LoginRequest request) {
+    final url = ApiUrl.login.url;
 
-      return LoginResponse.fromJson(response.data['data']);
-    } on DioException catch (e) {
-      throw handleApiException(e);
-    } catch (e) {
-      print('/auth/login unknown error: $e');
-      throw handleUnknownException(e);
-    }
+    return dioRequest<LoginResponse>(
+      url: url,
+      action: () => _dio.post(url, data: request),
+      fromJson: LoginResponse.fromJson,
+    );
   }
 
   Future<void> signup(SignupRequest request) async {
-    try {
-      final response = await dio.post('/auth/signup', data: request.toJson());
-      print('/auth/signup ${response.data}');
-    } on DioException catch (e) {
-      throw handleApiException(e);
-    } catch (e) {
-      print('/auth/signup unknown error: $e');
-      throw handleUnknownException(e);
-    }
+    final url = ApiUrl.signup.url;
+
+    await dioRequest<void>(
+      url: url,
+      action: () => _dio.post(url, data: request),
+    );
   }
 
   Future<void> logout() async {
-    try {
-      final response = await dio.post(
-        '/auth/logout',
-        options: Options(extra: {'auth': true}),
-      );
-      print('/auth/logout ${response.data}');
-    } on DioException catch (e) {
-      throw handleApiException(e);
-    } catch (e) {
-      print('/auth/logout unknown error: $e');
-      throw handleUnknownException(e);
-    }
+    final url = ApiUrl.logout.url;
+
+    await dioRequest<void>(
+      url: url,
+      action: () => _dio.post(url, options: Options(extra: {'auth': true})),
+    );
 
     await _secureStorageDataSource.deleteToken();
   }
