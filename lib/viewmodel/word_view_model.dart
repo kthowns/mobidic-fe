@@ -13,7 +13,7 @@ final wordListStateProvider =
     StateNotifierProvider.autoDispose<WordListViewModel, WordListState>((ref) {
       final wordRepository = ref.read(wordRepositoryProvider);
       final statisticRepository = ref.read(statisticRepositoryProvider);
-      final vocabListState = ref.watch(vocabListStateProvider);
+      final vocabListState = ref.read(vocabListStateProvider);
 
       return WordListViewModel(
         wordRepository,

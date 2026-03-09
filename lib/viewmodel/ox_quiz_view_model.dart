@@ -9,7 +9,7 @@ import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
 final oxQuizStateProvider =
     StateNotifierProvider.autoDispose<OxQuizViewModel, OxQuizState>((ref) {
       final quizRepository = ref.watch(quizRepositoryProvider);
-      final vocabListState = ref.watch(vocabListStateProvider);
+      final vocabListState = ref.read(vocabListStateProvider);
 
       return OxQuizViewModel(quizRepository, vocabListState);
     });
@@ -70,6 +70,7 @@ class OxQuizViewModel extends StateNotifier<OxQuizState> {
   @override
   void dispose() {
     _timer?.cancel();
+    _stopwatch.stop();
     super.dispose();
   }
 
@@ -79,6 +80,10 @@ class OxQuizViewModel extends StateNotifier<OxQuizState> {
 
     _stopwatch.start();
     _timer = Timer.periodic(Duration(milliseconds: 500), (timer) async {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
       state = state.copyWith(
         remainingSeconds: state.expireSeconds - _stopwatch.elapsed.inSeconds,
       );
@@ -119,6 +124,9 @@ class OxQuizViewModel extends StateNotifier<OxQuizState> {
       state.currentQuiz.token,
       userAnswer ? "1" : "0",
     );
+    if (!mounted) {
+      return;
+    }
 
     String correctAnswer = result.correctAnswer == "1" ? "O" : "X";
 
@@ -149,9 +157,12 @@ class OxQuizViewModel extends StateNotifier<OxQuizState> {
   }
 
   void toNextWord() {
+    if (!mounted) {
+      return;
+    }
     state = state.copyWith(resultMessage: '');
     if (state.currentQuizIndex >= state.quizzes.length - 1) {
-      state = state.copyWith(isDone: true,);
+      state = state.copyWith(isDone: true);
       showResult();
     }
     if (!state.isDone) {
