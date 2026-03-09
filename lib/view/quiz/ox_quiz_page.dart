@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/viewmodel/ox_quiz_view_model.dart';
-import 'package:provider/provider.dart';
 
-class OxQuizPage extends StatelessWidget {
+class OxQuizPage extends ConsumerStatefulWidget {
   const OxQuizPage({super.key});
 
   @override
+  ConsumerState<ConsumerStatefulWidget> createState() => OxQuizPageState();
+}
+
+class OxQuizPageState extends ConsumerState<OxQuizPage> {
+  final int quizColor = 0xFFb3e5fc;
+
+  @override
   Widget build(BuildContext context) {
-    final int quizColor = 0xFFb3e5fc;
-    final OxQuizViewModel oxQuizViewModel = context.watch<OxQuizViewModel>();
+    final oxQuizViewModel = ref.read(oxQuizStateProvider.notifier);
+    final oxQuizState = ref.watch(oxQuizStateProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -101,10 +108,8 @@ class OxQuizPage extends StatelessWidget {
                                       Column(
                                         children: [
                                           Text(
-                                            oxQuizViewModel.questions.isNotEmpty
-                                                ? oxQuizViewModel
-                                                    .currentQuestion
-                                                    .stem
+                                            oxQuizState.quizzes.isNotEmpty
+                                                ? oxQuizState.currentQuiz.stem
                                                 : "-",
                                             style: const TextStyle(
                                               fontSize: 36,
@@ -116,9 +121,9 @@ class OxQuizPage extends StatelessWidget {
                                             thickness: 1,
                                           ),
                                           Text(
-                                            oxQuizViewModel.questions.isNotEmpty
-                                                ? oxQuizViewModel
-                                                    .currentQuestion
+                                            oxQuizState.quizzes.isNotEmpty
+                                                ? oxQuizState
+                                                    .currentQuiz
                                                     .options
                                                     .join(', ')
                                                 : "-",
@@ -126,31 +131,14 @@ class OxQuizPage extends StatelessWidget {
                                               fontSize: 28,
                                             ),
                                           ),
-                                          SizedBox(height: 40),
-                                          if (oxQuizViewModel.isSolved)
-                                            Text(
-                                              oxQuizViewModel.resultMessage,
-                                              style: TextStyle(
-                                                fontSize: 30,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.green,
-                                              ),
+                                          Text(
+                                            oxQuizState.resultMessage,
+                                            style: const TextStyle(
+                                              fontSize: 28,
+                                              color: Colors.green,
                                             ),
-                                          if (oxQuizViewModel.isDone)
-                                            Column(
-                                              children: [
-                                                Text(
-                                                  "정답률 : ${oxQuizViewModel.correctCount}/"
-                                                  "${oxQuizViewModel.correctCount + oxQuizViewModel.incorrectCount}",
-                                                  style: TextStyle(
-                                                    fontSize: 30,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.amber,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          SizedBox(height: 40),
+                                          ),
+                                          SizedBox(height: 30),
                                         ],
                                       ),
                                     ],
@@ -164,8 +152,7 @@ class OxQuizPage extends StatelessWidget {
                                           padding: EdgeInsets.all(10),
                                           child: ElevatedButton(
                                             onPressed:
-                                                oxQuizViewModel
-                                                        .isButtonAvailable
+                                                oxQuizState.isButtonAvailable
                                                     ? () {
                                                       oxQuizViewModel
                                                           .checkAnswer(true);
@@ -200,8 +187,7 @@ class OxQuizPage extends StatelessWidget {
                                           padding: EdgeInsets.all(10),
                                           child: ElevatedButton(
                                             onPressed:
-                                                oxQuizViewModel
-                                                        .isButtonAvailable
+                                                oxQuizState.isButtonAvailable
                                                     ? () {
                                                       oxQuizViewModel
                                                           .checkAnswer(false);
@@ -238,8 +224,8 @@ class OxQuizPage extends StatelessWidget {
                               top: 0,
                               right: 0,
                               child: Text(
-                                '${oxQuizViewModel.currentQuestionIndex + 1}/'
-                                '${oxQuizViewModel.questions.length}',
+                                '${oxQuizState.currentQuizIndex + 1}/'
+                                '${oxQuizState.quizzes.length}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -251,7 +237,7 @@ class OxQuizPage extends StatelessWidget {
                               top: 0,
                               left: 0,
                               child: Text(
-                                '남은 시간: ${oxQuizViewModel.secondsLeft}\'s',
+                                '남은 시간: ${oxQuizState.remainingSeconds}\'s',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -268,12 +254,12 @@ class OxQuizPage extends StatelessWidget {
               ),
             ),
           ),
-          if (oxQuizViewModel.isLoading)
+          if (oxQuizState.isLoading)
             Container(
               color: const Color(0x80000000), // 배경 어둡게
               child: const Center(child: CircularProgressIndicator()),
             ),
-          if (oxQuizViewModel.questions.isEmpty && !oxQuizViewModel.isLoading)
+          if (oxQuizState.quizzes.isEmpty && !oxQuizState.isLoading)
             Container(
               color: const Color(0x80000000), // 배경 어둡게
               child: Center(

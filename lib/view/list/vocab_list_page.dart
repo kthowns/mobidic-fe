@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/view/list/word_list_page.dart';
 import 'package:mobidic_flutter/view/quiz/flash_card_page.dart';
+import 'package:mobidic_flutter/view/quiz/ox_quiz_page.dart';
 import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
 
 class VocabListPage extends ConsumerStatefulWidget {
@@ -240,18 +241,20 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                           ElevatedButton(
                             onPressed: () {
                               Navigator.pop(context);
-                              /*
-                              NavigationHelper.navigateToOxQuiz(
+                              vocabListViewModel.selectVocabAt(index);
+                              Navigator.push(
                                 context,
-                                vocabViewModel,
-                                index,
-                              );*/
+                                MaterialPageRoute(
+                                  builder: (context) => OxQuizPage(),
+                                ),
+                              );
                             },
                             child: const Text('O/X 퀴즈'),
                           ),
                           ElevatedButton(
                             onPressed: () {
                               Navigator.pop(context);
+                              vocabListViewModel.selectVocabAt(index);
                               /*
                               NavigationHelper.navigateToDictationQuiz(
                                 context,
@@ -265,6 +268,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                           ElevatedButton(
                             onPressed: () {
                               Navigator.pop(context);
+                              vocabListViewModel.selectVocabAt(index);
                               /*
                               NavigationHelper.navigateToBlankQuiz(
                                 context,
@@ -484,7 +488,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                   onPressed: () {
                     Navigator.popUntil(context, (route) {
                       return route.settings.name ==
-                          '/vocab_list'; // 특정 route 이름 기준
+                          '/vocabularies'; // 특정 route 이름 기준
                     });
                   },
                 ),
