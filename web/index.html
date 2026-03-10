@@ -37,20 +37,61 @@
       <style>
         body {
           margin: 0;
-          background-color: #f3f3f3; /* 배경색 */
+          background-color: #b3e5fc; /* 페이지의 테마색과 일치시킴 */
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          width: 100vw;
+          overflow: hidden;
         }
-        .spinner {
+
+        .loader-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        /* 아이콘 스타일 및 둥실둥실 애니메이션 */
+        .logo-wrapper {
+          position: relative;
+          width: 120px;
+          height: 120px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+
+        .logo-image {
+          width: 80px;
+          height: 80px;
+          z-index: 2;
+          animation: float 2s ease-in-out infinite;
+        }
+
+        /* 로고 주변을 도는 부드러운 링 */
+        .loader-ring {
           position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 40px;
-          height: 40px;
-          border: 4px solid #dddddd;
-          border-top: 4px solid #2196f3;
+          width: 100%;
+          height: 100%;
+          border: 4px solid transparent;
+          border-top: 4px solid #ffffff;
+          border-right: 4px solid #ffffff;
           border-radius: 50%;
-          animation: spin 1s linear infinite;
+          animation: spin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
         }
+
+        /* 하단 로딩 텍스트 */
+        .loading-text {
+          font-family: "Arial", sans-serif;
+          font-weight: bold;
+          font-size: 18px;
+          color: #01579b;
+          letter-spacing: 2px;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+
         @keyframes spin {
           0% {
             transform: rotate(0deg);
@@ -59,10 +100,63 @@
             transform: rotate(360deg);
           }
         }
+
+        @keyframes float {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 0.5;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
       </style>
-      <div class="spinner"></div>
+
+      <div class="loader-container">
+        <div class="logo-wrapper">
+          <div class="loader-ring"></div>
+          <img
+            class="logo-image"
+            src="assets/assets/images/mobidic_icon.png"
+            alt="MOBIDIC"
+          />
+        </div>
+        <div class="loading-text">LOADING MOBIDIC...</div>
+      </div>
     </div>
 
+    <script>
+      window.addEventListener("load", function () {
+        _flutter.loader.load({
+          onEntrypointLoaded: async function (engineInitializer) {
+            // 엔진 초기화
+            const appRunner = await engineInitializer.initializeEngine();
+
+            // 앱 실행
+            await appRunner.runApp();
+
+            // 앱 실행 완료 후 로딩 화면 제거 (페이드 아웃 효과)
+            const loadingDiv = document.getElementById("loading");
+            if (loadingDiv) {
+              loadingDiv.style.opacity = "0";
+              setTimeout(() => {
+                loadingDiv.remove();
+              }, 500); // CSS transition 시간과 맞춤
+            }
+          },
+        });
+      });
+    </script>
     <script src="flutter_bootstrap.js" async></script>
   </body>
 </html>
