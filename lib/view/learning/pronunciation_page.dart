@@ -31,6 +31,17 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
     )..repeat(reverse: true);
 
     _controller.stop(); // 처음에는 정지
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(pronunciationStateProvider.notifier).checkMicPermission();
+
+      final hasPermission = ref.read(pronunciationStateProvider).hasPermission;
+      if (!hasPermission) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('마이크 권한이 거부되었습니다. 설정에서 허용해주세요.')),
+        );
+      }
+    });
   }
 
   @override
@@ -117,11 +128,10 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
                         .join(', ')
                     : "-",
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 28),
+                style: const TextStyle(fontSize: 20),
               ),
               Spacer(),
               Text("발음을 들어보세요.", style: const TextStyle(fontSize: 15)),
-              SizedBox(height: 10),
             ],
           ),
         ),
@@ -215,7 +225,7 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
             Text(
               pronunciationState.hasPermission
                   ? '버튼을 누른 채 말해보세요!'
-                  : "발음체크는 모바일 앱에서만 지원됩니다.",
+                  : "발음체크는 (iOS의 경우) 사파리에서만 지원됩니다.",
               style: TextStyle(fontSize: 16, color: Colors.black87),
             ),
           ],

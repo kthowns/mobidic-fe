@@ -1,158 +1,129 @@
 <!doctype html>
 <html>
   <head>
-    <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
     <base href="$FLUTTER_BASE_HREF" />
-
     <meta charset="UTF-8" />
-    <meta content="IE=Edge" http-equiv="X-UA-Compatible" />
-    <meta name="description" content="A new Flutter project." />
-
-    <!-- iOS meta tags & icons -->
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    <meta name="apple-mobile-web-app-title" content="mobidic_flutter" />
-    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="icons/favicon-32x32.png" />
-
     <title>mobidic_flutter</title>
     <link rel="manifest" href="manifest.json" />
+    <style>
+      body {
+        margin: 0;
+        background-color: #b3e5fc;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+      }
+
+      .loader-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 250px; /* 로딩바 너비 기준 */
+      }
+
+      .logo-image {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 30px;
+        animation: float 2s ease-in-out infinite;
+      }
+
+      /* 실질적인 로딩바 배경 */
+      .progress-bg {
+        width: 100%;
+        height: 8px;
+        background-color: rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 10px;
+      }
+
+      /* 실제로 차오르는 바 */
+      .progress-fill {
+        width: 0%; /* 초기값 0 */
+        height: 100%;
+        background-color: #ffffff;
+        border-radius: 10px;
+        transition: width 0.3s ease-out; /* 부드럽게 차오름 */
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+      }
+
+      .loading-text {
+        font-family: sans-serif;
+        font-size: 14px;
+        color: #01579b;
+        font-weight: bold;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-15px);
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="loading">
-      <style>
-        body {
-          margin: 0;
-          background-color: #b3e5fc; /* 페이지의 테마색과 일치시킴 */
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          width: 100vw;
-          overflow: hidden;
-        }
-
-        .loader-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
-
-        /* 아이콘 스타일 및 둥실둥실 애니메이션 */
-        .logo-wrapper {
-          position: relative;
-          width: 120px;
-          height: 120px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-
-        .logo-image {
-          width: 80px;
-          height: 80px;
-          z-index: 2;
-          animation: float 2s ease-in-out infinite;
-        }
-
-        /* 로고 주변을 도는 부드러운 링 */
-        .loader-ring {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          border: 4px solid transparent;
-          border-top: 4px solid #ffffff;
-          border-right: 4px solid #ffffff;
-          border-radius: 50%;
-          animation: spin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-        }
-
-        /* 하단 로딩 텍스트 */
-        .loading-text {
-          font-family: "Arial", sans-serif;
-          font-weight: bold;
-          font-size: 18px;
-          color: #01579b;
-          letter-spacing: 2px;
-          animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
-        }
-
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-
-        @keyframes pulse {
-          0%,
-          100% {
-            opacity: 0.5;
-          }
-          50% {
-            opacity: 1;
-          }
-        }
-      </style>
-
       <div class="loader-container">
-        <div class="logo-wrapper">
-          <div class="loader-ring"></div>
-          <img
-            class="logo-image"
-            src="assets/assets/images/mobidic_icon.png"
-            alt="MOBIDIC"
-          />
+        <img
+          class="logo-image"
+          src="assets/assets/images/mobidic_icon.png"
+          alt="MOBIDIC"
+        />
+
+        <div class="progress-bg">
+          <div id="progress-fill" class="progress-fill"></div>
         </div>
-        <div class="loading-text">LOADING MOBIDIC...</div>
+
+        <div id="loading-status" class="loading-text">준비 중... 0%</div>
       </div>
     </div>
-
     <script>
+      const fill = document.getElementById("progress-fill");
+      const status = document.getElementById("loading-status");
+
+      function updateProgress(progress, text) {
+        if (fill) fill.style.width = progress * 100 + "%";
+        if (status)
+          status.innerText = text + "... " + Math.round(progress * 100) + "%";
+      }
+
       window.addEventListener("load", function () {
+        // 1. 리소스 로드 시작 (초기 가속)
+        let currentProgress = 0.1;
+        updateProgress(currentProgress, "서버 응답 확인 중");
+
+        // 가짜 진행률: 실제 로딩 중간에 멈춰 보이지 않게 조금씩 올림
+        const fakeProgress = setInterval(() => {
+          if (currentProgress < 0.5) {
+            currentProgress += 0.05;
+            updateProgress(currentProgress, "리소스 다운로드 중");
+          } else {
+            clearInterval(fakeProgress);
+          }
+        }, 500);
+
         _flutter.loader.load({
+          serviceWorker: {
+            serviceWorkerVersion: "$SERVICE_WORKER_VERSION",
+          },
           onEntrypointLoaded: async function (engineInitializer) {
-            // 엔진 초기화
+            clearInterval(fakeProgress); // 엔진 로드되면 가짜 진행률 정지
+            updateProgress(0.7, "엔진 초기화 중");
+
             const appRunner = await engineInitializer.initializeEngine();
+            updateProgress(0.9, "UI 렌더링 준비");
 
-            // 앱 실행
             await appRunner.runApp();
-
-            // 앱 실행 완료 후 로딩 화면 제거 (페이드 아웃 효과)
-            const loadingDiv = document.getElementById("loading");
-            if (loadingDiv) {
-              loadingDiv.style.opacity = "0";
-              setTimeout(() => {
-                loadingDiv.remove();
-              }, 500); // CSS transition 시간과 맞춤
-            }
+            // 앱 실행 시점에 100% (보통 앱이 뜨면서 로딩창이 사라짐)
           },
         });
       });

@@ -91,8 +91,9 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
   }
 
   Future<void> startRecording() async {
+    final hasPermission = await _recorder.hasPermission();
     if (kIsWeb) {
-      if (await _recorder.hasPermission()) {
+      if (hasPermission) {
         // 웹은 path를 빈 문자열로 주면 브라우저 Blob으로 처리함
         await _recorder.start(const RecordConfig(), path: '');
         print("Web recording started...");
