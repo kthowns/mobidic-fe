@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/view/auth/log_in_page.dart';
 import 'package:mobidic_flutter/view/auth/sign_up_page.dart';
 import 'package:mobidic_flutter/view/learning/phonics_page.dart';
+import 'package:mobidic_flutter/view/learning/pronunciation_page.dart';
 import 'package:mobidic_flutter/view/list/vocab_list_page.dart';
 import 'package:mobidic_flutter/view/list/word_list_page.dart';
 import 'package:mobidic_flutter/view/quiz/blank_quiz_page.dart';
@@ -37,7 +38,7 @@ class MyApp extends StatelessWidget {
         '/blank': (context) => BlankQuizPage(),
         '/flashcard': (context) => FlashCardPage(),
         '/dictation': (context) => DictationQuizPage(),
-        //'/pronunciation': (context) => PronunciationCheckPage(),
+        '/pronunciation': (context) => PronunciationPage(),
       },
     );
   }

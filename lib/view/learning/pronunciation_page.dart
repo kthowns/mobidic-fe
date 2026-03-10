@@ -1,19 +1,21 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
 import 'package:mobidic_flutter/viewmodel/pronunciation_view_model.dart';
-import 'package:provider/provider.dart';
 
-class PronunciationCheckPage extends StatefulWidget {
-  const PronunciationCheckPage({super.key});
+class PronunciationPage extends ConsumerStatefulWidget {
+  const PronunciationPage({super.key});
 
   @override
-  State<PronunciationCheckPage> createState() => _PronunciationCheckPageState();
+  ConsumerState<PronunciationPage> createState() => _PronunciationPageState();
 }
 
-class _PronunciationCheckPageState extends State<PronunciationCheckPage>
+class _PronunciationPageState extends ConsumerState<PronunciationPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
@@ -41,7 +43,11 @@ class _PronunciationCheckPageState extends State<PronunciationCheckPage>
 
   @override
   Widget build(BuildContext context) {
-    final pronunciationViewModel = context.watch<PronunciationViewModel>();
+    final pronunciationViewModel = ref.read(
+      pronunciationStateProvider.notifier,
+    );
+    final pronunciationState = ref.watch(pronunciationStateProvider);
+
     final int quizColor = 0xFFb3e5fc;
 
     void onMicPressStart() {
@@ -88,8 +94,8 @@ class _PronunciationCheckPageState extends State<PronunciationCheckPage>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    pronunciationViewModel.words.isNotEmpty
-                        ? pronunciationViewModel.currentWord.expression
+                    pronunciationState.words.isNotEmpty
+                        ? pronunciationState.currentWord.expression
                         : "-",
                     style: const TextStyle(
                       color: Colors.black,
@@ -105,9 +111,9 @@ class _PronunciationCheckPageState extends State<PronunciationCheckPage>
                 ],
               ),
               Text(
-                pronunciationViewModel.words.isNotEmpty
-                    ? pronunciationViewModel.currentWord.defs
-                        .map((d) => "${d.definition} (${d.part.label})")
+                pronunciationState.words.isNotEmpty
+                    ? pronunciationState.currentWord.definitions
+                        .map((d) => "${d.meaning} (${d.part.label})")
                         .join(', ')
                     : "-",
                 overflow: TextOverflow.ellipsis,
@@ -124,9 +130,9 @@ class _PronunciationCheckPageState extends State<PronunciationCheckPage>
 
     Widget buildSecondBody() {
       Color scoreColor;
-      if (pronunciationViewModel.score < 30) {
+      if (pronunciationState.score < 30) {
         scoreColor = Colors.red;
-      } else if (pronunciationViewModel.score < 65) {
+      } else if (pronunciationState.score < 65) {
         scoreColor = Colors.orange;
       } else {
         scoreColor = Colors.green;
@@ -136,7 +142,7 @@ class _PronunciationCheckPageState extends State<PronunciationCheckPage>
         child: Column(
           children: [
             SizedBox(height: 10),
-            if (pronunciationViewModel.resultMessage != "")
+            if (pronunciationState.resultMessage != "")
               Text(
                 '발음 채점 결과',
                 style: TextStyle(
@@ -147,9 +153,9 @@ class _PronunciationCheckPageState extends State<PronunciationCheckPage>
                 textAlign: TextAlign.center,
               ),
             Spacer(),
-            if (pronunciationViewModel.resultMessage != "")
+            if (pronunciationState.resultMessage.isNotEmpty)
               Text(
-                pronunciationViewModel.resultMessage,
+                pronunciationState.resultMessage,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 30,
@@ -197,11 +203,8 @@ class _PronunciationCheckPageState extends State<PronunciationCheckPage>
         child: Column(
           children: [
             GestureDetector(
-              onLongPressStart:
-                  (_) =>
-                      !pronunciationViewModel.isWeb ? onMicPressStart() : null,
-              onLongPressEnd:
-                  (_) => !pronunciationViewModel.isWeb ? onMicPressEnd() : null,
+              onLongPressStart: (_) => !kIsWeb ? onMicPressStart() : null,
+              onLongPressEnd: (_) => !kIsWeb ? onMicPressEnd() : null,
               child: Container(
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
@@ -217,9 +220,7 @@ class _PronunciationCheckPageState extends State<PronunciationCheckPage>
             ),
             const SizedBox(height: 12),
             Text(
-              !pronunciationViewModel.isWeb
-                  ? '버튼을 누른 채 말해보세요!'
-                  : "발음체크는 모바일 앱에서만 지원됩니다.",
+              !kIsWeb ? '버튼을 누른 채 말해보세요!' : "발음체크는 모바일 앱에서만 지원됩니다.",
               style: TextStyle(fontSize: 16, color: Colors.black87),
             ),
           ],
@@ -355,8 +356,8 @@ class _PronunciationCheckPageState extends State<PronunciationCheckPage>
                               top: 0,
                               right: 0,
                               child: Text(
-                                '${pronunciationViewModel.currentWordIndex + 1}/'
-                                '${pronunciationViewModel.words.length}',
+                                '${pronunciationState.currentWordIndex + 1}/'
+                                '${pronunciationState.words.length}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -378,7 +379,7 @@ class _PronunciationCheckPageState extends State<PronunciationCheckPage>
                           icon: const Icon(Icons.arrow_back_ios),
                           iconSize: 32,
                           onPressed:
-                              pronunciationViewModel.currentWordIndex > 0
+                              pronunciationState.currentWordIndex > 0
                                   ? () {
                                     pronunciationViewModel.toPrevWord();
                                   }
@@ -389,8 +390,8 @@ class _PronunciationCheckPageState extends State<PronunciationCheckPage>
                           icon: const Icon(Icons.arrow_forward_ios),
                           iconSize: 32,
                           onPressed:
-                              pronunciationViewModel.currentWordIndex <
-                                      pronunciationViewModel.words.length - 1
+                              pronunciationState.currentWordIndex <
+                                      pronunciationState.words.length - 1
                                   ? () {
                                     pronunciationViewModel.toNextWord();
                                   }
@@ -403,12 +404,12 @@ class _PronunciationCheckPageState extends State<PronunciationCheckPage>
               ),
             ),
           ),
-          if (pronunciationViewModel.isLoading)
+          if (pronunciationState.isLoading)
             Container(
               color: const Color(0x80000000), // 배경 어둡게
               child: const Center(child: CircularProgressIndicator()),
             ),
-          if (pronunciationViewModel.isRating)
+          if (pronunciationState.isRating)
             Container(
               color: const Color(0x80000000), // 배경 어둡게
               child: const Center(
@@ -423,8 +424,7 @@ class _PronunciationCheckPageState extends State<PronunciationCheckPage>
                 ),
               ),
             ),
-          if (pronunciationViewModel.words.isEmpty &&
-              !pronunciationViewModel.isLoading)
+          if (pronunciationState.words.isEmpty && !pronunciationState.isLoading)
             Container(
               color: const Color(0x80000000), // 배경 어둡게
               child: Center(
@@ -449,6 +449,5 @@ class _PronunciationCheckPageState extends State<PronunciationCheckPage>
         ],
       ),
     );
-    Stack(children: []);
   }
 }

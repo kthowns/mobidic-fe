@@ -33,7 +33,7 @@ enum ApiUrl {
   rateQuiz("/api/quizzes/rate", null),
 
   // 발음 체크 관련 서비스
-  pronunciation("/api/pronunciation", null),
+  pronunciation("/api/words/{wordId}/pronunciation", "wordId"),
 
   // 통계 관련 서비스
   wordStatistic("/api/words/{wordId}/statistic", "wordId"),
