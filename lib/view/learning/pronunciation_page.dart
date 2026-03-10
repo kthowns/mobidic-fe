@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -113,6 +112,7 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
               Text(
                 pronunciationState.words.isNotEmpty
                     ? pronunciationState.currentWord.definitions
+                        .take(2)
                         .map((d) => "${d.meaning} (${d.part.label})")
                         .join(', ')
                     : "-",
@@ -141,28 +141,15 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
       return Container(
         child: Column(
           children: [
-            SizedBox(height: 10),
-            if (pronunciationState.resultMessage != "")
-              Text(
-                '발음 채점 결과',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 30,
-                  color: Colors.orange,
-                ),
-                textAlign: TextAlign.center,
+            Text(
+              pronunciationState.resultMessage,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 30,
+                color: scoreColor,
               ),
-            Spacer(),
-            if (pronunciationState.resultMessage.isNotEmpty)
-              Text(
-                pronunciationState.resultMessage,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 30,
-                  color: scoreColor,
-                ),
-                textAlign: TextAlign.center,
-              ),
+              textAlign: TextAlign.center,
+            ),
             Spacer(),
             Column(
               children: [
@@ -203,8 +190,14 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
         child: Column(
           children: [
             GestureDetector(
-              onLongPressStart: (_) => !kIsWeb ? onMicPressStart() : null,
-              onLongPressEnd: (_) => !kIsWeb ? onMicPressEnd() : null,
+              onLongPressStart:
+                  (_) =>
+                      pronunciationState.hasPermission
+                          ? onMicPressStart()
+                          : null,
+              onLongPressEnd:
+                  (_) =>
+                      pronunciationState.hasPermission ? onMicPressEnd() : null,
               child: Container(
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
@@ -220,7 +213,9 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
             ),
             const SizedBox(height: 12),
             Text(
-              !kIsWeb ? '버튼을 누른 채 말해보세요!' : "발음체크는 모바일 앱에서만 지원됩니다.",
+              pronunciationState.hasPermission
+                  ? '버튼을 누른 채 말해보세요!'
+                  : "발음체크는 모바일 앱에서만 지원됩니다.",
               style: TextStyle(fontSize: 16, color: Colors.black87),
             ),
           ],

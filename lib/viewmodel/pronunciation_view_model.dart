@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:mobidic_flutter/model/word.dart';
@@ -40,10 +41,18 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
     init();
   }
 
+  Future<void> checkMicPermission() async {
+    final hasPermission = await _recorder.hasPermission();
+    state = state.copyWith(hasPermission: hasPermission);
+  }
+
   Future<void> init() async {
+    print("init");
     await loadData();
     await _initTts();
     await _flutterTts.setLanguage('en-US');
+    await checkMicPermission();
+    print("init done.");
   }
 
   Future<void> loadData() async {
@@ -54,17 +63,18 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
 
   Future<void> fetchWords() async {
     final currentVocab = _vocabListState.currentVocab;
-
     if (currentVocab == null) return;
 
+    print("fetching words...");
     final words = await _wordRepository.getWords(currentVocab.id);
-
     state = state.copyWith(words: words);
+    print("words : ${state.words}");
   }
 
   @override
   void dispose() {
     _flutterTts.stop();
+    _recorder.dispose();
     super.dispose();
   }
 
@@ -81,6 +91,15 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
   }
 
   Future<void> startRecording() async {
+    if (kIsWeb) {
+      if (await _recorder.hasPermission()) {
+        // 웹은 path를 빈 문자열로 주면 브라우저 Blob으로 처리함
+        await _recorder.start(const RecordConfig(), path: '');
+        print("Web recording started...");
+      }
+      return;
+    }
+
     final dir = await getTemporaryDirectory();
     final recordFilePath = '${dir.path}/temp_audio.mp4';
     if (await _recorder.hasPermission()) {
@@ -102,34 +121,46 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
     await Future.delayed(Duration(milliseconds: 300));
     state = state.copyWith(isRating: true);
 
-    if (path != null) {
-      final File file = File(path);
+    try {
+      if (path != null) {
+        if (kIsWeb) {
+          print("Web Upload Path: $path");
 
-      // 파일 존재 확인
-      if (await file.exists()) {
-        final bytes = await file.readAsBytes(); // 정확한 byte[]
-        final size = bytes.length;
-        print("byte 크기: $size");
-
-        try {
           final score = await _pronunciationRepository.checkPronunciation(
-            file.path,
+            path, // URL 그대로 전달
             state.currentWord.id,
           );
           final resultMessage = "${(score * 100).ceil().toStringAsFixed(0)}점";
           state = state.copyWith(resultMessage: resultMessage);
           print("resultMessage : $resultMessage");
-          file.delete();
-        } on ApiException catch (e) {
-          print(e);
-          state = state.copyWith(resultMessage: "${e.message} 다시 한 번 말해보세요.");
-        } on Exception catch (e) {
-          print(e);
-          state = state.copyWith(resultMessage: "오류 발생");
-        } finally {
-          state = state.copyWith(isRating: false);
+        } else {
+          final File file = File(path);
+
+          // 파일 존재 확인
+          if (await file.exists()) {
+            final bytes = await file.readAsBytes(); // 정확한 byte[]
+            final size = bytes.length;
+            print("byte 크기: $size");
+
+            final score = await _pronunciationRepository.checkPronunciation(
+              file.path,
+              state.currentWord.id,
+            );
+            final resultMessage = "${(score * 100).ceil().toStringAsFixed(0)}점";
+            state = state.copyWith(resultMessage: resultMessage);
+            print("resultMessage : $resultMessage");
+            file.delete();
+          }
         }
       }
+    } on ApiException catch (e) {
+      print(e);
+      state = state.copyWith(resultMessage: "다시 한 번 말해보세요.");
+    } on Exception catch (e) {
+      print(e);
+      state = state.copyWith(resultMessage: "오류 발생");
+    } finally {
+      state = state.copyWith(isRating: false);
     }
   }
 
@@ -171,6 +202,7 @@ class PronunciationState {
   bool isRating;
   bool isDone;
   bool isLoading;
+  bool hasPermission;
 
   bool get isButtonAvailable =>
       words.isNotEmpty && !isDone && !isRating && !isLoading;
@@ -180,10 +212,11 @@ class PronunciationState {
     this.words = const [],
     this.currentWordIndex = 0,
     this.resultMessage = '',
+    this.score = 0,
     this.isRating = false,
     this.isDone = false,
     this.isLoading = false,
-    this.score = 0,
+    this.hasPermission = false,
   });
 
   PronunciationState copyWith({
@@ -194,6 +227,7 @@ class PronunciationState {
     bool? isRating,
     bool? isDone,
     bool? isLoading,
+    bool? hasPermission,
   }) {
     return PronunciationState(
       words: words ?? this.words,
@@ -203,6 +237,7 @@ class PronunciationState {
       isRating: isRating ?? this.isRating,
       isDone: isDone ?? this.isDone,
       isLoading: isLoading ?? this.isLoading,
+      hasPermission: hasPermission ?? this.hasPermission,
     );
   }
 }

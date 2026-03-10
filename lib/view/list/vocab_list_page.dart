@@ -267,11 +267,11 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
               },
             );
           } else if (label == '발음 체크') {
+            vocabListViewModel.selectVocabAt(index);
             await Navigator.pushNamed(context, '/pronunciation');
             vocabListViewModel.loadData();
           }
         },
-        child: Text(label),
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           textStyle: const TextStyle(fontSize: 12),
@@ -279,6 +279,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
           foregroundColor: Colors.black87,
           shape: const StadiumBorder(),
         ),
+        child: Text(label),
       );
     }
 
