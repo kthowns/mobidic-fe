@@ -9,10 +9,10 @@ class DictationQuizPage extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
-      DictationQuizPageState();
+      _DictationQuizPageState();
 }
 
-class DictationQuizPageState extends ConsumerState<DictationQuizPage> {
+class _DictationQuizPageState extends ConsumerState<DictationQuizPage> {
   final TextEditingController userAnswerController = TextEditingController();
 
   @override

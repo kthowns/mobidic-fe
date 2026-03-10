@@ -11,10 +11,10 @@ class WordListPage extends ConsumerStatefulWidget {
   const WordListPage({super.key});
 
   @override
-  ConsumerState<WordListPage> createState() => WordListPageState();
+  ConsumerState<WordListPage> createState() => _WordListPageState();
 }
 
-class WordListPageState extends ConsumerState<WordListPage> {
+class _WordListPageState extends ConsumerState<WordListPage> {
   final addingExpController = TextEditingController();
   final editingExpController = TextEditingController();
   final searchController = TextEditingController();

@@ -9,10 +9,10 @@ class FlashCardPage extends ConsumerStatefulWidget {
   const FlashCardPage({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => FlashCardPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _FlashCardPageState();
 }
 
-class FlashCardPageState extends ConsumerState<FlashCardPage> {
+class _FlashCardPageState extends ConsumerState<FlashCardPage> {
   final CardSwiperController cardSwiperController = CardSwiperController();
   final int quizColor = 0xFFb3e5fc;
   bool wordVisibility = true;

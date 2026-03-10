@@ -6,10 +6,10 @@ class SignUpPage extends ConsumerStatefulWidget {
   const SignUpPage({super.key});
 
   @override
-  ConsumerState<SignUpPage> createState() => SignUpPageState();
+  ConsumerState<SignUpPage> createState() => _SignUpPageState();
 }
 
-class SignUpPageState extends ConsumerState<SignUpPage> {
+class _SignUpPageState extends ConsumerState<SignUpPage> {
   final TextEditingController newIdController = TextEditingController();
   final TextEditingController newNicknameController = TextEditingController();
   final TextEditingController newPasswordController = TextEditingController();

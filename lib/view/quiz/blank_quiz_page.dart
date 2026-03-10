@@ -8,10 +8,10 @@ class BlankQuizPage extends ConsumerStatefulWidget {
   const BlankQuizPage({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => BlankQuizPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _BlankQuizPageState();
 }
 
-class BlankQuizPageState extends ConsumerState<BlankQuizPage> {
+class _BlankQuizPageState extends ConsumerState<BlankQuizPage> {
   final userAnswerController = TextEditingController();
 
   @override
