@@ -8,10 +8,10 @@ class OxQuizPage extends ConsumerStatefulWidget {
   const OxQuizPage({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => OxQuizPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _OxQuizPageState();
 }
 
-class OxQuizPageState extends ConsumerState<OxQuizPage> {
+class _OxQuizPageState extends ConsumerState<OxQuizPage> {
   final int quizColor = 0xFFb3e5fc;
 
   @override

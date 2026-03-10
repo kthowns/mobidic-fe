@@ -7,10 +7,10 @@ class PhonicsPage extends ConsumerStatefulWidget {
   const PhonicsPage({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => PhonicsPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _PhonicsPageState();
 }
 
-class PhonicsPageState extends ConsumerState<PhonicsPage> {
+class _PhonicsPageState extends ConsumerState<PhonicsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
