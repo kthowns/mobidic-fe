@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
 import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
 
@@ -227,7 +228,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                             onPressed: () async {
                               Navigator.pop(context);
                               vocabListViewModel.selectVocabAt(index);
-                              await Navigator.pushNamed(context, '/flashcard');
+                              await context.push('/flashcard');
                               vocabListViewModel.loadData();
                             },
                             child: const Text('플래시카드'),
@@ -236,7 +237,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                             onPressed: () async {
                               Navigator.pop(context);
                               vocabListViewModel.selectVocabAt(index);
-                              await Navigator.pushNamed(context, '/ox');
+                              await context.push('/ox');
                               vocabListViewModel.loadData();
                             },
                             child: const Text('O/X 퀴즈'),
@@ -245,7 +246,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                             onPressed: () async {
                               Navigator.pop(context);
                               vocabListViewModel.selectVocabAt(index);
-                              await Navigator.pushNamed(context, '/dictation');
+                              await context.push('/dictation');
                               vocabListViewModel.loadData();
                             },
                             child: const Text('받아쓰기'),
@@ -254,7 +255,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                             onPressed: () async {
                               Navigator.pop(context);
                               vocabListViewModel.selectVocabAt(index);
-                              await Navigator.pushNamed(context, '/blank');
+                              await context.push('/blank');
                               vocabListViewModel.loadData();
                             },
                             child: const Text('빈칸 채우기'),
@@ -268,7 +269,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
             );
           } else if (label == '발음 체크') {
             vocabListViewModel.selectVocabAt(index);
-            await Navigator.pushNamed(context, '/pronunciation');
+            await context.push('/pronunciation');
             vocabListViewModel.loadData();
           }
         },
@@ -438,7 +439,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                 icon: const Icon(Icons.menu, color: Colors.black),
                 onSelected: (value) async {
                   if (value == '파닉스') {
-                    Navigator.pushNamed(context, '/phonics');
+                    context.push('/phonics');
                   } else if (value == '로그아웃') {
                     await ref.read(authViewModelProvider.notifier).logout();
 
@@ -447,11 +448,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
 
                     if (!mounted) return;
 
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/', // 위에서 루트를 로그인으로 바꿨다면 '/'로 이동
-                      (route) => false,
-                    );
+                    context.go('/');
                   }
                 },
                 itemBuilder:
@@ -471,11 +468,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                 child: IconButton(
                   icon: const Icon(Icons.home, color: Colors.black),
                   onPressed: () {
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/vocabularies',
-                      (route) => false,
-                    );
+                    context.go('/vocabularies');
                   },
                 ),
               ),
@@ -632,10 +625,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                                     child: buildVocabCard(index),
                                     onTap: () async {
                                       vocabListViewModel.selectVocabAt(index);
-                                      await Navigator.pushNamed(
-                                        context,
-                                        '/words',
-                                      );
+                                      await context.push('/words');
                                       vocabListViewModel.loadData();
                                     },
                                   );

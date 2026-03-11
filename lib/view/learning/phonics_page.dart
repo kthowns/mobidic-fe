@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
 
 class PhonicsPage extends ConsumerStatefulWidget {
@@ -54,11 +55,7 @@ class _PhonicsPageState extends ConsumerState<PhonicsPage> {
 
                 if (!mounted) return;
 
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/', // 위에서 루트를 로그인으로 바꿨다면 '/'로 이동
-                  (route) => false,
-                );
+                context.go('/');
               }
             },
             itemBuilder:
