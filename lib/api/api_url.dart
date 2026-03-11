@@ -1,7 +1,7 @@
 enum ApiUrl {
   // 인증 관련 서비스
   login("/api/auth/login", null),
-  signup("/api/auth/signup", null),
+  signup("/api/users/signup", null),
   logout("/api/auth/logout", null),
 
   // 사용자 관련 서비스
