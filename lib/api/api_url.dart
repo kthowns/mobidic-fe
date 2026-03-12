@@ -3,6 +3,8 @@ enum ApiUrl {
   login("/api/auth/login", null),
   signup("/api/users/signup", null),
   logout("/api/auth/logout", null),
+  kakaoLoginUrl("/api/auth/login-url/kakao", null),
+  kakaoLogin("/api/auth/v1/oauth2/kakao", null),
 
   // 사용자 관련 서비스
   me("/api/users/me", null),

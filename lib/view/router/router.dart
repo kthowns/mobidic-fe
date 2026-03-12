@@ -24,8 +24,8 @@ final router = GoRouter(
     GoRoute(
       path: '/v1/oauth2/kakao',
       builder: (context, state) {
-        final authCode = state.uri.queryParameters['code'] ?? '';
-        return KakaoLoginPage(authCode: authCode);
+        final accessToken = state.uri.queryParameters['accessToken'] ?? '';
+        return KakaoLoginPage(accessToken: accessToken);
       },
     ),
     GoRoute(path: '/phonics', builder: (context, state) => const PhonicsPage()),

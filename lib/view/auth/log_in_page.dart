@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -33,7 +34,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
 
     void handleKakaoLogin() async {
-      final kakaoLoginUrl = await authViewModel.getKakaoLoginUrl();
+      final kakaoLoginUrl = Uri.parse(await authViewModel.getKakaoLoginUrl());
+
+      if (await canLaunchUrl(kakaoLoginUrl)) {
+        await launchUrl(
+          kakaoLoginUrl,
+          // 웹에서 현재 브라우저 탭의 주소를 바로 바꿉니다.
+          mode: LaunchMode.externalApplication,
+          webOnlyWindowName: '_self',
+        );
+      } else {
+        throw Exception('Could not launch $kakaoLoginUrl');
+      }
     }
 
     return Scaffold(
@@ -92,24 +104,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: authState.isLoading ? null : handleLogin,
+                onPressed: authState.isLoading ? null : handleKakaoLogin,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.yellow,
+                  backgroundColor: Color(0xFFFEE500),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
-                child:
-                    authState.isLoading
-                        ? const CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        )
-                        : const Text(
-                          '카카오 로그인',
-                          style: TextStyle(fontSize: 16, color: Colors.black),
-                        ),
+                child: const Text(
+                  '카카오 로그인',
+                  style: TextStyle(fontSize: 16, color: Colors.black),
+                ),
               ),
             ),
             const SizedBox(height: 10),

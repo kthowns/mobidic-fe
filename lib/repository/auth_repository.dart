@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/api/api_url.dart';
 import 'package:mobidic_flutter/api/dio.dart';
@@ -47,6 +48,16 @@ class AuthRepository extends Repository {
     );
 
     await _secureStorageDataSource.deleteToken();
+  }
+
+  Future<String> getKakaoLoginUrl() async {
+    final url = ApiUrl.kakaoLoginUrl.url;
+
+    return await dioRequest(
+      url: url,
+      action: () => _dio.get(url, queryParameters: {'isDev': kDebugMode}),
+      fromJson: (json) => json['url'],
+    );
   }
 
   Future<String?> getAccessToken() async {
