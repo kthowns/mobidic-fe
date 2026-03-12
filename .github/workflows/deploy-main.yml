@@ -1,0 +1,49 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-deploy-main:
+    runs-on: ubuntu-latest
+    environment: mobidic-fe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.4' # 프로젝트 버전에 맞춰 수정
+          channel: 'stable'
+
+      - name: Build flutter web
+        run: |
+          flutter pub get
+          flutter build web --release \
+            --base-href "/" \
+            --dart-define=API_URL=${{ secrets.API_BASE_URL }} \
+            --dart-define=APP_MODE=production
+
+      - name: Copy build/web to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "build/web/*"
+          target: "${{ secrets.WORK_DIRECTORY }}/services/mobidic"
+          strip_components: 2
+
+      - name: Deploy to SERVER
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd ${{ secrets.WORK_DIRECTORY }}
+            
+            sudo docker exec default-nginx nginx -s reload

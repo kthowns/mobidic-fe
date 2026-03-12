@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
 import 'package:mobidic_flutter/viewmodel/word_view_model.dart';
 
@@ -62,7 +63,7 @@ class _FlashCardPageState extends ConsumerState<FlashCardPage> {
             icon: const Icon(Icons.menu, color: Colors.black),
             onSelected: (value) async {
               if (value == '파닉스') {
-                Navigator.pushNamed(context, '/phonics');
+                context.push('/phonics');
               } else if (value == '로그아웃') {
                 await ref.read(authViewModelProvider.notifier).logout();
 
@@ -71,11 +72,7 @@ class _FlashCardPageState extends ConsumerState<FlashCardPage> {
 
                 if (!mounted) return;
 
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/', // 위에서 루트를 로그인으로 바꿨다면 '/'로 이동
-                  (route) => false,
-                );
+                context.go('/');
               }
             },
             itemBuilder:
@@ -92,11 +89,7 @@ class _FlashCardPageState extends ConsumerState<FlashCardPage> {
             child: IconButton(
               icon: const Icon(Icons.home, color: Colors.black),
               onPressed: () {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/vocabularies',
-                  (route) => false,
-                );
+                context.go('/vocabularies');
               },
             ),
           ),

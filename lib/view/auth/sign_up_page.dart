@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobidic_flutter/viewmodel/sign_up_view_model.dart';
 
 class SignUpPage extends ConsumerStatefulWidget {
@@ -162,8 +163,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                           actions: [
                             TextButton(
                               onPressed: () {
-                                Navigator.pop(dialogContext);
-                                Navigator.pop(context);
+                                context.go('/');
                               },
                               child: const Text('닫기'),
                             ),

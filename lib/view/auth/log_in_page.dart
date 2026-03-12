@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -12,38 +14,7 @@ class LoginPage extends ConsumerStatefulWidget {
 class _LoginPageState extends ConsumerState<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  /*
-  clickKakaoLoginButton() async {
-    OAuthToken token;
-    if (await isKakaoTalkInstalled()) {
-      try {
-        token = await UserApi.instance.loginWithKakaoTalk();
-        debugPrint('카카오톡으로 로그인 성공, token: $token');
-      } catch (error) {
-        debugPrint('카카오톡으로 로그인 실패 $error');
-        // 사용자가 카카오톡 설치 후 디바이스 권한 요청 화면에서 로그인을 취소한 경우,
-        // 의도적인 로그인 취소로 보고 카카오계정으로 로그인 시도 없이 로그인 취소로 처리 (예: 뒤로 가기)
-        if (error is PlatformException && error.code == 'CANCELED') {
-          return;
-        }
-        // 카카오톡에 연결된 카카오계정이 없는 경우, 카카오계정으로 로그인
-        try {
-          token = await UserApi.instance.loginWithKakaoAccount();
-          debugPrint('카카오계정으로 로그인 성공, token: $token');
-        } catch (error) {
-          debugPrint('카카오계정으로 로그인 실패 $error');
-        }
-      }
-    } else {
-      try {
-        token = await UserApi.instance.loginWithKakaoAccount();
-        debugPrint('카카오계정으로 로그인 성공, token: $token');
-      } catch (error) {
-        debugPrint('카카오계정으로 로그인 실패 $error');
-      }
-    }
-  }
-*/
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
@@ -51,7 +22,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
       if (next.currentUser != null && previous?.currentUser == null) {
-        Navigator.pushReplacementNamed(context, '/vocabularies');
+        context.go('/vocabularies');
       }
     });
 
@@ -60,6 +31,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         emailController.text.trim(),
         passwordController.text.trim(),
       );
+    }
+
+    void handleKakaoLogin() async {
+      final kakaoLoginUrl = Uri.parse(await authViewModel.getKakaoLoginUrl());
+
+      if (await canLaunchUrl(kakaoLoginUrl)) {
+        await launchUrl(
+          kakaoLoginUrl,
+          // 웹에서 현재 브라우저 탭의 주소를 바로 바꿉니다.
+          mode: LaunchMode.externalApplication,
+          webOnlyWindowName: '_self',
+        );
+      } else {
+        throw Exception('Could not launch $kakaoLoginUrl');
+      }
     }
 
     return Scaffold(
@@ -114,13 +100,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
             ),
             const SizedBox(height: 20),
-            InkWell(
-              onTap: null, //clickKakaoLoginButton,
-              child: Image.asset(
-                'assets/images/kakao_login_medium_wide.png',
-                height: 100,
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: authState.isLoading ? null : handleKakaoLogin,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFFEE500),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                child: const Text(
+                  '카카오 로그인',
+                  style: TextStyle(fontSize: 16, color: Colors.black),
+                ),
               ),
             ),
+            const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -148,7 +145,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             Center(
               child: TextButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/signup');
+                  context.push('/signup');
                 },
                 child: const Text(
                   '회원가입',

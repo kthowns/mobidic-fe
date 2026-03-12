@@ -64,8 +64,6 @@ class AuthViewModel extends StateNotifier<AuthState> {
       );
       stopLoading();
     } on ApiException catch (e) {
-      state = state.copyWith(loginErrorMessage: e.message);
-      stopLoading();
       if (e.status == 500) {
         state = state.copyWith(loginErrorMessage: "서버에 문제가 발생했습니다.");
         return;
@@ -75,12 +73,47 @@ class AuthViewModel extends StateNotifier<AuthState> {
       } else {
         state = state.copyWith(loginErrorMessage: e.message);
       }
+      stopLoading();
     } catch (e) {
       state = state.copyWith(loginErrorMessage: "로그인 실패");
       rethrow;
     } finally {
       stopLoading();
     }
+  }
+
+  Future<void> loginWithAccessToken(String accessToken) async {
+    startLoading();
+    state = state.copyWith(loginErrorMessage: '');
+    try {
+      print('Attempting login with accessToken: $accessToken');
+      _secureStorageDataSource.saveToken(accessToken);
+      state = state.copyWith(
+        currentUser: await _userRepository.getMe(),
+        loginErrorMessage: '',
+      );
+      stopLoading();
+    } on ApiException catch (e) {
+      if (e.status == 500) {
+        state = state.copyWith(loginErrorMessage: "서버에 문제가 발생했습니다.");
+        return;
+      }
+      if (e.errors.isNotEmpty) {
+        state = state.copyWith(loginErrorMessage: e.errors.values.join('\n'));
+      } else {
+        state = state.copyWith(loginErrorMessage: e.message);
+      }
+      stopLoading();
+    } catch (e) {
+      state = state.copyWith(loginErrorMessage: "로그인 실패");
+      rethrow;
+    } finally {
+      stopLoading();
+    }
+  }
+
+  Future<String> getKakaoLoginUrl() async {
+    return await _authRepository.getKakaoLoginUrl();
   }
 
   Future<void> logout() async {
