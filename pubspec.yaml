@@ -67,7 +67,6 @@ flutter:
   assets:
     - assets/images/mobidic_icon.png
     - assets/images/kakao_login_medium_wide.png
-    - .env
   fonts:
     - family: Baloo2
       fonts:
