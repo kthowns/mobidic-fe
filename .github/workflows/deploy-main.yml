@@ -2,7 +2,7 @@ name: Build and deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build-deploy-main:
@@ -16,15 +16,15 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.4' # 프로젝트 버전에 맞춰 수정
-          channel: 'stable'
+          flutter-version: "3.41.4" # 프로젝트 버전에 맞춰 수정
+          channel: "stable"
 
       - name: Build flutter web
         run: |
           flutter pub get
           flutter build web --release \
             --base-href "/" \
-            --dart-define=API_URL=${{ secrets.API_BASE_URL }} \
+            --dart-define=API_BASE_URL=${{ secrets.API_BASE_URL }} \
             --dart-define=APP_MODE=production
 
       - name: Copy build/web to Server
@@ -45,5 +45,5 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd ${{ secrets.WORK_DIRECTORY }}
-            
+
             sudo docker exec default-nginx nginx -s reload
