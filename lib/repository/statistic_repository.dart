@@ -6,7 +6,7 @@ import 'package:mobidic_flutter/model/word_statistic.dart';
 import 'package:mobidic_flutter/repository/repository.dart';
 
 final statisticRepositoryProvider = Provider<StatisticRepository>((ref) {
-  final dio = ref.watch(dioProvider);
+  final dio = ref.read(dioProvider);
   return StatisticRepository(dio);
 });
 

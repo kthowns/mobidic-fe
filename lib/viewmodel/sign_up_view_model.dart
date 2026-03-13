@@ -5,7 +5,7 @@ import 'package:mobidic_flutter/repository/auth_repository.dart';
 
 final signUpStateProvider =
     StateNotifierProvider.autoDispose<SignUpViewModel, SignUpState>((ref) {
-      final authRepository = ref.watch(authRepositoryProvider);
+      final authRepository = ref.read(authRepositoryProvider);
       return SignUpViewModel(authRepository);
     });
 

@@ -10,7 +10,7 @@ import 'package:mobidic_flutter/repository/repository.dart';
 import '../model/word.dart';
 
 final wordRepositoryProvider = Provider<WordRepository>((ref) {
-  final dio = ref.watch(dioProvider);
+  final dio = ref.read(dioProvider);
   return WordRepository(dio);
 });
 

@@ -6,7 +6,7 @@ import 'package:mobidic_flutter/model/user.dart';
 import 'package:mobidic_flutter/repository/repository.dart';
 
 final userRepositoryProvider = Provider<UserRepository>((ref) {
-  final dio = ref.watch(dioProvider);
+  final dio = ref.read(dioProvider);
   return UserRepository(dio);
 });
 

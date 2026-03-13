@@ -9,8 +9,8 @@ import 'package:mobidic_flutter/dto/signup_dto.dart';
 import 'package:mobidic_flutter/repository/repository.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  final secureStorageDataSource = ref.watch(secureStorageDataSourceProvider);
-  final dio = ref.watch(dioProvider);
+  final secureStorageDataSource = ref.read(secureStorageDataSourceProvider);
+  final dio = ref.read(dioProvider);
   return AuthRepository(secureStorageDataSource, dio);
 });
 

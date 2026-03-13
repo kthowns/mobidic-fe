@@ -7,7 +7,7 @@ import 'package:mobidic_flutter/model/vocab.dart';
 import 'package:mobidic_flutter/repository/repository.dart';
 
 final vocabRepositoryProvider = Provider<VocabRepository>((ref) {
-  final dio = ref.watch(dioProvider);
+  final dio = ref.read(dioProvider);
   return VocabRepository(dio);
 });
 

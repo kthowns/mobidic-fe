@@ -8,7 +8,7 @@ import 'package:mobidic_flutter/repository/repository.dart';
 import 'package:mobidic_flutter/type/quiz_type.dart';
 
 final quizRepositoryProvider = Provider<QuizRepository>((ref) {
-  final dio = ref.watch(dioProvider);
+  final dio = ref.read(dioProvider);
 
   return QuizRepository(dio);
 });

@@ -10,7 +10,7 @@ final blankQuizStateProvider =
     StateNotifierProvider.autoDispose<BlankQuizViewModel, BlankQuizState>((
       ref,
     ) {
-      final quizRepository = ref.watch(quizRepositoryProvider);
+      final quizRepository = ref.read(quizRepositoryProvider);
       final vocabListState = ref.read(vocabListStateProvider);
 
       return BlankQuizViewModel(quizRepository, vocabListState);

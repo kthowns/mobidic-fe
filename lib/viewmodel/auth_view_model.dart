@@ -8,9 +8,9 @@ import 'package:mobidic_flutter/repository/user_repository.dart';
 import 'package:mobidic_flutter/model/user.dart';
 
 final authViewModelProvider = StateNotifierProvider((ref) {
-  final authRepository = ref.watch(authRepositoryProvider);
-  final userRepository = ref.watch(userRepositoryProvider);
-  final secureStorageDataSource = ref.watch(secureStorageDataSourceProvider);
+  final authRepository = ref.read(authRepositoryProvider);
+  final userRepository = ref.read(userRepositoryProvider);
+  final secureStorageDataSource = ref.read(secureStorageDataSourceProvider);
 
   return AuthViewModel(authRepository, userRepository, secureStorageDataSource);
 });
