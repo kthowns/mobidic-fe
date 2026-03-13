@@ -23,7 +23,13 @@ class KakaoLoginPageState extends ConsumerState<KakaoLoginPage> {
         await authViewModel.loginWithAccessToken(widget.accessToken);
 
         if (mounted) {
-          context.go('/vocabularies');
+          final isError =
+              ref.read(authViewModelProvider).loginErrorMessage.isNotEmpty;
+          if (isError) {
+            context.go('/vocabularies');
+          } else {
+            context.go('/');
+          }
         }
       } catch (e) {
         if (mounted) context.go('/');
