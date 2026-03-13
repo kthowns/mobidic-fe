@@ -26,12 +26,6 @@ class _OxQuizPageState extends ConsumerState<OxQuizPage> {
         elevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
         title: Row(
           children: [
             Center(

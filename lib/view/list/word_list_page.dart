@@ -197,7 +197,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
               children: [
                 SizedBox(width: 8),
                 Text(
-                  wordListState.currentVocab?.title ?? 'some',
+                  wordListState.currentVocab?.title ?? '-',
                   style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,

@@ -21,7 +21,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final authViewModel = ref.read(authViewModelProvider.notifier);
 
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
-      if (next.currentUser != null && previous?.currentUser == null) {
+      if (next.currentUser != null) {
         context.go('/vocabularies');
       }
     });

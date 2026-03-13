@@ -228,7 +228,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                             onPressed: () async {
                               Navigator.pop(context);
                               vocabListViewModel.selectVocabAt(index);
-                              await context.push('/flashcard');
+                              await context.push('/vocabularies/flashcard');
                               vocabListViewModel.loadData();
                             },
                             child: const Text('플래시카드'),
@@ -237,7 +237,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                             onPressed: () async {
                               Navigator.pop(context);
                               vocabListViewModel.selectVocabAt(index);
-                              await context.push('/ox');
+                              await context.push('/vocabularies/ox');
                               vocabListViewModel.loadData();
                             },
                             child: const Text('O/X 퀴즈'),
@@ -246,7 +246,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                             onPressed: () async {
                               Navigator.pop(context);
                               vocabListViewModel.selectVocabAt(index);
-                              await context.push('/dictation');
+                              await context.push('/vocabularies/dictation');
                               vocabListViewModel.loadData();
                             },
                             child: const Text('받아쓰기'),
@@ -255,7 +255,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                             onPressed: () async {
                               Navigator.pop(context);
                               vocabListViewModel.selectVocabAt(index);
-                              await context.push('/blank');
+                              await context.push('/vocabularies/blank');
                               vocabListViewModel.loadData();
                             },
                             child: const Text('빈칸 채우기'),
@@ -269,7 +269,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
             );
           } else if (label == '발음 체크') {
             vocabListViewModel.selectVocabAt(index);
-            await context.push('/pronunciation');
+            await context.push('/vocabularies/pronunciation');
             vocabListViewModel.loadData();
           }
         },
@@ -439,7 +439,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                 icon: const Icon(Icons.menu, color: Colors.black),
                 onSelected: (value) async {
                   if (value == '파닉스') {
-                    context.push('/phonics');
+                    context.go('/phonics');
                   } else if (value == '로그아웃') {
                     await ref.read(authViewModelProvider.notifier).logout();
 
@@ -625,7 +625,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                                     child: buildVocabCard(index),
                                     onTap: () async {
                                       vocabListViewModel.selectVocabAt(index);
-                                      await context.push('/words');
+                                      await context.push('/vocabularies/words');
                                       vocabListViewModel.loadData();
                                     },
                                   );

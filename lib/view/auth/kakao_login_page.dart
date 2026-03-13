@@ -21,8 +21,11 @@ class KakaoLoginPageState extends ConsumerState<KakaoLoginPage> {
       try {
         final authViewModel = ref.read(authViewModelProvider.notifier);
         await authViewModel.loginWithAccessToken(widget.accessToken);
+
+        if (mounted) {
+          context.go('/vocabularies');
+        }
       } catch (e) {
-        debugPrint("로그인 중 오류 발생: $e");
         if (mounted) context.go('/');
       }
     });
@@ -30,12 +33,6 @@ class KakaoLoginPageState extends ConsumerState<KakaoLoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AuthState>(authViewModelProvider, (previous, next) {
-      if (next.currentUser != null && previous?.currentUser == null) {
-        context.go('/vocabularies');
-      }
-    });
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(

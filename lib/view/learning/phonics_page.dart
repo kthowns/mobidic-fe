@@ -21,16 +21,6 @@ class _PhonicsPageState extends ConsumerState<PhonicsPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            // 원하는 로직
-            print('뒤로가기 누름');
-
-            // 실제 뒤로 가기
-            Navigator.pop(context);
-          },
-        ),
         title: const Row(
           children: [
             SizedBox(width: 8),
@@ -71,11 +61,7 @@ class _PhonicsPageState extends ConsumerState<PhonicsPage> {
             child: IconButton(
               icon: const Icon(Icons.home, color: Colors.black),
               onPressed: () {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/vocabularies',
-                  (route) => false,
-                );
+                context.go('/vocabularies');
               },
             ),
           ),

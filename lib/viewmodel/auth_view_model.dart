@@ -96,7 +96,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
     } on ApiException catch (e) {
       if (e.status == 500) {
         state = state.copyWith(loginErrorMessage: "서버에 문제가 발생했습니다.");
-        return;
+        rethrow;
       }
       if (e.errors.isNotEmpty) {
         state = state.copyWith(loginErrorMessage: e.errors.values.join('\n'));
@@ -104,6 +104,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
         state = state.copyWith(loginErrorMessage: e.message);
       }
       stopLoading();
+      rethrow;
     } catch (e) {
       state = state.copyWith(loginErrorMessage: "로그인 실패");
       rethrow;
@@ -119,8 +120,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
   Future<void> logout() async {
     startLoading();
     await _authRepository.logout();
-    await _secureStorageDataSource.deleteToken();
-    state = state.copyWith(currentUser: null, loginErrorMessage: '');
+    clientLogout();
     stopLoading();
   }
 
