@@ -31,6 +31,10 @@ class AuthViewModel extends StateNotifier<AuthState> {
   Future<void> loadInitialData() async {
     startLoading();
 
+    if (state.currentUser != null) {
+      stopLoading();
+      return;
+    }
     try {
       final currentUser = await _userRepository.getMe();
       state = state.copyWith(currentUser: currentUser);
