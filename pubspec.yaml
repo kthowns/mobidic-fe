@@ -66,17 +66,6 @@ flutter_launcher_icons:
 flutter:
   assets:
     - assets/images/mobidic_icon.png
-    - assets/images/kakao_login_medium_wide.png
-  fonts:
-    - family: Baloo2
-      fonts:
-        - asset: assets/fonts/Baloo2-Regular.ttf
-    - family: Quicksand
-      fonts:
-        - asset: assets/fonts/Quicksand-Regular.ttf
-    - family: MPlusRounded1c
-      fonts:
-        - asset: assets/fonts/MPLUSRounded1c-Regular.ttf
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
