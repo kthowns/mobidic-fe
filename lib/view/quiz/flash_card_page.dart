@@ -29,7 +29,7 @@ class _FlashCardPageState extends ConsumerState<FlashCardPage> {
   Widget build(BuildContext context) {
     final wordListState = ref.watch(wordListStateProvider);
 
-    print("FlashCardPage. Words : ${wordListState.words}");
+    debugPrint("FlashCardPage. Words : ${wordListState.words}");
 
     return Scaffold(
       appBar: AppBar(

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/exception/api_exception.dart';
 import 'package:mobidic_flutter/model/vocab.dart';
@@ -44,7 +45,7 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
     await fetchVocabs();
     searchVocabs();
     await fetchStatistics();
-    print("평균 학습률 : ${state.avgLearningRate}");
+    debugPrint("평균 학습률 : ${state.avgLearningRate}");
     stopLoading();
   }
 
@@ -78,7 +79,9 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
         break;
       case '정답률순':
         comparator = (b, a) => a.accuracy.compareTo(b.accuracy);
-        print("Accuracies : ${state.vocabs.map((v) => v.accuracy).toList()}");
+        debugPrint(
+          "Accuracies : ${state.vocabs.map((v) => v.accuracy).toList()}",
+        );
         break;
     }
     sort();

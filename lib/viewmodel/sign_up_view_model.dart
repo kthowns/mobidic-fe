@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/dto/signup_dto.dart';
 import 'package:mobidic_flutter/exception/api_exception.dart';
@@ -47,10 +48,10 @@ class SignUpViewModel extends StateNotifier<SignUpState> {
         SignupRequest(email: email, nickname: nickname, password: password),
       );
     } on ApiException catch (e) {
-      print("ApiException!! : $e");
+      debugPrint("ApiException!! : $e");
       state = state.copyWith(emailErrorText: e.message);
     } catch (e) {
-      print("Just Exception!! : $e");
+      debugPrint("Just Exception!! : $e");
       state = state.copyWith(globalErrorText: '회원 가입 오류 (Error code: 500)');
     }
   }

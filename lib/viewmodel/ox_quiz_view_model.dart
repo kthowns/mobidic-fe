@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/model/quiz.dart';
 import 'package:mobidic_flutter/repository/quiz_repository.dart';
@@ -57,11 +58,11 @@ class OxQuizViewModel extends StateNotifier<OxQuizState> {
       return;
     }
     try {
-      print("Fetching quizzes");
+      debugPrint("Fetching quizzes");
       state = state.copyWith(
         quizzes: await _quizRepository.getQuizzes(currentVocab.id, QuizType.OX),
       );
-      print("quizzes ${state.quizzes}");
+      debugPrint("quizzes ${state.quizzes}");
     } catch (e) {
       state = state.copyWith(quizzes: []);
     }
@@ -135,7 +136,7 @@ class OxQuizViewModel extends StateNotifier<OxQuizState> {
         resultMessage: "정답입니다!",
         correctCount: state.correctCount + 1,
       );
-      print("correct Count : ${state.correctCount}");
+      debugPrint("correct Count : ${state.correctCount}");
     } else {
       state = state.copyWith(
         resultMessage: "틀렸습니다! 답 : $correctAnswer",
@@ -149,7 +150,7 @@ class OxQuizViewModel extends StateNotifier<OxQuizState> {
 
   void showResult() {
     if (state.isDone) {
-      print("is Done! : ${state.correctCount}");
+      debugPrint("is Done! : ${state.correctCount}");
       state = state.copyWith(
         resultMessage: '정답률: ${state.correctCount}/${state.quizzes.length}',
       );

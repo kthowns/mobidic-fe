@@ -11,14 +11,14 @@ class Repository {
   }) async {
     try {
       final response = await action();
-      print('success $url ${response.data}');
+      debugPrint('success $url ${response.data}');
 
       final list = response.data['data'] as List;
       return list.map((v) => fromJson(v as Map<String, dynamic>)).toList();
     } on DioException catch (e) {
       throw handleApiException(e);
     } catch (e) {
-      print('$url unknown error: $e');
+      debugPrint('$url unknown error: $e');
       throw handleUnknownException(e);
     }
   }
@@ -31,7 +31,7 @@ class Repository {
   }) async {
     try {
       final response = await action();
-      print('success $url ${response.data}');
+      debugPrint('success $url ${response.data}');
 
       // 반환값이 없는(void) 경우를 처리
       if (fromJson == null) {
@@ -47,7 +47,7 @@ class Repository {
     } on DioException catch (e) {
       throw handleApiException(e);
     } catch (e) {
-      print('$url unknown error: $e');
+      debugPrint('$url unknown error: $e');
       throw handleUnknownException(e);
     }
   }
@@ -59,7 +59,7 @@ class Repository {
     final Map<String, dynamic> mapData =
         data is Map<String, dynamic> ? data : {};
 
-    print('[${e.response?.statusCode}] DioException: $data $e');
+    debugPrint('[${e.response?.statusCode}] DioException: $data $e');
 
     if (mapData.isEmpty) {
       mapData['message'] = '서버에 알 수 없는 문제가 발생했습니다.';
@@ -74,7 +74,7 @@ class Repository {
 
   @protected
   ApiException handleUnknownException(Object e) {
-    print('Unknown exception: $e');
+    debugPrint('Unknown exception: $e');
     return ApiException(message: '알 수 없는 오류가 발생했습니다.', status: 500, errors: {});
   }
 }

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/data/secure_storage_data_source.dart';
 import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
@@ -44,7 +45,7 @@ class AuthInterceptor extends Interceptor {
           options.headers['Authorization'] = 'Bearer $token';
         }
       } catch (e) {
-        print('토큰 읽기 실패: $e');
+        debugPrint('토큰 읽기 실패: $e');
         throw Exception('토큰을 읽는 중 오류가 발생했습니다.');
       }
     }

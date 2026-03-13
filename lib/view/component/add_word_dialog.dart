@@ -49,14 +49,14 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
       if (word.isNotEmpty && defs.isNotEmpty) {
         // 단어 저장 로직
         bool hasError = await wordListViewModel.addWord(word, defs);
-        print("추가된 단어: $word");
-        print(
+        debugPrint("추가된 단어: $word");
+        debugPrint(
           "뜻 목록: ${defs.map((d) => '${d.meaning} (${d.part.label})').join(', ')}",
         );
 
         if (hasError) return;
 
-        print("addingErrorMessage ${wordListState.addingErrorMessage}");
+        debugPrint("addingErrorMessage ${wordListState.addingErrorMessage}");
 
         Navigator.pop(context);
       } else {

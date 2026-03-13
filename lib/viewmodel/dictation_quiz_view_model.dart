@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:mobidic_flutter/model/definition.dart';
@@ -69,7 +70,7 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
       return;
     }
     try {
-      print("Fetching quizzes");
+      debugPrint("Fetching quizzes");
       final currentVocab = _vocabListState.currentVocab;
 
       if (currentVocab == null) return;
@@ -89,7 +90,7 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
       }
 
       state = state.copyWith(quizzes: quizzes);
-      print("quizzes ${state.quizzes}");
+      debugPrint("quizzes ${state.quizzes}");
     } catch (e) {
       state = state.copyWith(quizzes: []);
     }
@@ -165,7 +166,7 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
         resultMessage: "정답입니다!",
         correctCount: state.correctCount + 1,
       );
-      print("correct Count : ${state.correctCount}");
+      debugPrint("correct Count : ${state.correctCount}");
     } else {
       state = state.copyWith(
         resultMessage: "틀렸습니다! 답 : ${state.currentQuiz.stem}",
@@ -179,7 +180,7 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
 
   void showResult() {
     if (state.isDone) {
-      print("is Done! : ${state.correctCount}");
+      debugPrint("is Done! : ${state.correctCount}");
       state = state.copyWith(
         resultMessage: '정답률: ${state.correctCount}/${state.quizzes.length}',
       );

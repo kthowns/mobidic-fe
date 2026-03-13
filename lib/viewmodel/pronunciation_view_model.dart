@@ -47,12 +47,12 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
   }
 
   Future<void> init() async {
-    print("init");
+    debugPrint("init");
     await loadData();
     await _initTts();
     await _flutterTts.setLanguage('en-US');
     await checkMicPermission();
-    print("init done.");
+    debugPrint("init done.");
   }
 
   Future<void> loadData() async {
@@ -65,10 +65,10 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
     final currentVocab = _vocabListState.currentVocab;
     if (currentVocab == null) return;
 
-    print("fetching words...");
+    debugPrint("fetching words...");
     final words = await _wordRepository.getWords(currentVocab.id);
     state = state.copyWith(words: words);
-    print("words : ${state.words}");
+    debugPrint("words : ${state.words}");
   }
 
   @override
@@ -96,7 +96,7 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
       if (hasPermission) {
         // 웹은 path를 빈 문자열로 주면 브라우저 Blob으로 처리함
         await _recorder.start(const RecordConfig(), path: '');
-        print("Web recording started...");
+        debugPrint("Web recording started...");
       }
       return;
     }
@@ -112,7 +112,7 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
 
       await _recorder.start(config, path: recordFilePath);
     } else {
-      print("NO Permission!!");
+      debugPrint("NO Permission!!");
     }
   }
 
@@ -125,7 +125,7 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
     try {
       if (path != null) {
         if (kIsWeb) {
-          print("Web Upload Path: $path");
+          debugPrint("Web Upload Path: $path");
 
           final score = await _pronunciationRepository.checkPronunciation(
             path, // URL 그대로 전달
@@ -133,7 +133,7 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
           );
           final resultMessage = "${(score * 100).ceil().toStringAsFixed(0)}점";
           state = state.copyWith(resultMessage: resultMessage);
-          print("resultMessage : $resultMessage");
+          debugPrint("resultMessage : $resultMessage");
         } else {
           final File file = File(path);
 
@@ -141,7 +141,7 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
           if (await file.exists()) {
             final bytes = await file.readAsBytes(); // 정확한 byte[]
             final size = bytes.length;
-            print("byte 크기: $size");
+            debugPrint("byte 크기: $size");
 
             final score = await _pronunciationRepository.checkPronunciation(
               file.path,
@@ -149,16 +149,16 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
             );
             final resultMessage = "${(score * 100).ceil().toStringAsFixed(0)}점";
             state = state.copyWith(resultMessage: resultMessage);
-            print("resultMessage : $resultMessage");
+            debugPrint("resultMessage : $resultMessage");
             file.delete();
           }
         }
       }
     } on ApiException catch (e) {
-      print(e);
+      debugPrint(e.message);
       state = state.copyWith(resultMessage: "다시 한 번 말해보세요.");
     } on Exception catch (e) {
-      print(e);
+      debugPrint(e.toString());
       state = state.copyWith(resultMessage: "오류 발생");
     } finally {
       state = state.copyWith(isRating: false);

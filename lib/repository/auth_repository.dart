@@ -66,7 +66,7 @@ class AuthRepository extends Repository {
 
       return token;
     } catch (e) {
-      print('토큰 읽기 실패: $e');
+      debugPrint('토큰 읽기 실패: $e');
       throw Exception('토큰을 읽는 중 오류가 발생했습니다.');
     }
   }

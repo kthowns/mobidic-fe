@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/dto/def_dto.dart';
 import 'package:mobidic_flutter/dto/word_dto.dart';
@@ -52,10 +53,12 @@ class WordListViewModel extends StateNotifier<WordListState> {
 
     try {
       final words = await _wordRepository.getWords(currentVocab.id);
-      print('Fetched ${words.length} words for vocab ${currentVocab.title}');
+      debugPrint(
+        'Fetched ${words.length} words for vocab ${currentVocab.title}',
+      );
       state = state.copyWith(words: words);
     } catch (e) {
-      print('Error fetching words: $e');
+      debugPrint('Error fetching words: $e');
       stopLoading();
     }
   }
@@ -132,7 +135,7 @@ class WordListViewModel extends StateNotifier<WordListState> {
       await loadData();
       return false;
     } on ApiException catch (e) {
-      print("addWord() Error : ${e.message}");
+      debugPrint("addWord() Error : ${e.message}");
       if (e.errors.isNotEmpty) {
         setAddingErrorMessage(e.errors.values.first);
       } else {
@@ -141,7 +144,7 @@ class WordListViewModel extends StateNotifier<WordListState> {
       stopLoading();
       return true;
     } catch (e) {
-      print("addWord() Extra Error : $e");
+      debugPrint("addWord() Extra Error : $e");
       setAddingErrorMessage('알 수 없는 오류 발생');
       stopLoading();
       return true;
@@ -168,7 +171,7 @@ class WordListViewModel extends StateNotifier<WordListState> {
       await loadData();
       return false;
     } on ApiException catch (e) {
-      print("updateWord() Error : ${e.message}");
+      debugPrint("updateWord() Error : ${e.message}");
       if (e.errors.isNotEmpty) {
         setEditingErrorMessage(e.errors.values.first);
       } else {
@@ -177,7 +180,7 @@ class WordListViewModel extends StateNotifier<WordListState> {
       stopLoading();
       return true;
     } catch (e) {
-      print("updateWord() Extra Error : $e");
+      debugPrint("updateWord() Extra Error : $e");
       setEditingErrorMessage('알 수 없는 오류 발생');
       stopLoading();
       return true;

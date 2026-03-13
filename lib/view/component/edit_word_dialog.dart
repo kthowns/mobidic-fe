@@ -83,12 +83,12 @@ class _EditWordDialogState extends ConsumerState<EditWordDialog> {
           defs,
           removingDefs,
         );
-        print("수정된 단어: $word");
-        print(
+        debugPrint("수정된 단어: $word");
+        debugPrint(
           "뜻 목록: ${defs.map((d) => '${d.meaning} (${d.part.label})').join(', ')}",
         );
 
-        print("editingErrorMessage ${wordListState.editingErrorMessage}");
+        debugPrint("editingErrorMessage ${wordListState.editingErrorMessage}");
 
         if (hasError) return;
 

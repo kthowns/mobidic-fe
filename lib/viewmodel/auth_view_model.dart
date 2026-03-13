@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/data/secure_storage_data_source.dart';
 import 'package:mobidic_flutter/dto/login_dto.dart';
@@ -56,11 +57,11 @@ class AuthViewModel extends StateNotifier<AuthState> {
     }
 
     try {
-      print('Attempting login with username: $username');
+      debugPrint('Attempting login with username: $username');
       final response = await _authRepository.login(
         LoginRequest(email: username, password: password),
       );
-      print('Login successful: ${response.accessToken}');
+      debugPrint('Login successful: ${response.accessToken}');
       _secureStorageDataSource.saveToken(response.accessToken);
       state = state.copyWith(
         currentUser: await _userRepository.getMe(),
@@ -90,7 +91,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
     startLoading();
     state = state.copyWith(loginErrorMessage: '');
     try {
-      print('Attempting login with accessToken: $accessToken');
+      debugPrint('Attempting login with accessToken: $accessToken');
       _secureStorageDataSource.saveToken(accessToken);
       state = state.copyWith(
         currentUser: await _userRepository.getMe(),
