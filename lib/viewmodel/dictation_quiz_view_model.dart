@@ -75,19 +75,17 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
 
       if (currentVocab == null) return;
       List<Word> words = await _wordRepository.getWords(currentVocab.id);
-      List<Quiz> quizzes = [];
+      List<Quiz> quizzes =
+          words.map((word) {
+            Definition def = word.definitions.first;
 
-      for (Word word in words) {
-        Definition def = word.definitions.first;
-        quizzes.add(
-          Quiz(
-            expMil: 15000 * words.length,
-            stem: word.expression,
-            options: ['${def.meaning} (${def.part})'],
-            token: '',
-          ),
-        );
-      }
+            return Quiz(
+              expMil: 15000 * words.length,
+              stem: word.expression,
+              options: ['${def.meaning} (${def.part})'],
+              token: '',
+            );
+          }).toList();
 
       state = state.copyWith(quizzes: quizzes);
       debugPrint("quizzes ${state.quizzes}");

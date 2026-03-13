@@ -253,6 +253,7 @@ class _BlankQuizPageState extends ConsumerState<BlankQuizPage> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),

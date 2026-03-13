@@ -54,9 +54,6 @@ class _DictationQuizPageState extends ConsumerState<DictationQuizPage> {
                       fontSize: 36,
                       fontWeight: FontWeight.bold,
                     ),
-                    softWrap: true, // 줄바꿈 허용
-                    overflow: TextOverflow.ellipsis, // 넘치면 ... 표시
-                    maxLines: 2, // 최대 두 줄까지
                   ),
                   SizedBox(width: 10),
                   Icon(Icons.volume_up, size: 30),
@@ -70,29 +67,18 @@ class _DictationQuizPageState extends ConsumerState<DictationQuizPage> {
       );
     }
 
-    Widget buildResult() {
-      if (dictationQuizState.quizzes.isEmpty || dictationQuizState.isLoading) {
-        return const SizedBox(height: 20);
-      }
-      return Column(
-        children: [
-          SizedBox(height: 20),
-          if (dictationQuizState.currentQuiz.isSolved)
-            Text(
-              dictationQuizState.resultMessage,
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Colors.green,
-              ),
-            ),
-        ],
-      );
-    }
-
     Widget buildSecondHalf() {
       return Column(
         children: [
+          Text(
+            dictationQuizState.resultMessage,
+            style: TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              color: Colors.green,
+            ),
+          ),
+          SizedBox(height: 40),
           Text(
             "음성을 듣고 단어를 입력해주세요",
             style: const TextStyle(fontSize: 20, color: Colors.black),
@@ -250,12 +236,7 @@ class _DictationQuizPageState extends ConsumerState<DictationQuizPage> {
                                   child: buildFirstHalf(),
                                 ),
                                 Flexible(
-                                  flex: 2,
-                                  fit: FlexFit.loose,
-                                  child: buildResult(),
-                                ),
-                                Flexible(
-                                  flex: 3,
+                                  flex: 4,
                                   fit: FlexFit.loose,
                                   child: buildSecondHalf(),
                                 ),
@@ -292,6 +273,7 @@ class _DictationQuizPageState extends ConsumerState<DictationQuizPage> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
