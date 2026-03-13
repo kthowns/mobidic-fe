@@ -70,7 +70,11 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                   ),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        titleController.text = '';
+                        descController.text = '';
+                      },
                       child: const Text('취소'),
                     ),
                     ElevatedButton(
@@ -91,6 +95,8 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                           return;
                         }
                         Navigator.pop(context);
+                        titleController.text = '';
+                        descController.text = '';
                       },
                       child: const Text('추가'),
                     ),
