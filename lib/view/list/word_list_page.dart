@@ -69,7 +69,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
       if (difficulty < 0.5) {
         // 0.0 ~ 0.5 → 파랑 → 노랑
         double t = difficulty / 0.5; // 0~1
-        return Color.lerp(Colors.blue, Colors.yellow, t)!;
+        return Color.lerp(Colors.green, Colors.yellow, t)!;
       } else {
         // 0.5 ~ 1.0 → 노랑 → 빨강
         double t = (difficulty - 0.5) / 0.5; // 0~1
@@ -176,13 +176,11 @@ class _WordListPageState extends ConsumerState<WordListPage> {
       value = value.clamp(0.0, 1.0);
 
       if (value < 0.5) {
-        // 0.0 ~ 0.5 → 파랑 → 노랑
         double t = value / 0.5; // 0~1
-        return Color.lerp(Colors.blue, Colors.yellow, t)!;
+        return Color.lerp(Colors.red, Colors.yellow, t)!;
       } else {
-        // 0.5 ~ 1.0 → 노랑 → 빨강
         double t = (value - 0.5) / 0.5; // 0~1
-        return Color.lerp(Colors.yellow, Colors.red, t)!;
+        return Color.lerp(Colors.yellow, Colors.green, t)!;
       }
     }
 
@@ -301,10 +299,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
                                       ),
                                       backgroundColor: Colors.grey[300],
                                       color: getRateColor(
-                                        wordListState
-                                                .currentVocab
-                                                ?.learningRate ??
-                                            0.0,
+                                        wordListState.learningRate,
                                       ),
                                       minHeight: 6,
                                     ),

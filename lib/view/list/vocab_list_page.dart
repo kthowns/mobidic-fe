@@ -398,13 +398,11 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
       value = value.clamp(0.0, 1.0);
 
       if (value < 0.5) {
-        // 0.0 ~ 0.5 → 파랑 → 노랑
         double t = value / 0.5; // 0~1
-        return Color.lerp(Colors.blue, Colors.yellow, t)!;
+        return Color.lerp(Colors.red, Colors.yellow, t)!;
       } else {
-        // 0.5 ~ 1.0 → 노랑 → 빨강
         double t = (value - 0.5) / 0.5; // 0~1
-        return Color.lerp(Colors.yellow, Colors.red, t)!;
+        return Color.lerp(Colors.yellow, Colors.green, t)!;
       }
     }
 
