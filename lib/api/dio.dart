@@ -54,10 +54,12 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
+    /*
     if (err.response?.statusCode == 401) {
       final authViewModel = ref.read(authViewModelProvider.notifier);
       await authViewModel.clientLogout();
     }
+    */
 
     handler.next(err);
   }
