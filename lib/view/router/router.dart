@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobidic_flutter/view/auth/auth_guard.dart';
 import 'package:mobidic_flutter/view/auth/kakao_login_page.dart';
 import 'package:mobidic_flutter/view/auth/log_in_page.dart';
 import 'package:mobidic_flutter/view/auth/sign_up_page.dart';
@@ -54,32 +55,39 @@ final routerProvider = Provider((ref) {
       ),
       GoRoute(
         path: '/phonics',
-        builder: (context, state) => const PhonicsPage(),
+        builder: (context, state) => const AuthGuard(child: PhonicsPage()),
       ),
       GoRoute(
         path: '/vocabularies',
-        builder: (context, state) => const VocabListPage(),
+        builder: (context, state) => const AuthGuard(child: VocabListPage()),
         routes: [
           GoRoute(
             path: 'words',
-            builder: (context, state) => const WordListPage(),
+            builder: (context, state) => const AuthGuard(child: WordListPage()),
           ),
-          GoRoute(path: 'ox', builder: (context, state) => const OxQuizPage()),
+          GoRoute(
+            path: 'ox',
+            builder: (context, state) => const AuthGuard(child: OxQuizPage()),
+          ),
           GoRoute(
             path: 'blank',
-            builder: (context, state) => const BlankQuizPage(),
+            builder:
+                (context, state) => const AuthGuard(child: BlankQuizPage()),
           ),
           GoRoute(
             path: 'flashcard',
-            builder: (context, state) => const FlashCardPage(),
+            builder:
+                (context, state) => const AuthGuard(child: FlashCardPage()),
           ),
           GoRoute(
             path: 'dictation',
-            builder: (context, state) => const DictationQuizPage(),
+            builder:
+                (context, state) => const AuthGuard(child: DictationQuizPage()),
           ),
           GoRoute(
             path: 'pronunciation',
-            builder: (context, state) => const PronunciationPage(),
+            builder:
+                (context, state) => const AuthGuard(child: PronunciationPage()),
           ),
         ],
       ),
