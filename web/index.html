@@ -91,6 +91,8 @@
       const fill = document.getElementById("progress-fill");
       const status = document.getElementById("loading-status");
 
+      let isAppLoaded = false;
+
       function updateProgress(progress, text) {
         if (fill) fill.style.width = progress * 100 + "%";
         if (status)
@@ -98,11 +100,22 @@
       }
 
       window.addEventListener("load", function () {
-        // 1. 리소스 로드 시작 (초기 가속)
+        setTimeout(() => {
+          if (!isAppLoaded) {
+            status.innerHTML = `
+              로딩이 길어지고 있습니다.<br>
+              <button onclick="location.reload()" style="margin-top:10px; padding:5px 10px; cursor:pointer;">
+                새로고침
+              </button>
+            `;
+          }
+        }, 3000); // 3000ms = 3초
+
+        // 리소스 로드 시작 (초기 가속)
         let currentProgress = 0.1;
         updateProgress(currentProgress, "서버 응답 확인 중");
 
-        // 가짜 진행률: 실제 로딩 중간에 멈춰 보이지 않게 조금씩 올림
+        // 실제 로딩 중간에 멈춰 보이지 않게 조금씩 올림
         const fakeProgress = setInterval(() => {
           if (currentProgress < 0.5) {
             currentProgress += 0.05;
@@ -124,7 +137,8 @@
             updateProgress(0.9, "UI 렌더링 준비");
 
             await appRunner.runApp();
-            // 앱 실행 시점에 100% (보통 앱이 뜨면서 로딩창이 사라짐)
+
+            isAppLoaded = true;
           },
         });
       });
