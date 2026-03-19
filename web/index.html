@@ -102,14 +102,28 @@
       window.addEventListener("load", function () {
         setTimeout(() => {
           if (!isAppLoaded) {
+            // 기존 텍스트 비우고 새로운 UI 주입
             status.innerHTML = `
-              로딩이 길어지고 있습니다.<br>
-              <button onclick="location.reload()" style="margin-top:10px; padding:5px 10px; cursor:pointer;">
-                새로고침
-              </button>
-            `;
+        <div style="text-align:center;">
+          로딩이 길어지고 있습니다.<br>
+          <button id="retry-btn" style="margin-top:10px; padding:8px 15px; cursor:pointer; background:#01579b; color:white; border:none; border-radius:5px; font-weight:bold; position:relative; z-index:9999;">
+            새로고침
+          </button>
+        </div>
+      `;
+
+            // 버튼에 직접 이벤트 리스너 할당 (가장 확실함)
+            const retryBtn = document.getElementById("retry-btn");
+            if (retryBtn) {
+              retryBtn.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("새로고침 실행");
+                window.location.reload(true); // true는 서버에서 강제 새로고침
+              });
+            }
           }
-        }, 3000); // 3000ms = 3초
+        }, 2500); // 2.5초
 
         // 리소스 로드 시작 (초기 가속)
         let currentProgress = 0.1;
