@@ -33,6 +33,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       );
     }
 
+    void handleTestLogin() async {
+      await authViewModel.login("test@test.com", "test1231");
+    }
+
     void handleKakaoLogin() async {
       final kakaoLoginUrl = Uri.parse(await authViewModel.getKakaoLoginUrl());
 
@@ -138,6 +142,31 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         )
                         : const Text(
                           '로그인',
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: authState.isLoading ? null : handleTestLogin,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                child:
+                    authState.isLoading
+                        ? const CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        )
+                        : const Text(
+                          '테스트 계정 로그인',
                           style: TextStyle(fontSize: 16, color: Colors.white),
                         ),
               ),
