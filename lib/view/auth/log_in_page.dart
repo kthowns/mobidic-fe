@@ -115,10 +115,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
-                child: const Text(
-                  '카카오 로그인',
-                  style: TextStyle(fontSize: 16, color: Colors.black),
-                ),
+                child:
+                    authState.isLoading
+                        ? const CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        )
+                        : const Text(
+                          '카카오 로그인',
+                          style: TextStyle(fontSize: 16, color: Colors.black),
+                        ),
               ),
             ),
             const SizedBox(height: 10),
