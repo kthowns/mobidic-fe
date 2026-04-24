@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
+import 'package:mobidic_flutter/view/component/common_app_bar.dart';
 
 class PhonicsPage extends ConsumerStatefulWidget {
   const PhonicsPage({super.key});
@@ -17,56 +15,7 @@ class _PhonicsPageState extends ConsumerState<PhonicsPage> {
     return Scaffold(
       backgroundColor: Colors.white,
 
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-        title: const Row(
-          children: [
-            SizedBox(width: 8),
-            Text(
-              '파닉스 학습',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onSelected: (value) async {
-              if (value == '로그아웃') {
-                await ref.read(authViewModelProvider.notifier).logout();
-
-                // 💡 핵심: 이동하기 전에 현재 사용 중인 Provider들을 다 초기화해서 찌꺼기를 없앱니다.
-                ref.invalidate(authViewModelProvider);
-
-                if (!mounted) return;
-
-                context.go('/');
-              }
-            },
-            itemBuilder:
-                (BuildContext context) => [
-                  const PopupMenuItem<String>(
-                    value: '로그아웃',
-                    child: Text('로그아웃'),
-                  ),
-                ],
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: IconButton(
-              icon: const Icon(Icons.home, color: Colors.black),
-              onPressed: () {
-                context.go('/vocabularies');
-              },
-            ),
-          ),
-        ],
-      ),
+      appBar: const CommonAppBar(title: '파닉스 학습'),
       extendBodyBehindAppBar: true,
       body: SafeArea(
         bottom: false,

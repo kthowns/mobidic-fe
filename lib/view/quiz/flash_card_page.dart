@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
+import 'package:mobidic_flutter/view/component/common_app_bar.dart';
 import 'package:mobidic_flutter/viewmodel/word_view_model.dart';
 
 class FlashCardPage extends ConsumerStatefulWidget {
@@ -32,63 +30,8 @@ class _FlashCardPageState extends ConsumerState<FlashCardPage> {
     debugPrint("FlashCardPage. Words : ${wordListState.words}");
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(quizColor),
-        elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-        centerTitle: true,
-        title: Row(
-          children: [
-            Center(
-              child: Image.asset('assets/images/mobidic_icon.png', height: 40),
-            ),
-            SizedBox(width: 8),
-            Text(
-              'MOBIDIC',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onSelected: (value) async {
-              if (value == '파닉스') {
-                context.push('/phonics');
-              } else if (value == '로그아웃') {
-                await ref.read(authViewModelProvider.notifier).logout();
-
-                // 현재 사용 중인 Provider 초기화
-                ref.invalidate(authViewModelProvider);
-
-                if (!mounted) return;
-
-                context.go('/');
-              }
-            },
-            itemBuilder:
-                (BuildContext context) => [
-                  const PopupMenuItem<String>(value: '파닉스', child: Text('파닉스')),
-                  const PopupMenuItem<String>(
-                    value: '로그아웃',
-                    child: Text('로그아웃'),
-                  ),
-                ],
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: IconButton(
-              icon: const Icon(Icons.home, color: Colors.black),
-              onPressed: () {
-                context.go('/vocabularies');
-              },
-            ),
-          ),
-        ],
-      ),
+      extendBodyBehindAppBar: true,
+      appBar: const CommonAppBar(title: '플래시카드'),
       body: Stack(
         children: [
           Container(

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
+import 'package:mobidic_flutter/view/component/common_app_bar.dart';
 import 'package:mobidic_flutter/viewmodel/blank_quiz_view_model.dart';
 
 class BlankQuizPage extends ConsumerStatefulWidget {
@@ -23,7 +21,6 @@ class _BlankQuizPageState extends ConsumerState<BlankQuizPage> {
 
   @override
   Widget build(BuildContext context) {
-    final int quizColor = 0xFFb3e5fc;
     final blankQuizViewModel = ref.read(blankQuizStateProvider.notifier);
     final blankQuizState = ref.watch(blankQuizStateProvider);
 
@@ -129,65 +126,8 @@ class _BlankQuizPageState extends ConsumerState<BlankQuizPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(quizColor),
-        elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-        centerTitle: true,
-        title: Row(
-          children: [
-            Center(
-              child: Image.asset('assets/images/mobidic_icon.png', height: 40),
-            ),
-            SizedBox(width: 8),
-            Text(
-              'MOBIDIC',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onSelected: (value) async {
-              if (value == '파닉스') {
-                context.push('/phonics');
-              } else if (value == '로그아웃') {
-                await ref.read(authViewModelProvider.notifier).logout();
-
-                // 💡 핵심: 이동하기 전에 현재 사용 중인 Provider들을 다 초기화해서 찌꺼기를 없앱니다.
-                ref.invalidate(authViewModelProvider);
-
-                if (!mounted) return;
-
-                context.go(
-                  '/', // 위에서 루트를 로그인으로 바꿨다면 '/'로 이동
-                );
-              }
-            },
-            itemBuilder:
-                (BuildContext context) => [
-                  const PopupMenuItem<String>(value: '파닉스', child: Text('파닉스')),
-                  const PopupMenuItem<String>(
-                    value: '로그아웃',
-                    child: Text('로그아웃'),
-                  ),
-                ],
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: IconButton(
-              icon: const Icon(Icons.home, color: Colors.black),
-              onPressed: () {
-                context.go('/vocabularies');
-              },
-            ),
-          ),
-        ],
-      ),
+      extendBodyBehindAppBar: true,
+      appBar: const CommonAppBar(title: '빈칸 채우기'),
       body: Stack(
         children: [
           Container(
