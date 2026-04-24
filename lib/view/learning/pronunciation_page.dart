@@ -195,26 +195,29 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
   }
 
   Widget _buildResultSection(PronunciationState state) {
+    if (state.resultMessage.isEmpty && state.score == 0) {
+      return Text(
+        '하단 버튼을 눌러 말을 시작하세요',
+        style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
+      );
+    }
+
     Color scoreColor = state.score >= 80 ? Colors.green : (state.score >= 50 ? Colors.orange : Colors.red);
     
     return Column(
       children: [
-        if (state.score > 0) ...[
+        if (state.score > 0.1) ...[
           Text(
-            '발음 정확도: ${state.score}점',
+            '발음 정확도: ${state.score.toInt()}점',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: scoreColor),
           ),
           const SizedBox(height: 8),
-          Text(
-            state.resultMessage,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
-          ),
-        ] else
-          Text(
-            '하단 버튼을 눌러 말을 시작하세요',
-            style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
-          ),
+        ],
+        Text(
+          state.resultMessage,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
+        ),
       ],
     );
   }

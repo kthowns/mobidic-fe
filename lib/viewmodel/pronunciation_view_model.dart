@@ -119,47 +119,75 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
   Future<void> stopRecordingAndUpload() async {
     final path = await _recorder.stop();
 
-    await Future.delayed(Duration(milliseconds: 300));
-    state = state.copyWith(isRating: true);
+    if (path == null) {
+      state = state.copyWith(resultMessage: "녹음된 데이터가 없습니다.", score: 0.01);
+      return;
+    }
+
+    await Future.delayed(const Duration(milliseconds: 300));
+    state = state.copyWith(isRating: true, score: 0, resultMessage: '');
 
     try {
-      if (path != null) {
-        if (kIsWeb) {
-          debugPrint("Web Upload Path: $path");
+      double score = 0;
+      if (kIsWeb) {
+        debugPrint("Web Upload Path: $path");
+        score = await _pronunciationRepository.checkPronunciation(
+          path,
+          state.currentWord.id,
+        );
+      } else {
+        final File file = File(path);
+        if (await file.exists()) {
+          final size = await file.length();
+          debugPrint("녹음 파일 크기: $size bytes");
 
-          final score = await _pronunciationRepository.checkPronunciation(
-            path, // URL 그대로 전달
+          if (size < 100) {
+            // 너무 작은 파일은 녹음 실패로 간주
+            throw Exception("녹음된 소리가 너무 작습니다.");
+          }
+
+          score = await _pronunciationRepository.checkPronunciation(
+            file.path,
             state.currentWord.id,
           );
-          final resultMessage = "${(score * 100).ceil().toStringAsFixed(0)}점";
-          state = state.copyWith(resultMessage: resultMessage);
-          debugPrint("resultMessage : $resultMessage");
+          file.delete();
         } else {
-          final File file = File(path);
-
-          // 파일 존재 확인
-          if (await file.exists()) {
-            final bytes = await file.readAsBytes(); // 정확한 byte[]
-            final size = bytes.length;
-            debugPrint("byte 크기: $size");
-
-            final score = await _pronunciationRepository.checkPronunciation(
-              file.path,
-              state.currentWord.id,
-            );
-            final resultMessage = "${(score * 100).ceil().toStringAsFixed(0)}점";
-            state = state.copyWith(resultMessage: resultMessage);
-            debugPrint("resultMessage : $resultMessage");
-            file.delete();
-          }
+          throw Exception("녹음 파일을 찾을 수 없습니다.");
         }
       }
+
+      final scorePercentage = (score * 100).ceilToDouble();
+      String resultMessage = "";
+
+      if (scorePercentage >= 80) {
+        resultMessage = "완벽해요! 원어민 같은 발음입니다.";
+      } else if (scorePercentage >= 60) {
+        resultMessage = "좋은 발음이에요! 조금만 더 명확하게 발음해 보세요.";
+      } else if (scorePercentage >= 40) {
+        resultMessage = "괜찮아요. 억양과 강세에 조금 더 신경 써볼까요?";
+      } else if (scorePercentage > 0) {
+        resultMessage = "잘 들리지 않아요. 다시 한 번 또박또박 말해볼까요?";
+      } else {
+        resultMessage = "발음을 인식하지 못했습니다. 다시 시도해 주세요.";
+      }
+
+      state = state.copyWith(
+        resultMessage: resultMessage,
+        score: scorePercentage <= 0 ? 0.01 : scorePercentage,
+      );
+      debugPrint("score: $scorePercentage, resultMessage : $resultMessage");
     } on ApiException catch (e) {
-      debugPrint(e.message);
-      state = state.copyWith(resultMessage: "다시 한 번 말해보세요.");
-    } on Exception catch (e) {
-      debugPrint(e.toString());
-      state = state.copyWith(resultMessage: "오류 발생");
+      debugPrint("ApiException: ${e.message}");
+      state = state.copyWith(
+        resultMessage: e.message,
+        score: 0.01,
+      );
+    } catch (e) {
+      debugPrint("Error: $e");
+      state = state.copyWith(
+        resultMessage: "잘 들리지 않아요. 다시 한 번 말해볼까요?",
+        score: 0.01,
+      );
     } finally {
       state = state.copyWith(isRating: false);
     }
@@ -169,7 +197,7 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
     if (!mounted) {
       return;
     }
-    state = state.copyWith(resultMessage: '');
+    state = state.copyWith(resultMessage: '', score: 0);
     if (state.currentWordIndex >= state.words.length - 1) {
       state = state.copyWith(isDone: true);
       //showResult();
