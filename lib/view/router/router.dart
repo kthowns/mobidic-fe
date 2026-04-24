@@ -8,6 +8,7 @@ import 'package:mobidic_flutter/view/learning/phonics_page.dart';
 import 'package:mobidic_flutter/view/learning/pronunciation_page.dart';
 import 'package:mobidic_flutter/view/list/vocab_list_page.dart';
 import 'package:mobidic_flutter/view/list/word_list_page.dart';
+import 'package:mobidic_flutter/view/settings/settings_page.dart';
 import 'package:mobidic_flutter/view/quiz/blank_quiz_page.dart';
 import 'package:mobidic_flutter/view/quiz/dictation_quiz_page.dart';
 import 'package:mobidic_flutter/view/quiz/flash_card_page.dart';
@@ -52,6 +53,10 @@ final routerProvider = Provider((ref) {
           final accessToken = state.uri.queryParameters['accessToken'] ?? '';
           return KakaoLoginPage(accessToken: accessToken);
         },
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const AuthGuard(child: SettingsPage()),
       ),
       GoRoute(
         path: '/phonics',
