@@ -1,6 +1,8 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobidic_flutter/api/api_url.dart';
 import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -48,6 +50,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         );
       } else {
         throw Exception('Could not launch $kakaoLoginUrl');
+      }
+    }
+
+    void openUrl(String path) async {
+      const String apiBaseUrl = String.fromEnvironment(
+        'API_BASE_URL',
+        defaultValue: 'https://mobidic.kthowns.cloud',
+      );
+      final url = Uri.parse('$apiBaseUrl$path');
+
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.inAppWebView);
       }
     }
 
@@ -140,6 +154,45 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         color: const Color(0xFFFEE500),
                         textColor: Colors.black87,
                         isLoading: authState.isLoading,
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // 약관 및 정책 문구 추가
+                      Center(
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            style: const TextStyle(
+                              color: Colors.black54,
+                              fontSize: 12,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: '서비스이용약관',
+                                style: const TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                recognizer:
+                                    TapGestureRecognizer()
+                                      ..onTap = () => openUrl(ApiUrl.termsService.url),
+                              ),
+                              const TextSpan(text: ' 및 '),
+                              TextSpan(
+                                text: '개인정보처리방침',
+                                style: const TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                recognizer:
+                                    TapGestureRecognizer()
+                                      ..onTap = () => openUrl(ApiUrl.termsPrivacy.url),
+                              ),
+                              const TextSpan(text: '에 동의합니다.'),
+                            ],
+                          ),
+                        ),
                       ),
 
                       const SizedBox(height: 40),

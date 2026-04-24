@@ -45,7 +45,11 @@ enum ApiUrl {
     "vocabularyId",
   ),
   vocabAccuracy("/api/vocabularies/{vocabularyId}/accuracy", "vocabularyId"),
-  totalAccuracy("/api/users/me/accuracy", null);
+  totalAccuracy("/api/users/me/accuracy", null),
+
+  // 약관 및 정책 관련
+  termsService("/terms/service", null),
+  termsPrivacy("/terms/privacy", null);
 
   final String url;
   final String? key;
