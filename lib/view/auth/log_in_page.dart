@@ -34,10 +34,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       );
     }
 
-    void handleTestLogin() async {
-      await authViewModel.login("test@test.com", "test1231");
-    }
-
     void handleKakaoLogin() async {
       final kakaoLoginUrl = Uri.parse(await authViewModel.getKakaoLoginUrl());
 
@@ -173,19 +169,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ),
                           ),
                         ],
-                      ),
-
-                      const SizedBox(height: 16),
-                      TextButton(
-                        onPressed: authState.isLoading ? null : handleTestLogin,
-                        child: Text(
-                          '체험 계정으로 로그인하기',
-                          style: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontSize: 13,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
                       ),
                     ],
                   ),
