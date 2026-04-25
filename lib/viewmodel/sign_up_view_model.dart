@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/dto/signup_dto.dart';
 import 'package:mobidic_flutter/exception/api_exception.dart';
+import 'package:mobidic_flutter/model/term.dart';
 import 'package:mobidic_flutter/repository/auth_repository.dart';
 
 final signUpStateProvider =
@@ -13,7 +14,28 @@ final signUpStateProvider =
 class SignUpViewModel extends StateNotifier<SignUpState> {
   final AuthRepository _authRepository;
 
-  SignUpViewModel(this._authRepository) : super(SignUpState());
+  SignUpViewModel(this._authRepository) : super(SignUpState()) {
+    _loadTerms();
+  }
+
+  Future<void> _loadTerms() async {
+    try {
+      final terms = await _authRepository.getTerms();
+      state = state.copyWith(terms: terms);
+    } catch (e) {
+      debugPrint("Failed to load terms: $e");
+    }
+  }
+
+  void toggleTermAgreement(int termId) {
+    final currentAgreements = List<int>.from(state.agreeTermIds);
+    if (currentAgreements.contains(termId)) {
+      currentAgreements.remove(termId);
+    } else {
+      currentAgreements.add(termId);
+    }
+    state = state.copyWith(agreeTermIds: currentAgreements);
+  }
 
   void togglePasswordVisibility() {
     state = state.copyWith(isPasswordVisible: !state.isPasswordVisible);
@@ -45,11 +67,16 @@ class SignUpViewModel extends StateNotifier<SignUpState> {
 
     try {
       await _authRepository.signup(
-        SignupRequest(email: email, nickname: nickname, password: password),
+        SignupRequest(
+          email: email,
+          nickname: nickname,
+          password: password,
+          agreeTermIds: state.agreeTermIds,
+        ),
       );
     } on ApiException catch (e) {
       debugPrint("ApiException!! : $e");
-      state = state.copyWith(emailErrorText: e.message);
+      state = state.copyWith(globalErrorText: e.message);
     } catch (e) {
       debugPrint("Just Exception!! : $e");
       state = state.copyWith(globalErrorText: '회원 가입 오류 (Error code: 500)');
@@ -96,6 +123,16 @@ class SignUpViewModel extends StateNotifier<SignUpState> {
       return true;
     }
 
+    // 필수 약관 동의 확인
+    final requiredTermIds =
+        state.terms.where((t) => t.required).map((t) => t.id).toList();
+    for (final id in requiredTermIds) {
+      if (!state.agreeTermIds.contains(id)) {
+        state = state.copyWith(globalErrorText: '필수 약관에 모두 동의해주세요.');
+        return true;
+      }
+    }
+
     return false;
   }
 }
@@ -108,6 +145,8 @@ class SignUpState {
   final String globalErrorText;
   final bool isPasswordVisible;
   final bool isConfirmPasswordVisible;
+  final List<Term> terms;
+  final List<int> agreeTermIds;
 
   SignUpState({
     this.emailErrorText = '',
@@ -117,6 +156,8 @@ class SignUpState {
     this.globalErrorText = '',
     this.isPasswordVisible = false,
     this.isConfirmPasswordVisible = false,
+    this.terms = const [],
+    this.agreeTermIds = const [],
   });
 
   SignUpState copyWith({
@@ -127,6 +168,8 @@ class SignUpState {
     String? globalErrorText,
     bool? isPasswordVisible,
     bool? isConfirmPasswordVisible,
+    List<Term>? terms,
+    List<int>? agreeTermIds,
   }) {
     return SignUpState(
       emailErrorText: emailErrorText ?? this.emailErrorText,
@@ -138,6 +181,8 @@ class SignUpState {
       isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible,
       isConfirmPasswordVisible:
           isConfirmPasswordVisible ?? this.isConfirmPasswordVisible,
+      terms: terms ?? this.terms,
+      agreeTermIds: agreeTermIds ?? this.agreeTermIds,
     );
   }
 }

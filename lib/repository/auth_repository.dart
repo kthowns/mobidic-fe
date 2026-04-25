@@ -6,6 +6,7 @@ import 'package:mobidic_flutter/api/dio.dart';
 import 'package:mobidic_flutter/data/secure_storage_data_source.dart';
 import 'package:mobidic_flutter/dto/login_dto.dart';
 import 'package:mobidic_flutter/dto/signup_dto.dart';
+import 'package:mobidic_flutter/model/term.dart';
 import 'package:mobidic_flutter/repository/repository.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -19,6 +20,16 @@ class AuthRepository extends Repository {
   final Dio _dio;
 
   AuthRepository(this._secureStorageDataSource, this._dio);
+
+  Future<List<Term>> getTerms() async {
+    final url = ApiUrl.terms.url;
+
+    return await dioRequestToList<Term>(
+      url: url,
+      action: () => _dio.get(url),
+      fromJson: Term.fromJson,
+    );
+  }
 
   Future<LoginResponse> login(LoginRequest request) {
     final url = ApiUrl.login.url;

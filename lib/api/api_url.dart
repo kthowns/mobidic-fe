@@ -48,6 +48,7 @@ enum ApiUrl {
   totalAccuracy("/api/users/me/accuracy", null),
 
   // 약관 및 정책 관련
+  terms("/api/terms", null),
   termsService("/terms/service", null),
   termsPrivacy("/terms/privacy", null);
 
