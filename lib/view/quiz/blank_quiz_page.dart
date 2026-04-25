@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobidic_flutter/view/component/common_app_bar.dart';
 import 'package:mobidic_flutter/viewmodel/blank_quiz_view_model.dart';
 
@@ -23,107 +24,6 @@ class _BlankQuizPageState extends ConsumerState<BlankQuizPage> {
   Widget build(BuildContext context) {
     final blankQuizViewModel = ref.read(blankQuizStateProvider.notifier);
     final blankQuizState = ref.watch(blankQuizStateProvider);
-
-    Widget buildFirstHalf() {
-      return Column(
-        children: [
-          Expanded(child: Container()),
-          Column(
-            children: [
-              Text(
-                blankQuizState.quizzes.isNotEmpty
-                    ? blankQuizState.currentQuiz.stem
-                    : "-",
-                style: const TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 5,
-                ),
-              ),
-              const Divider(height: 30, thickness: 1),
-              Text(
-                blankQuizState.quizzes.isNotEmpty
-                    ? blankQuizState.currentQuiz.options.join(', ')
-                    : "-",
-                style: const TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 20),
-              if (blankQuizState.currentQuiz.isSolved)
-                Text(
-                  blankQuizState.resultMessage,
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-              SizedBox(height: 40),
-            ],
-          ),
-        ],
-      );
-    }
-
-    Widget buildSecondHalf() {
-      return Column(
-        children: [
-          SizedBox(height: 20),
-          Text(
-            "전체 단어를 입력해주세요",
-            style: const TextStyle(fontSize: 24, color: Colors.black),
-          ),
-          SizedBox(height: 20),
-          TextField(
-            enabled: blankQuizState.isButtonAvailable,
-            controller: userAnswerController,
-            maxLines: 1,
-            maxLength:
-                blankQuizState.quizzes.isNotEmpty
-                    ? blankQuizState.currentQuiz.stem.length
-                    : 10,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 30, color: Colors.black),
-            decoration: const InputDecoration(
-              counterText: '',
-              border: OutlineInputBorder(),
-            ),
-            onSubmitted: (s) {
-              blankQuizViewModel.checkAnswer(s);
-              userAnswerController.text = '';
-            },
-          ),
-          SizedBox(height: 30),
-          SizedBox(
-            width: double.infinity, // 부모 너비를 가득 채움
-            child: ElevatedButton(
-              onPressed:
-                  blankQuizState.isButtonAvailable
-                      ? () {
-                        blankQuizViewModel.checkAnswer(
-                          userAnswerController.text,
-                        );
-                        userAnswerController.text = '';
-                      }
-                      : null,
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                backgroundColor: Colors.blue[100],
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: const Text(
-                "제출하기",
-                style: TextStyle(fontSize: 30, color: Colors.blueAccent),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -153,43 +53,9 @@ class _BlankQuizPageState extends ConsumerState<BlankQuizPage> {
                             ),
                           ],
                         ),
-                        child: Stack(
-                          children: [
-                            // 카드 내용
-                            Column(
-                              children: [
-                                Expanded(child: buildFirstHalf()),
-                                Expanded(child: buildSecondHalf()),
-                              ],
-                            ),
-                            // 진행률 우측 상단
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: Text(
-                                '${blankQuizState.currentQuizIndex + 1}/'
-                                '${blankQuizState.quizzes.length}',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              top: 0,
-                              left: 0,
-                              child: Text(
-                                '남은 시간: ${blankQuizState.remainingSeconds}\'s',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                        child: blankQuizState.isDone
+                            ? _buildResultView(blankQuizState)
+                            : _buildQuizView(blankQuizState, blankQuizViewModel),
                       ),
                     ),
                   ),
@@ -225,6 +91,189 @@ class _BlankQuizPageState extends ConsumerState<BlankQuizPage> {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuizView(BlankQuizState blankQuizState, BlankQuizViewModel blankQuizViewModel) {
+    return Stack(
+      children: [
+        // 카드 내용
+        Column(
+          children: [
+            Expanded(child: _buildFirstHalf(blankQuizState)),
+            Expanded(child: _buildSecondHalf(blankQuizState, blankQuizViewModel)),
+          ],
+        ),
+        // 진행률 우측 상단
+        Positioned(
+          top: 0,
+          right: 0,
+          child: Text(
+            '${blankQuizState.currentQuizIndex + 1}/${blankQuizState.quizzes.length}',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+            ),
+          ),
+        ),
+        Positioned(
+          top: 0,
+          left: 0,
+          child: Text(
+            '남은 시간: ${blankQuizState.remainingSeconds}\'s',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFirstHalf(BlankQuizState blankQuizState) {
+    return Column(
+      children: [
+        Expanded(child: Container()),
+        Column(
+          children: [
+            Text(
+              blankQuizState.quizzes.isNotEmpty ? blankQuizState.currentQuiz.stem : "-",
+              style: const TextStyle(
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 5,
+              ),
+            ),
+            const Divider(height: 30, thickness: 1),
+            Text(
+              blankQuizState.quizzes.isNotEmpty ? blankQuizState.currentQuiz.options.join(', ') : "-",
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              blankQuizState.resultMessage,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: blankQuizState.resultMessage.contains('정답') ? Colors.green : Colors.red,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSecondHalf(BlankQuizState blankQuizState, BlankQuizViewModel blankQuizViewModel) {
+    return Column(
+      children: [
+        const SizedBox(height: 20),
+        const Text(
+          "전체 단어를 입력해주세요",
+          style: TextStyle(fontSize: 20, color: Colors.black54, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 20),
+        TextField(
+          enabled: blankQuizState.isButtonAvailable,
+          controller: userAnswerController,
+          maxLines: 1,
+          maxLength: blankQuizState.quizzes.isNotEmpty ? blankQuizState.currentQuiz.stem.length : 10,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 30, color: Colors.black),
+          decoration: InputDecoration(
+            counterText: '',
+            filled: true,
+            fillColor: Colors.grey[50],
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          onSubmitted: (s) {
+            blankQuizViewModel.checkAnswer(s);
+            userAnswerController.text = '';
+          },
+        ),
+        const SizedBox(height: 30),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: blankQuizState.isButtonAvailable
+                ? () {
+                    blankQuizViewModel.checkAnswer(userAnswerController.text);
+                    userAnswerController.text = '';
+                  }
+                : null,
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              backgroundColor: Colors.blue[600],
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            child: const Text(
+              "제출하기",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResultView(BlankQuizState state) {
+    final accuracy = (state.correctCount / state.quizzes.length * 100).toInt();
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.stars_rounded, size: 80, color: Colors.orange),
+          const SizedBox(height: 24),
+          const Text(
+            "퀴즈 완료!",
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            "정답: ${state.correctCount} / ${state.quizzes.length}",
+            style: const TextStyle(fontSize: 20),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "정답률: $accuracy%",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: accuracy >= 70 ? Colors.green : Colors.orange,
+            ),
+          ),
+          const SizedBox(height: 40),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => context.pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue[600],
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text(
+                "단어장으로 돌아가기",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
         ],
       ),
     );

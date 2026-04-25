@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:mobidic_flutter/model/definition.dart';
@@ -44,14 +43,13 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
   }
 
   Future<void> _initTts() async {
-    await _flutterTts.setLanguage("en-US"); // 한국어: "ko-KR"
+    await _flutterTts.setLanguage("en-US");
     await _flutterTts.setPitch(1.0);
-    await _flutterTts.setSpeechRate(0.5); // 속도 조절 (0.0 ~ 1.0)
+    await _flutterTts.setSpeechRate(0.5);
   }
 
   Future<void> init() async {
     await _initTts();
-    await _flutterTts.setLanguage('en-US');
     await _loadData();
   }
 
@@ -59,7 +57,9 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
     _startLoading();
 
     await _fetchQuizzes();
-    _initTimer();
+    if (state.quizzes.isNotEmpty) {
+      _initGlobalTimer();
+    }
     _stopLoading();
   }
 
@@ -70,41 +70,34 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
       return;
     }
     try {
-      debugPrint("Fetching quizzes");
-      final currentVocab = _vocabListState.currentVocab;
-
-      if (currentVocab == null) return;
       List<Word> words = await _wordRepository.getWords(currentVocab.id);
       List<Quiz> quizzes =
           words.map((word) {
             Definition def = word.definitions.first;
 
             return Quiz(
-              expMil: 15000 * words.length,
+              expMil: 15000 * words.length, // 전체 제한 시간
               stem: word.expression,
-              options: ['${def.meaning} (${def.part})'],
+              options: ['${def.meaning} (${def.part.label})'],
               token: '',
             );
           }).toList();
 
       state = state.copyWith(quizzes: quizzes);
-      debugPrint("quizzes ${state.quizzes}");
     } catch (e) {
       state = state.copyWith(quizzes: []);
     }
   }
 
-  void _initTimer() {
-    if (state.quizzes.isNotEmpty) {
-      final totalExpireSeconds = state.quizzes[0].expMil ~/ 1000;
+  void _initGlobalTimer() {
+    final totalExpireSeconds = state.quizzes[0].expMil ~/ 1000;
 
-      state = state.copyWith(
-        remainingSeconds: totalExpireSeconds,
-        expireSeconds: totalExpireSeconds,
-      );
+    state = state.copyWith(
+      remainingSeconds: totalExpireSeconds,
+      expireSeconds: totalExpireSeconds,
+    );
 
-      startTimer();
-    }
+    startTimer();
   }
 
   void startTimer() {
@@ -112,37 +105,34 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
     _timer?.cancel();
 
     _stopwatch.start();
-    _timer = Timer.periodic(Duration(milliseconds: 500), (timer) async {
+    _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
       }
-      state = state.copyWith(
-        remainingSeconds: state.expireSeconds - _stopwatch.elapsed.inSeconds,
-      );
+      
       if (state.isDone) {
         timer.cancel();
         _stopwatch.stop();
+        return;
       }
+
+      final currentRemaining = state.expireSeconds - _stopwatch.elapsed.inSeconds;
+      state = state.copyWith(remainingSeconds: currentRemaining);
+
       if (state.remainingSeconds < 1) {
         timer.cancel();
         _stopwatch.stop();
-
-        final newList = [...state.quizzes];
-        newList[state.currentQuizIndex] = state.currentQuiz.copyWith(
-          isSolved: true,
-        ); // Immutable 유지
-
-        state = state.copyWith(
-          isDone: true,
-          resultMessage: "시간 초과!",
-          quizzes: newList,
-        );
-
-        await Future.delayed(Duration(seconds: 2));
-        showResult();
+        _handleGlobalTimeout();
       }
     });
+  }
+
+  void _handleGlobalTimeout() {
+    state = state.copyWith(
+      isDone: true,
+      resultMessage: "시간 초과!",
+    );
   }
 
   Future<void> speak() async {
@@ -152,6 +142,8 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
   }
 
   Future<void> checkAnswer(String userAnswer) async {
+    if (state.currentQuiz.isSolved || state.isDone) return;
+
     final newList = [...state.quizzes];
     newList[state.currentQuizIndex] = state.currentQuiz.copyWith(
       isSolved: true,
@@ -159,12 +151,11 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
 
     state = state.copyWith(resultMessage: "", quizzes: newList);
 
-    if (state.currentQuiz.stem.toLowerCase() == userAnswer.toLowerCase()) {
+    if (state.currentQuiz.stem.toLowerCase() == userAnswer.trim().toLowerCase()) {
       state = state.copyWith(
         resultMessage: "정답입니다!",
         correctCount: state.correctCount + 1,
       );
-      debugPrint("correct Count : ${state.correctCount}");
     } else {
       state = state.copyWith(
         resultMessage: "틀렸습니다! 답 : ${state.currentQuiz.stem}",
@@ -172,37 +163,19 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
       );
     }
 
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 1));
     toNextWord();
   }
 
-  void showResult() {
-    if (state.isDone) {
-      debugPrint("is Done! : ${state.correctCount}");
-      state = state.copyWith(
-        resultMessage: '정답률: ${state.correctCount}/${state.quizzes.length}',
-      );
-    }
-  }
-
   void toNextWord() {
-    if (!mounted) {
-      return;
-    }
+    if (!mounted || state.isDone) return;
+    
     state = state.copyWith(resultMessage: '');
+    
     if (state.currentQuizIndex >= state.quizzes.length - 1) {
       state = state.copyWith(isDone: true);
-      showResult();
-    }
-    if (!state.isDone) {
+    } else {
       state = state.copyWith(currentQuizIndex: state.currentQuizIndex + 1);
-    }
-  }
-
-  void toPrevWord() {
-    state = state.copyWith(resultMessage: '');
-    if (state.currentQuizIndex > 0) {
-      state = state.copyWith(currentQuizIndex: state.currentQuizIndex - 1);
     }
   }
 

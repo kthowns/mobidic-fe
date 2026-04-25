@@ -136,21 +136,28 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
     return result / state.vocabs.length;
   }
 
-  Future<void> addVocab(String title, String description) async {
+  Future<bool> addVocab(String title, String description) async {
     setAddingErrorMessage('');
     try {
       startLoading();
       await _vocabRepository.addVocab(title, description);
       await loadData();
       stopLoading();
+      return false;
     } on ApiException catch (e) {
-      setAddingErrorMessage(e.message);
+      debugPrint("addVocab() Error : ${e.message}");
+      if (e.errors.isNotEmpty) {
+        setAddingErrorMessage(e.errors.values.first);
+      } else {
+        setAddingErrorMessage(e.message);
+      }
       stopLoading();
-      rethrow;
+      return true;
     } catch (e) {
+      debugPrint("addVocab() Extra Error : $e");
       setAddingErrorMessage("알 수 없는 오류가 발생했습니다.");
       stopLoading();
-      rethrow;
+      return true;
     }
   }
 
@@ -158,13 +165,37 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
     state = state.copyWith(addingErrorMessage: message);
   }
 
-  Future<void> updateVocab(
+  void setEditingErrorMessage(String message) {
+    state = state.copyWith(editingErrorMessage: message);
+  }
+
+  Future<bool> updateVocab(
     Vocab vocab,
     String title,
     String description,
   ) async {
-    await _vocabRepository.updateVocab(vocab.id, title, description);
-    await loadData();
+    setEditingErrorMessage('');
+    try {
+      startLoading();
+      await _vocabRepository.updateVocab(vocab.id, title, description);
+      await loadData();
+      stopLoading();
+      return false;
+    } on ApiException catch (e) {
+      debugPrint("updateVocab() Error : ${e.message}");
+      if (e.errors.isNotEmpty) {
+        setEditingErrorMessage(e.errors.values.first);
+      } else {
+        setEditingErrorMessage(e.message);
+      }
+      stopLoading();
+      return true;
+    } catch (e) {
+      debugPrint("updateVocab() Extra Error : $e");
+      setEditingErrorMessage("알 수 없는 오류가 발생했습니다.");
+      stopLoading();
+      return true;
+    }
   }
 
   Future<void> deleteVocab(Vocab vocab) async {
@@ -187,6 +218,7 @@ class VocabListState {
   final bool isLoading;
   final String keyword;
   final String addingErrorMessage;
+  final String editingErrorMessage;
 
   VocabListState({
     this.currentVocab,
@@ -198,6 +230,7 @@ class VocabListState {
     this.isLoading = false,
     this.keyword = '',
     this.addingErrorMessage = '',
+    this.editingErrorMessage = '',
   });
 
   VocabListState copyWith({
@@ -210,6 +243,7 @@ class VocabListState {
     bool? isLoading,
     String? keyword,
     String? addingErrorMessage,
+    String? editingErrorMessage,
   }) {
     return VocabListState(
       currentVocab: currentVocab ?? this.currentVocab,
@@ -221,6 +255,7 @@ class VocabListState {
       isLoading: isLoading ?? this.isLoading,
       keyword: keyword ?? this.keyword,
       addingErrorMessage: addingErrorMessage ?? this.addingErrorMessage,
+      editingErrorMessage: editingErrorMessage ?? this.editingErrorMessage,
     );
   }
 }

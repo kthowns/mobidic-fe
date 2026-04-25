@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/model/word.dart';
-import 'package:mobidic_flutter/view/component/add_word_dialog.dart';
-import 'package:mobidic_flutter/view/component/edit_word_dialog.dart';
+import 'package:mobidic_flutter/view/component/word_dialog.dart';
 import 'package:mobidic_flutter/view/component/common_app_bar.dart';
 import 'package:mobidic_flutter/view/component/compact_action_button.dart';
 import 'package:mobidic_flutter/view/component/stat_card.dart';
@@ -130,10 +129,9 @@ class _WordListPageState extends ConsumerState<WordListPage> {
                                   editMode: wordListState.editMode,
                                   onToggleLearned: wordListViewModel.toggleWordIsLearned,
                                   onEdit: () {
-                                    wordListViewModel.setEditingWord(word);
                                     showDialog(
                                       context: context,
-                                      builder: (context) => const EditWordDialog(),
+                                      builder: (context) => WordDialog(word: word),
                                     );
                                   },
                                   onDelete: () => _showDeleteDialog(word, wordListViewModel),
@@ -156,7 +154,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (context) => const AddWordDialog(),
+                builder: (context) => const WordDialog(),
               );
             },
             backgroundColor: Colors.green[600],

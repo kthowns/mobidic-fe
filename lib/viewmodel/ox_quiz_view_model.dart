@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic_flutter/model/quiz.dart';
 import 'package:mobidic_flutter/repository/quiz_repository.dart';
@@ -34,21 +33,22 @@ class OxQuizViewModel extends StateNotifier<OxQuizState> {
     _startLoading();
 
     await _fetchQuizzes();
-    _initTimer();
+    if (state.quizzes.isNotEmpty) {
+      _initGlobalTimer(); // 전체 타이머 1회 초기화
+    }
     _stopLoading();
   }
 
-  void _initTimer() {
-    if (state.quizzes.isNotEmpty) {
-      final totalExpireSeconds = state.quizzes[0].expMil ~/ 1000;
+  void _initGlobalTimer() {
+    // 첫 번째 퀴즈의 expMil을 전체 제한 시간으로 사용 (기존 로직 유지)
+    final totalExpireSeconds = state.quizzes[0].expMil ~/ 1000;
 
-      state = state.copyWith(
-        remainingSeconds: totalExpireSeconds,
-        expireSeconds: totalExpireSeconds,
-      );
+    state = state.copyWith(
+      remainingSeconds: totalExpireSeconds,
+      expireSeconds: totalExpireSeconds,
+    );
 
-      startTimer();
-    }
+    startTimer();
   }
 
   Future<void> _fetchQuizzes() async {
@@ -58,11 +58,9 @@ class OxQuizViewModel extends StateNotifier<OxQuizState> {
       return;
     }
     try {
-      debugPrint("Fetching quizzes");
       state = state.copyWith(
         quizzes: await _quizRepository.getQuizzes(currentVocab.id, QuizType.OX),
       );
-      debugPrint("quizzes ${state.quizzes}");
     } catch (e) {
       state = state.copyWith(quizzes: []);
     }
@@ -80,40 +78,41 @@ class OxQuizViewModel extends StateNotifier<OxQuizState> {
     _timer?.cancel();
 
     _stopwatch.start();
-    _timer = Timer.periodic(Duration(milliseconds: 500), (timer) async {
+    _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
       }
-      state = state.copyWith(
-        remainingSeconds: state.expireSeconds - _stopwatch.elapsed.inSeconds,
-      );
+      
       if (state.isDone) {
         timer.cancel();
         _stopwatch.stop();
+        return;
       }
+
+      final currentRemaining = state.expireSeconds - _stopwatch.elapsed.inSeconds;
+      state = state.copyWith(remainingSeconds: currentRemaining);
+
       if (state.remainingSeconds < 1) {
         timer.cancel();
         _stopwatch.stop();
-
-        final newList = [...state.quizzes];
-        newList[state.currentQuizIndex] = state.currentQuiz.copyWith(
-          isSolved: true,
-        ); // Immutable 유지
-
-        state = state.copyWith(
-          isDone: true,
-          resultMessage: "시간 초과!",
-          quizzes: newList,
-        );
-
-        await Future.delayed(Duration(seconds: 2));
-        showResult();
+        _handleGlobalTimeout();
       }
     });
   }
 
+  void _handleGlobalTimeout() {
+    state = state.copyWith(
+      isDone: true,
+      resultMessage: "시간 초과!",
+    );
+  }
+
   Future<void> checkAnswer(bool userAnswer) async {
+    if (state.currentQuiz.isSolved || state.isDone) return;
+    
+    // 문제를 푸는 동안 타이머는 멈추지 않음
+
     final newList = [...state.quizzes];
     newList[state.currentQuizIndex] = state.currentQuiz.copyWith(
       isSolved: true,
@@ -121,60 +120,45 @@ class OxQuizViewModel extends StateNotifier<OxQuizState> {
 
     state = state.copyWith(resultMessage: "", quizzes: newList);
 
-    final result = await _quizRepository.rateQuestion(
-      state.currentQuiz.token,
-      userAnswer ? "1" : "0",
-    );
-    if (!mounted) {
-      return;
+    try {
+      final result = await _quizRepository.rateQuestion(
+        state.currentQuiz.token,
+        userAnswer ? "1" : "0",
+      );
+      
+      if (!mounted) return;
+
+      String correctAnswer = result.correctAnswer == "1" ? "O" : "X";
+
+      if (result.isCorrect) {
+        state = state.copyWith(
+          resultMessage: "정답입니다!",
+          correctCount: state.correctCount + 1,
+        );
+      } else {
+        state = state.copyWith(
+          resultMessage: "틀렸습니다! 답 : $correctAnswer",
+          incorrectCount: state.incorrectCount + 1,
+        );
+      }
+    } catch (e) {
+      state = state.copyWith(resultMessage: "오류가 발생했습니다.");
     }
 
-    String correctAnswer = result.correctAnswer == "1" ? "O" : "X";
-
-    if (result.isCorrect) {
-      state = state.copyWith(
-        resultMessage: "정답입니다!",
-        correctCount: state.correctCount + 1,
-      );
-      debugPrint("correct Count : ${state.correctCount}");
-    } else {
-      state = state.copyWith(
-        resultMessage: "틀렸습니다! 답 : $correctAnswer",
-        incorrectCount: state.incorrectCount + 1,
-      );
-    }
-
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 1));
     toNextWord();
   }
 
-  void showResult() {
-    if (state.isDone) {
-      debugPrint("is Done! : ${state.correctCount}");
-      state = state.copyWith(
-        resultMessage: '정답률: ${state.correctCount}/${state.quizzes.length}',
-      );
-    }
-  }
-
   void toNextWord() {
-    if (!mounted) {
-      return;
-    }
+    if (!mounted || state.isDone) return;
+    
     state = state.copyWith(resultMessage: '');
+    
     if (state.currentQuizIndex >= state.quizzes.length - 1) {
       state = state.copyWith(isDone: true);
-      showResult();
-    }
-    if (!state.isDone) {
+    } else {
+      // 다음 문제로 넘어가지만 타이머는 그대로 유지
       state = state.copyWith(currentQuizIndex: state.currentQuizIndex + 1);
-    }
-  }
-
-  void toPrevWord() {
-    state = state.copyWith(resultMessage: '');
-    if (state.currentQuizIndex > 0) {
-      state = state.copyWith(currentQuizIndex: state.currentQuizIndex - 1);
     }
   }
 

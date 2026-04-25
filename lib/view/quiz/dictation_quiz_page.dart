@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobidic_flutter/view/component/common_app_bar.dart';
 import 'package:mobidic_flutter/viewmodel/dictation_quiz_view_model.dart';
 
@@ -26,113 +27,6 @@ class _DictationQuizPageState extends ConsumerState<DictationQuizPage> {
       dictationQuizStateProvider.notifier,
     );
     final dictationQuizState = ref.watch(dictationQuizStateProvider);
-
-    Widget buildFirstHalf() {
-      return GestureDetector(
-        onTap: dictationQuizViewModel.speak,
-        child: Container(
-          padding: const EdgeInsets.symmetric(),
-          decoration: BoxDecoration(
-            color: Colors.blue[100],
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            children: [
-              Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    dictationQuizState.quizzes.isNotEmpty
-                        ? "${dictationQuizState.currentQuizIndex + 1}번 음성"
-                        : "-",
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Icon(Icons.volume_up, size: 30),
-                ],
-              ),
-              Spacer(),
-              Text("발음을 들어보세요.", style: const TextStyle(fontSize: 15)),
-            ],
-          ),
-        ),
-      );
-    }
-
-    Widget buildSecondHalf() {
-      return Column(
-        children: [
-          Text(
-            dictationQuizState.resultMessage,
-            style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              color: Colors.green,
-            ),
-          ),
-          SizedBox(height: 40),
-          Text(
-            "음성을 듣고 단어를 입력해주세요",
-            style: const TextStyle(fontSize: 20, color: Colors.black),
-          ),
-          Text(
-            "(해당 퀴즈는 서버 미구현으로 학습률에 반영되지 않습니다.)",
-            style: const TextStyle(fontSize: 12, color: Colors.black),
-          ),
-          SizedBox(height: 20),
-          TextField(
-            enabled: dictationQuizState.isButtonAvailable,
-            controller: userAnswerController,
-            maxLines: 1,
-            maxLength:
-                dictationQuizState.quizzes.isNotEmpty
-                    ? dictationQuizState.currentQuiz.stem.length
-                    : 10,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 30, color: Colors.black),
-            decoration: const InputDecoration(
-              counterText: '',
-              border: OutlineInputBorder(),
-            ),
-            onSubmitted: (s) {
-              dictationQuizViewModel.checkAnswer(s);
-              userAnswerController.text = '';
-            },
-          ),
-          SizedBox(height: 30),
-          SizedBox(
-            width: double.infinity, // 부모 너비를 가득 채움
-            child: ElevatedButton(
-              onPressed:
-                  dictationQuizState.isButtonAvailable
-                      ? () {
-                        dictationQuizViewModel.checkAnswer(
-                          userAnswerController.text,
-                        );
-                        userAnswerController.text = '';
-                      }
-                      : null,
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                backgroundColor: Colors.blue[100],
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: const Text(
-                "제출하기",
-                style: TextStyle(fontSize: 30, color: Colors.blueAccent),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -162,56 +56,9 @@ class _DictationQuizPageState extends ConsumerState<DictationQuizPage> {
                             ),
                           ],
                         ),
-                        child: Stack(
-                          children: [
-                            // 카드 내용
-                            Column(
-                              children: [
-                                Flexible(
-                                  flex: 1,
-                                  fit: FlexFit.loose,
-                                  child: Container(),
-                                ),
-                                Flexible(
-                                  flex: 2,
-                                  fit: FlexFit.loose,
-                                  child: buildFirstHalf(),
-                                ),
-                                Flexible(
-                                  flex: 4,
-                                  fit: FlexFit.loose,
-                                  child: buildSecondHalf(),
-                                ),
-                              ],
-                            ),
-                            // 진행률 우측 상단
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: Text(
-                                '${dictationQuizState.currentQuizIndex + 1}/'
-                                '${dictationQuizState.quizzes.length}',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              top: 0,
-                              left: 0,
-                              child: Text(
-                                '남은 시간: ${dictationQuizState.remainingSeconds}\'s',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                        child: dictationQuizState.isDone
+                            ? _buildResultView(dictationQuizState)
+                            : _buildQuizView(dictationQuizState, dictationQuizViewModel),
                       ),
                     ),
                   ),
@@ -248,6 +95,215 @@ class _DictationQuizPageState extends ConsumerState<DictationQuizPage> {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuizView(DictationQuizState dictationQuizState, DictationQuizViewModel dictationQuizViewModel) {
+    return Stack(
+      children: [
+        // 카드 내용
+        Column(
+          children: [
+            Flexible(
+              flex: 1,
+              fit: FlexFit.loose,
+              child: Container(),
+            ),
+            Flexible(
+              flex: 2,
+              fit: FlexFit.loose,
+              child: _buildFirstHalf(dictationQuizState, dictationQuizViewModel),
+            ),
+            Flexible(
+              flex: 4,
+              fit: FlexFit.loose,
+              child: _buildSecondHalf(dictationQuizState, dictationQuizViewModel),
+            ),
+          ],
+        ),
+        // 진행률 우측 상단
+        Positioned(
+          top: 0,
+          right: 0,
+          child: Text(
+            '${dictationQuizState.currentQuizIndex + 1}/${dictationQuizState.quizzes.length}',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+            ),
+          ),
+        ),
+        Positioned(
+          top: 0,
+          left: 0,
+          child: Text(
+            '남은 시간: ${dictationQuizState.remainingSeconds}\'s',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFirstHalf(DictationQuizState dictationQuizState, DictationQuizViewModel dictationQuizViewModel) {
+    return GestureDetector(
+      onTap: dictationQuizViewModel.speak,
+      child: Container(
+        padding: const EdgeInsets.symmetric(),
+        decoration: BoxDecoration(
+          color: Colors.blue[100],
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  dictationQuizState.quizzes.isNotEmpty
+                      ? "${dictationQuizState.currentQuizIndex + 1}번 음성"
+                      : "-",
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Icon(Icons.volume_up, size: 30),
+              ],
+            ),
+            const Spacer(),
+            const Text("발음을 들어보세요.", style: TextStyle(fontSize: 15)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondHalf(DictationQuizState dictationQuizState, DictationQuizViewModel dictationQuizViewModel) {
+    return Column(
+      children: [
+        const SizedBox(height: 20),
+        Text(
+          dictationQuizState.resultMessage,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: dictationQuizState.resultMessage.contains('정답') ? Colors.green : Colors.red,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 20),
+        const Text(
+          "음성을 듣고 단어를 입력해주세요",
+          style: TextStyle(fontSize: 18, color: Colors.black54, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 20),
+        TextField(
+          enabled: dictationQuizState.isButtonAvailable,
+          controller: userAnswerController,
+          maxLines: 1,
+          maxLength:
+              dictationQuizState.quizzes.isNotEmpty
+                  ? dictationQuizState.currentQuiz.stem.length
+                  : 10,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 30, color: Colors.black),
+          decoration: InputDecoration(
+            counterText: '',
+            filled: true,
+            fillColor: Colors.grey[50],
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          onSubmitted: (s) {
+            dictationQuizViewModel.checkAnswer(s);
+            userAnswerController.text = '';
+          },
+        ),
+        const SizedBox(height: 30),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed:
+                dictationQuizState.isButtonAvailable
+                    ? () {
+                      dictationQuizViewModel.checkAnswer(
+                        userAnswerController.text,
+                      );
+                      userAnswerController.text = '';
+                    }
+                    : null,
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              backgroundColor: Colors.blue[600],
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            child: const Text(
+              "제출하기",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResultView(DictationQuizState state) {
+    final accuracy = (state.correctCount / state.quizzes.length * 100).toInt();
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.stars_rounded, size: 80, color: Colors.orange),
+          const SizedBox(height: 24),
+          const Text(
+            "퀴즈 완료!",
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            "정답: ${state.correctCount} / ${state.quizzes.length}",
+            style: const TextStyle(fontSize: 20),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "정답률: $accuracy%",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: accuracy >= 70 ? Colors.green : Colors.orange,
+            ),
+          ),
+          const SizedBox(height: 40),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => context.pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue[600],
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text(
+                "단어장으로 돌아가기",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
         ],
       ),
     );
