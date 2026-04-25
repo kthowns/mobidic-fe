@@ -63,10 +63,22 @@ class AuthRepository extends Repository {
 
   Future<String> getKakaoLoginUrl() async {
     final url = ApiUrl.kakaoLoginUrl.url;
+    String platform = "web";
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      platform = "android";
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      platform = "ios";
+    } else {
+      platform = "web";
+    }
 
     return await dioRequest(
       url: url,
-      action: () => _dio.get(url, queryParameters: {'isDev': kDebugMode}),
+      action:
+          () => _dio.get(
+            url,
+            queryParameters: {'isDev': kDebugMode, 'platform': platform},
+          ),
       fromJson: (json) => json['url'],
     );
   }

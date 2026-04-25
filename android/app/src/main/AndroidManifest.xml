@@ -27,6 +27,13 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <intent-filter android:autoVerify="true"> <!-- 앱 링크를 처리하기 위한 인텐트 필터 -->
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="mobidic" android:host="auth" />
+            </intent-filter>
         </activity>
         <!-- 카카오 로그인 커스텀 URL 스킴 설정 -->
         <activity 
