@@ -70,7 +70,9 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
       return;
     }
     try {
-      List<Word> words = await _wordRepository.getWords(currentVocab.id);
+      List<Word> allWords = await _wordRepository.getWords(currentVocab.id);
+      List<Word> words = allWords.where((word) => !word.isLearned).toList();
+
       List<Quiz> quizzes =
           words.map((word) {
             Definition def = word.definitions.first;
