@@ -27,14 +27,21 @@ class SettingsPage extends ConsumerWidget {
     }
 
     void sendFeedback() async {
+      String encodeQueryParameters(Map<String, String> params) {
+        return params.entries
+            .map((MapEntry<String, String> e) =>
+                '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+            .join('&');
+      }
+
       final Uri emailLaunchUri = Uri(
         scheme: 'mailto',
         path: 'pni2396@gmail.com',
-        queryParameters: {
+        query: encodeQueryParameters(<String, String>{
           'subject': '[MOBIDIC 피드백] ',
           'body':
               '앱 사용 중 불편한 점이나 제안 사항을 적어주세요.\n\n사용자 ID: ${authState.currentUser?.nickname ?? '비로그인'}\n앱 버전: $appVersion',
-        },
+        }),
       );
 
       if (await canLaunchUrl(emailLaunchUri)) {
