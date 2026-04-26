@@ -77,7 +77,7 @@ class AuthRepository extends Repository {
       action:
           () => _dio.get(
             url,
-            queryParameters: {'isDev': kDebugMode, 'platform': platform},
+            queryParameters: {'isDev': kDebugMode && platform == "web", 'platform': platform},
           ),
       fromJson: (json) => json['url'],
     );
