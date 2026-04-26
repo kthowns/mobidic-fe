@@ -84,10 +84,15 @@ class WordListViewModel extends StateNotifier<WordListState> {
         comparator = (a, b) => a.expression.compareTo(b.expression);
         break;
       case '난이도순':
-        comparator = (b, a) => a.difficulty.compareTo(b.difficulty);
+        comparator = (a, b) => b.difficulty.compareTo(a.difficulty);
         break;
       case '최신순':
-        comparator = (b, a) => a.createdAt!.compareTo(b.createdAt!);
+        comparator = (a, b) {
+          if (a.createdAt == null && b.createdAt == null) return 0;
+          if (a.createdAt == null) return 1;
+          if (b.createdAt == null) return -1;
+          return b.createdAt!.compareTo(a.createdAt!);
+        };
         break;
     }
     sort();
@@ -97,8 +102,12 @@ class WordListViewModel extends StateNotifier<WordListState> {
     state = state.copyWith(editMode: !state.editMode);
   }
 
-  Comparator<Word> comparator =
-      (w2, w1) => w1.createdAt!.compareTo(w2.createdAt!);
+  Comparator<Word> comparator = (a, b) {
+    if (a.createdAt == null && b.createdAt == null) return 0;
+    if (a.createdAt == null) return 1;
+    if (b.createdAt == null) return -1;
+    return b.createdAt!.compareTo(a.createdAt!);
+  };
 
   void setEditingWord(Word word) {
     state = state.copyWith(editingWord: word);
@@ -128,6 +137,7 @@ class WordListViewModel extends StateNotifier<WordListState> {
     setAddingErrorMessage('');
 
     try {
+      startLoading();
       final currentVocab = state.currentVocab;
       if (currentVocab == null) return false;
 
@@ -160,6 +170,7 @@ class WordListViewModel extends StateNotifier<WordListState> {
     setEditingErrorMessage('');
 
     try {
+      startLoading();
       if (removingDefs.isNotEmpty) {
         for (Definition def in removingDefs) {
           await _wordRepository.deleteDef(def.id);
@@ -200,26 +211,28 @@ class WordListViewModel extends StateNotifier<WordListState> {
   void searchWords() {
     if (state.keyword.isEmpty) {
       state = state.copyWith(showingWords: state.words);
-      return;
+    } else {
+      final query = state.keyword.toLowerCase();
+      state = state.copyWith(
+        showingWords:
+            state.words
+                .where(
+                  (w) =>
+                      w.expression.toLowerCase().contains(query) ||
+                      w.definitions.any(
+                        (def) => def.meaning.toLowerCase().contains(query),
+                      ),
+                )
+                .toList(),
+      );
     }
-    final query = state.keyword.toLowerCase();
-    state = state.copyWith(
-      showingWords:
-          state.words
-              .where(
-                (w) =>
-                    w.expression.toLowerCase().contains(query) ||
-                    w.definitions.any(
-                      (def) => def.meaning.toLowerCase().contains(query),
-                    ),
-              )
-              .toList(),
-    );
     sort();
   }
 
   void sort() {
-    state = state.copyWith(showingWords: state.showingWords..sort(comparator));
+    state = state.copyWith(
+      showingWords: List.from(state.showingWords)..sort(comparator),
+    );
   }
 
   void startLoading() {

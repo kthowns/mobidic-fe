@@ -23,6 +23,7 @@ class VocabDialog extends ConsumerWidget {
       initialTitle: vocab?.title,
       initialDescription: vocab?.description,
       errorMessage: isEdit ? vocabListState.editingErrorMessage : vocabListState.addingErrorMessage,
+      isLoading: vocabListState.isLoading,
       onSave: (title, desc) async {
         if (title.isEmpty) {
           if (isEdit) {

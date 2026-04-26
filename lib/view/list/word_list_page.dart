@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobidic_flutter/model/word.dart';
+import 'package:mobidic_flutter/view/component/quick_action_tag.dart';
 import 'package:mobidic_flutter/view/component/word_dialog.dart';
 import 'package:mobidic_flutter/view/component/common_app_bar.dart';
 import 'package:mobidic_flutter/view/component/compact_action_button.dart';
@@ -22,6 +24,126 @@ class _WordListPageState extends ConsumerState<WordListPage> {
   void dispose() {
     searchController.dispose();
     super.dispose();
+  }
+
+  void handleTagAction(String label, WordListViewModel viewModel) async {
+    if (label == '퀴즈') {
+      showModalBottomSheet(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        backgroundColor: Colors.yellow[50],
+        builder: (BuildContext context) {
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Center(
+                  child: Text(
+                    '어떤 퀴즈를 풀어볼까요?',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                _buildQuizOption(
+                  context,
+                  label: 'O/X 퀴즈',
+                  icon: Icons.check_circle_outline_rounded,
+                  color: Colors.green,
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await context.push('/vocabularies/ox');
+                    viewModel.loadData();
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildQuizOption(
+                  context,
+                  label: '받아쓰기',
+                  icon: Icons.edit_note_rounded,
+                  color: Colors.blue,
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await context.push('/vocabularies/dictation');
+                    viewModel.loadData();
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildQuizOption(
+                  context,
+                  label: '빈칸 채우기',
+                  icon: Icons.space_bar_rounded,
+                  color: Colors.orange,
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await context.push('/vocabularies/blank');
+                    viewModel.loadData();
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          );
+        },
+      );
+    } else if (label == '발음 체크') {
+      await context.push('/vocabularies/pronunciation');
+      viewModel.loadData();
+    } else if (label == '플래시카드') {
+      await context.push('/vocabularies/flashcard');
+      viewModel.loadData();
+    }
+  }
+
+  Widget _buildQuizOption(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const Spacer(),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 14,
+              color: Colors.grey,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -87,6 +209,29 @@ class _WordListPageState extends ConsumerState<WordListPage> {
                     ),
                   ),
 
+                  // 퀵 액션 태그
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        QuickActionTag(
+                          label: '발음',
+                          icon: Icons.mic_rounded,
+                          color: Colors.purple.shade600,
+                          onTap: () => handleTagAction('발음 체크', wordListViewModel),
+                        ),
+                        QuickActionTag(
+                          label: '퀴즈',
+                          icon: Icons.extension_rounded,
+                          color: Colors.orange.shade700,
+                          onTap: () => handleTagAction('퀴즈', wordListViewModel),
+                        ),
+                      ],
+                    ),
+                  ),
+
                   // 제어 바
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -128,6 +273,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
                                   word: word,
                                   editMode: wordListState.editMode,
                                   onToggleLearned: wordListViewModel.toggleWordIsLearned,
+                                  onTap: () => handleTagAction('플래시카드', wordListViewModel),
                                   onEdit: () {
                                     showDialog(
                                       context: context,

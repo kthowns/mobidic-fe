@@ -95,8 +95,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       // 입력창 섹션
                       _buildTextField(
                         controller: emailController,
-                        hint: '사용자 아이디 (Username)',
-                        icon: Icons.person_outline_rounded,
+                        hint: '사용자 이메일 (Email)',
+                        icon: Icons.email_outlined,
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(

@@ -9,6 +9,7 @@ class VocabForm extends StatefulWidget {
   final void Function(String title, String description) onSave;
   final VoidCallback onCancel;
   final Color themeColor;
+  final bool isLoading;
 
   const VocabForm({
     super.key,
@@ -20,6 +21,7 @@ class VocabForm extends StatefulWidget {
     required this.onSave,
     required this.onCancel,
     this.themeColor = const Color(0xFF1E88E5), // Blue 600
+    this.isLoading = false,
   });
 
   @override
@@ -85,14 +87,6 @@ class _VocabFormState extends State<VocabForm> {
               autofocus: true,
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
-            if (widget.errorMessage.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0, left: 4),
-                child: Text(
-                  widget.errorMessage,
-                  style: const TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.w500),
-                ),
-              ),
             const SizedBox(height: 20),
             _buildFieldLabel('세부 설명'),
             const SizedBox(height: 8),
@@ -101,7 +95,27 @@ class _VocabFormState extends State<VocabForm> {
               decoration: _buildInputDecoration('단어장에 대한 설명을 입력하세요 (선택)'),
               maxLines: 2,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+            if (widget.errorMessage.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12.0, left: 4),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        widget.errorMessage,
+                        style: const TextStyle(
+                          color: Colors.redAccent,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Row(
               children: [
                 Expanded(
@@ -120,21 +134,33 @@ class _VocabFormState extends State<VocabForm> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => widget.onSave(
-                      _titleController.text.trim(),
-                      _descController.text.trim(),
-                    ),
+                    onPressed: widget.isLoading
+                        ? null
+                        : () => widget.onSave(
+                              _titleController.text.trim(),
+                              _descController.text.trim(),
+                            ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: widget.themeColor,
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor: widget.themeColor.withOpacity(0.6),
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text(
-                      widget.submitLabel,
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
+                    child: widget.isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            widget.submitLabel,
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
                   ),
                 ),
               ],

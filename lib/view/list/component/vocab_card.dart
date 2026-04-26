@@ -75,6 +75,17 @@ class VocabCard extends StatelessWidget {
                             ),
                           ],
                         ),
+                        if (vocab.createdAt != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            "${vocab.createdAt!.year}-${vocab.createdAt!.month.toString().padLeft(2, '0')}-${vocab.createdAt!.day.toString().padLeft(2, '0')}",
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade400,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                         if (vocab.description.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text(

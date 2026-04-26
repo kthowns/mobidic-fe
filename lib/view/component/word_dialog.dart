@@ -81,6 +81,7 @@ class WordDialog extends ConsumerWidget {
       initialExpression: word?.expression,
       initialDefinitions: word?.definitions,
       errorMessage: isEdit ? wordListState.editingErrorMessage : wordListState.addingErrorMessage,
+      isLoading: wordListState.isLoading,
       onSave: handleSave,
       onCancel: () {
         if (isEdit) {

@@ -72,16 +72,18 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
         comparator = (a, b) => a.title.compareTo(b.title);
         break;
       case '학습률순':
-        comparator = (b, a) => a.learningRate.compareTo(b.learningRate);
+        comparator = (a, b) => b.learningRate.compareTo(a.learningRate);
         break;
       case '최신순':
-        comparator = (b, a) => a.createdAt!.compareTo(b.createdAt!);
+        comparator = (a, b) {
+          if (a.createdAt == null && b.createdAt == null) return 0;
+          if (a.createdAt == null) return 1;
+          if (b.createdAt == null) return -1;
+          return b.createdAt!.compareTo(a.createdAt!);
+        };
         break;
       case '정답률순':
-        comparator = (b, a) => a.accuracy.compareTo(b.accuracy);
-        debugPrint(
-          "Accuracies : ${state.vocabs.map((v) => v.accuracy).toList()}",
-        );
+        comparator = (a, b) => b.accuracy.compareTo(a.accuracy);
         break;
     }
     sort();
@@ -91,27 +93,31 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
     state = state.copyWith(editMode: !state.editMode);
   }
 
-  Comparator<Vocab> comparator =
-      (v2, v1) => v1.createdAt!.compareTo(v2.createdAt!);
+  Comparator<Vocab> comparator = (a, b) {
+    if (a.createdAt == null && b.createdAt == null) return 0;
+    if (a.createdAt == null) return 1;
+    if (b.createdAt == null) return -1;
+    return b.createdAt!.compareTo(a.createdAt!);
+  };
 
   int selectedCardIndex = -1;
 
   void searchVocabs() {
     if (state.keyword.isEmpty) {
       state = state.copyWith(showingVocabs: state.vocabs);
-      return;
+    } else {
+      final query = state.keyword.toLowerCase();
+      state = state.copyWith(
+        showingVocabs:
+            state.vocabs
+                .where(
+                  (v) =>
+                      v.title.toLowerCase().contains(query) ||
+                      v.description.toLowerCase().contains(query),
+                )
+                .toList(),
+      );
     }
-    final query = state.keyword.toLowerCase();
-    state = state.copyWith(
-      showingVocabs:
-          state.vocabs
-              .where(
-                (v) =>
-                    v.title.toLowerCase().contains(query) ||
-                    v.description.toLowerCase().contains(query),
-              )
-              .toList(),
-    );
     sort();
   }
 
@@ -204,7 +210,9 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
   }
 
   void sort() {
-    state = state.copyWith(vocabs: state.vocabs..sort(comparator));
+    state = state.copyWith(
+      showingVocabs: List.from(state.showingVocabs)..sort(comparator),
+    );
   }
 }
 
