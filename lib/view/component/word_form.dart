@@ -11,6 +11,7 @@ class WordForm extends StatefulWidget {
   final String title;
   final String submitLabel;
   final Color themeColor;
+  final bool isLoading;
 
   const WordForm({
     super.key,
@@ -22,6 +23,7 @@ class WordForm extends StatefulWidget {
     required this.title,
     required this.submitLabel,
     this.themeColor = const Color(0xFF43A047), // Green 600
+    this.isLoading = false,
   });
 
   @override
@@ -31,6 +33,7 @@ class WordForm extends StatefulWidget {
 class _WordFormState extends State<WordForm> {
   final _expressionController = TextEditingController();
   final List<TextEditingController> _definitionControllers = [];
+  final List<FocusNode> _definitionFocusNodes = [];
   final List<Definition> _definitions = [];
   final List<Definition> _removedDefinitions = [];
 
@@ -42,16 +45,25 @@ class _WordFormState extends State<WordForm> {
       for (var def in widget.initialDefinitions!) {
         _definitions.add(def);
         _definitionControllers.add(TextEditingController(text: def.meaning));
+        _definitionFocusNodes.add(FocusNode());
       }
     } else {
-      _addDefinition();
+      _addDefinition(shouldFocus: false);
     }
   }
 
-  void _addDefinition() {
+  void _addDefinition({bool shouldFocus = true}) {
     setState(() {
       _definitions.add(Definition(id: '', meaning: '', part: PartOfSpeech.NOUN));
       _definitionControllers.add(TextEditingController());
+      final newNode = FocusNode();
+      _definitionFocusNodes.add(newNode);
+      
+      if (shouldFocus) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          newNode.requestFocus();
+        });
+      }
     });
   }
 
@@ -64,6 +76,8 @@ class _WordFormState extends State<WordForm> {
       _definitions.removeAt(index);
       _definitionControllers[index].dispose();
       _definitionControllers.removeAt(index);
+      _definitionFocusNodes[index].dispose();
+      _definitionFocusNodes.removeAt(index);
     });
   }
 
@@ -72,6 +86,9 @@ class _WordFormState extends State<WordForm> {
     _expressionController.dispose();
     for (var controller in _definitionControllers) {
       controller.dispose();
+    }
+    for (var node in _definitionFocusNodes) {
+      node.dispose();
     }
     super.dispose();
   }
@@ -117,21 +134,13 @@ class _WordFormState extends State<WordForm> {
                 decoration: _buildInputDecoration('추가할 단어를 입력하세요'),
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              if (widget.errorMessage.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0, left: 4),
-                  child: Text(
-                    widget.errorMessage,
-                    style: const TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.w500),
-                  ),
-                ),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildFieldLabel('뜻 목록'),
                   TextButton.icon(
-                    onPressed: _addDefinition,
+                    onPressed: () => _addDefinition(),
                     icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
                     label: const Text('뜻 추가'),
                     style: TextButton.styleFrom(
@@ -158,6 +167,7 @@ class _WordFormState extends State<WordForm> {
                           Expanded(
                             child: TextField(
                               controller: _definitionControllers[index],
+                              focusNode: _definitionFocusNodes[index],
                               onChanged: (value) {
                                 _definitions[index] = Definition(
                                   id: _definitions[index].id,
@@ -221,7 +231,27 @@ class _WordFormState extends State<WordForm> {
                   ),
                 );
               }),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
+              if (widget.errorMessage.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0, left: 4),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          widget.errorMessage,
+                          style: const TextStyle(
+                            color: Colors.redAccent,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               Row(
                 children: [
                   Expanded(
@@ -240,22 +270,34 @@ class _WordFormState extends State<WordForm> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () => widget.onSave(
-                        _expressionController.text.trim(),
-                        _definitions,
-                        _removedDefinitions,
-                      ),
+                      onPressed: widget.isLoading
+                          ? null
+                          : () => widget.onSave(
+                                _expressionController.text.trim(),
+                                _definitions,
+                                _removedDefinitions,
+                              ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: widget.themeColor,
                         foregroundColor: Colors.white,
+                        disabledBackgroundColor: widget.themeColor.withOpacity(0.6),
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: Text(
-                        widget.submitLabel,
-                        style: const TextStyle(fontWeight: FontWeight.w800),
-                      ),
+                      child: widget.isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(
+                              widget.submitLabel,
+                              style: const TextStyle(fontWeight: FontWeight.w800),
+                            ),
                     ),
                   ),
                 ],
