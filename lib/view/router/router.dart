@@ -50,7 +50,7 @@ final routerProvider = Provider((ref) {
       GoRoute(
         path: '/v1/oauth2/kakao',
         builder: (context, state) {
-          final accessToken = state.uri.queryParameters['accessToken'] ?? '';
+          final accessToken = state.uri.queryParameters['access_token'] ?? '';
           return KakaoLoginPage(accessToken: accessToken);
         },
       ),
