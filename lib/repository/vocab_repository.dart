@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/api/api_url.dart';
-import 'package:mobidic_flutter/api/dio.dart';
-import 'package:mobidic_flutter/dto/vocab_dto.dart';
-import 'package:mobidic_flutter/model/vocab.dart';
-import 'package:mobidic_flutter/repository/repository.dart';
+import 'package:mobidic/api/api_url.dart';
+import 'package:mobidic/api/dio.dart';
+import 'package:mobidic/dto/vocab_dto.dart';
+import 'package:mobidic/model/vocab.dart';
+import 'package:mobidic/repository/repository.dart';
 
 final vocabRepositoryProvider = Provider<VocabRepository>((ref) {
   final dio = ref.read(dioProvider);

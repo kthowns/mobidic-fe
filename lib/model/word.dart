@@ -1,4 +1,4 @@
-import 'package:mobidic_flutter/model/definition.dart';
+import 'package:mobidic/model/definition.dart';
 
 class Word {
   String id;

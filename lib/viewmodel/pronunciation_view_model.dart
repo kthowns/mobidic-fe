@@ -3,28 +3,29 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:mobidic_flutter/model/word.dart';
-import 'package:mobidic_flutter/repository/pronunciation_repository.dart';
-import 'package:mobidic_flutter/repository/word_repository.dart';
-import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
+import 'package:mobidic/model/word.dart';
+import 'package:mobidic/repository/pronunciation_repository.dart';
+import 'package:mobidic/repository/word_repository.dart';
+import 'package:mobidic/viewmodel/vocab_view_model.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../exception/api_exception.dart';
 
-final pronunciationStateProvider = StateNotifierProvider.autoDispose<
-  PronunciationViewModel,
-  PronunciationState
->((ref) {
-  final vocabListState = ref.read(vocabListStateProvider);
-  final wordRepository = ref.read(wordRepositoryProvider);
-  final pronunciationRepository = ref.read(pronunciationRepositoryProvider);
-  return PronunciationViewModel(
-    pronunciationRepository,
-    vocabListState,
-    wordRepository,
-  );
-});
+final pronunciationStateProvider =
+    StateNotifierProvider.autoDispose<
+      PronunciationViewModel,
+      PronunciationState
+    >((ref) {
+      final vocabListState = ref.read(vocabListStateProvider);
+      final wordRepository = ref.read(wordRepositoryProvider);
+      final pronunciationRepository = ref.read(pronunciationRepositoryProvider);
+      return PronunciationViewModel(
+        pronunciationRepository,
+        vocabListState,
+        wordRepository,
+      );
+    });
 
 class PronunciationViewModel extends StateNotifier<PronunciationState> {
   final PronunciationRepository _pronunciationRepository;
@@ -178,10 +179,7 @@ class PronunciationViewModel extends StateNotifier<PronunciationState> {
       debugPrint("score: $scorePercentage, resultMessage : $resultMessage");
     } on ApiException catch (e) {
       debugPrint("ApiException: ${e.message}");
-      state = state.copyWith(
-        resultMessage: e.message,
-        score: 0.01,
-      );
+      state = state.copyWith(resultMessage: e.message, score: 0.01);
     } catch (e) {
       debugPrint("Error: $e");
       state = state.copyWith(

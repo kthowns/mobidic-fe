@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:mobidic_flutter/exception/api_exception.dart';
+import 'package:mobidic/exception/api_exception.dart';
 
 class Repository {
   @protected

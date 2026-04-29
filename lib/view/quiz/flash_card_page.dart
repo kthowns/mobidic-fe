@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/view/component/common_app_bar.dart';
-import 'package:mobidic_flutter/viewmodel/word_view_model.dart';
+import 'package:mobidic/view/component/common_app_bar.dart';
+import 'package:mobidic/viewmodel/word_view_model.dart';
 
 class FlashCardPage extends ConsumerStatefulWidget {
   const FlashCardPage({super.key});
@@ -199,10 +199,9 @@ class _FlashCardPageState extends ConsumerState<FlashCardPage> {
                           );
                         },
                         cardsCount: wordListState.words.length,
-                        numberOfCardsDisplayed:
-                            wordListState.words.length >= 3
-                                ? 3
-                                : wordListState.words.length,
+                        numberOfCardsDisplayed: wordListState.words.length >= 3
+                            ? 3
+                            : wordListState.words.length,
                       ),
                     ),
 

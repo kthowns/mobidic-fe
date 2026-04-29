@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/exception/api_exception.dart';
-import 'package:mobidic_flutter/model/vocab.dart';
-import 'package:mobidic_flutter/repository/statistic_repository.dart';
-import 'package:mobidic_flutter/repository/vocab_repository.dart';
+import 'package:mobidic/exception/api_exception.dart';
+import 'package:mobidic/model/vocab.dart';
+import 'package:mobidic/repository/statistic_repository.dart';
+import 'package:mobidic/repository/vocab_repository.dart';
 
 final vocabListStateProvider =
     StateNotifierProvider.autoDispose<VocabListViewModel, VocabListState>((
@@ -108,14 +108,13 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
     } else {
       final query = state.keyword.toLowerCase();
       state = state.copyWith(
-        showingVocabs:
-            state.vocabs
-                .where(
-                  (v) =>
-                      v.title.toLowerCase().contains(query) ||
-                      v.description.toLowerCase().contains(query),
-                )
-                .toList(),
+        showingVocabs: state.vocabs
+            .where(
+              (v) =>
+                  v.title.toLowerCase().contains(query) ||
+                  v.description.toLowerCase().contains(query),
+            )
+            .toList(),
       );
     }
     sort();

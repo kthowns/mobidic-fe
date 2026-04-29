@@ -1,4 +1,4 @@
-import 'package:mobidic_flutter/type/term_type.dart';
+import 'package:mobidic/type/term_type.dart';
 
 class Term {
   final int id;

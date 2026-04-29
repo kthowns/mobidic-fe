@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mobidic_flutter/model/vocab.dart';
-import 'package:mobidic_flutter/view/component/quick_action_tag.dart';
+import 'package:mobidic/model/vocab.dart';
+import 'package:mobidic/view/component/quick_action_tag.dart';
 
 class VocabCard extends StatelessWidget {
   final Vocab vocab;
@@ -90,7 +90,10 @@ class VocabCard extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             vocab.description,
-                            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade600,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -128,7 +131,8 @@ class VocabCard extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       const Text(
                                         '학습 달성도',
@@ -166,13 +170,21 @@ class VocabCard extends StatelessWidget {
                               IconButton(
                                 constraints: const BoxConstraints(),
                                 padding: EdgeInsets.zero,
-                                icon: const Icon(Icons.edit_rounded, size: 18, color: Colors.grey),
+                                icon: const Icon(
+                                  Icons.edit_rounded,
+                                  size: 18,
+                                  color: Colors.grey,
+                                ),
                                 onPressed: onEdit,
                               ),
                               IconButton(
                                 constraints: const BoxConstraints(),
                                 padding: EdgeInsets.zero,
-                                icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
+                                icon: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  size: 18,
+                                  color: Colors.redAccent,
+                                ),
                                 onPressed: onDelete,
                               ),
                             ],

@@ -1,0 +1,5 @@
+package com.kthowns.mobidic
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()

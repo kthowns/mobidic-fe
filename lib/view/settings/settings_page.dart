@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobidic_flutter/api/api_url.dart';
-import 'package:mobidic_flutter/view/component/common_app_bar.dart';
-import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
+import 'package:mobidic/api/api_url.dart';
+import 'package:mobidic/view/component/common_app_bar.dart';
+import 'package:mobidic/viewmodel/auth_view_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -29,8 +29,10 @@ class SettingsPage extends ConsumerWidget {
     void sendFeedback() async {
       String encodeQueryParameters(Map<String, String> params) {
         return params.entries
-            .map((MapEntry<String, String> e) =>
-                '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+            .map(
+              (MapEntry<String, String> e) =>
+                  '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}',
+            )
             .join('&');
       }
 

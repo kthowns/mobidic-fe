@@ -2,22 +2,23 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:mobidic_flutter/model/definition.dart';
-import 'package:mobidic_flutter/model/quiz.dart';
-import 'package:mobidic_flutter/model/word.dart';
-import 'package:mobidic_flutter/repository/word_repository.dart';
-import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
+import 'package:mobidic/model/definition.dart';
+import 'package:mobidic/model/quiz.dart';
+import 'package:mobidic/model/word.dart';
+import 'package:mobidic/repository/word_repository.dart';
+import 'package:mobidic/viewmodel/vocab_view_model.dart';
 
-final dictationQuizStateProvider = StateNotifierProvider.autoDispose<
-  DictationQuizViewModel,
-  DictationQuizState
->((ref) {
-  final flutterTts = FlutterTts();
-  final vocabListState = ref.read(vocabListStateProvider);
-  final wordRepository = ref.read(wordRepositoryProvider);
+final dictationQuizStateProvider =
+    StateNotifierProvider.autoDispose<
+      DictationQuizViewModel,
+      DictationQuizState
+    >((ref) {
+      final flutterTts = FlutterTts();
+      final vocabListState = ref.read(vocabListStateProvider);
+      final wordRepository = ref.read(wordRepositoryProvider);
 
-  return DictationQuizViewModel(flutterTts, vocabListState, wordRepository);
-});
+      return DictationQuizViewModel(flutterTts, vocabListState, wordRepository);
+    });
 
 class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
   final FlutterTts _flutterTts;
@@ -73,17 +74,16 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
       List<Word> allWords = await _wordRepository.getWords(currentVocab.id);
       List<Word> words = allWords.where((word) => !word.isLearned).toList();
 
-      List<Quiz> quizzes =
-          words.map((word) {
-            Definition def = word.definitions.first;
+      List<Quiz> quizzes = words.map((word) {
+        Definition def = word.definitions.first;
 
-            return Quiz(
-              expMil: 15000 * words.length, // 전체 제한 시간
-              stem: word.expression,
-              options: ['${def.meaning} (${def.part.label})'],
-              token: '',
-            );
-          }).toList();
+        return Quiz(
+          expMil: 15000 * words.length, // 전체 제한 시간
+          stem: word.expression,
+          options: ['${def.meaning} (${def.part.label})'],
+          token: '',
+        );
+      }).toList();
 
       state = state.copyWith(quizzes: quizzes);
     } catch (e) {
@@ -112,14 +112,15 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
         timer.cancel();
         return;
       }
-      
+
       if (state.isDone) {
         timer.cancel();
         _stopwatch.stop();
         return;
       }
 
-      final currentRemaining = state.expireSeconds - _stopwatch.elapsed.inSeconds;
+      final currentRemaining =
+          state.expireSeconds - _stopwatch.elapsed.inSeconds;
       state = state.copyWith(remainingSeconds: currentRemaining);
 
       if (state.remainingSeconds < 1) {
@@ -131,10 +132,7 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
   }
 
   void _handleGlobalTimeout() {
-    state = state.copyWith(
-      isDone: true,
-      resultMessage: "시간 초과!",
-    );
+    state = state.copyWith(isDone: true, resultMessage: "시간 초과!");
   }
 
   Future<void> speak() async {
@@ -153,7 +151,8 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
 
     state = state.copyWith(resultMessage: "", quizzes: newList);
 
-    if (state.currentQuiz.stem.toLowerCase() == userAnswer.trim().toLowerCase()) {
+    if (state.currentQuiz.stem.toLowerCase() ==
+        userAnswer.trim().toLowerCase()) {
       state = state.copyWith(
         resultMessage: "정답입니다!",
         correctCount: state.correctCount + 1,
@@ -171,9 +170,9 @@ class DictationQuizViewModel extends StateNotifier<DictationQuizState> {
 
   void toNextWord() {
     if (!mounted || state.isDone) return;
-    
+
     state = state.copyWith(resultMessage: '');
-    
+
     if (state.currentQuizIndex >= state.quizzes.length - 1) {
       state = state.copyWith(isDone: true);
     } else {

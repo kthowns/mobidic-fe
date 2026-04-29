@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/data/secure_storage_data_source.dart';
-import 'package:mobidic_flutter/dto/login_dto.dart';
-import 'package:mobidic_flutter/exception/api_exception.dart';
-import 'package:mobidic_flutter/repository/auth_repository.dart';
-import 'package:mobidic_flutter/repository/user_repository.dart';
+import 'package:mobidic/data/secure_storage_data_source.dart';
+import 'package:mobidic/dto/login_dto.dart';
+import 'package:mobidic/exception/api_exception.dart';
+import 'package:mobidic/repository/auth_repository.dart';
+import 'package:mobidic/repository/user_repository.dart';
 
-import 'package:mobidic_flutter/model/user.dart';
+import 'package:mobidic/model/user.dart';
 
 final authViewModelProvider = StateNotifierProvider((ref) {
   final authRepository = ref.read(authRepositoryProvider);

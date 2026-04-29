@@ -1,6 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:mobidic_flutter/api/api_url.dart';
+import 'package:mobidic/api/api_url.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AgreementTerms extends StatelessWidget {
@@ -32,9 +32,8 @@ class AgreementTerms extends StatelessWidget {
                 decoration: TextDecoration.underline,
                 fontWeight: FontWeight.bold,
               ),
-              recognizer:
-                  TapGestureRecognizer()
-                    ..onTap = () => openUrl(ApiUrl.termsService.url),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () => openUrl(ApiUrl.termsService.url),
             ),
             const TextSpan(text: ' 및 '),
             TextSpan(
@@ -43,9 +42,8 @@ class AgreementTerms extends StatelessWidget {
                 decoration: TextDecoration.underline,
                 fontWeight: FontWeight.bold,
               ),
-              recognizer:
-                  TapGestureRecognizer()
-                    ..onTap = () => openUrl(ApiUrl.termsPrivacy.url),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () => openUrl(ApiUrl.termsPrivacy.url),
             ),
             const TextSpan(text: '에 동의합니다.'),
           ],

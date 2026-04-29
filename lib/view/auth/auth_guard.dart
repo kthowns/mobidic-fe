@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
+import 'package:mobidic/viewmodel/auth_view_model.dart';
 
 class AuthGuard extends ConsumerWidget {
   final Widget child;

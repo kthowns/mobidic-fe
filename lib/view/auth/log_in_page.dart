@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobidic_flutter/view/component/specify_terms.dart';
-import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
+import 'package:mobidic/view/component/specify_terms.dart';
+import 'package:mobidic/viewmodel/auth_view_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -131,8 +131,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                       const SizedBox(height: 12),
                       _buildActionButton(
-                        onPressed:
-                            authState.isLoading ? null : handleKakaoLogin,
+                        onPressed: authState.isLoading
+                            ? null
+                            : handleKakaoLogin,
                         label: '카카오 로그인',
                         color: const Color(0xFFFEE500),
                         textColor: Colors.black87,
@@ -229,23 +230,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             borderRadius: BorderRadius.circular(14),
           ),
         ),
-        child:
-            isLoading
-                ? SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(textColor),
-                  ),
-                )
-                : Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
+        child: isLoading
+            ? SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(textColor),
                 ),
+              )
+            : Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
       ),
     );
   }

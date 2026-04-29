@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobidic_flutter/model/word.dart';
-import 'package:mobidic_flutter/view/component/quick_action_tag.dart';
-import 'package:mobidic_flutter/view/component/word_dialog.dart';
-import 'package:mobidic_flutter/view/component/common_app_bar.dart';
-import 'package:mobidic_flutter/view/component/compact_action_button.dart';
-import 'package:mobidic_flutter/view/component/stat_card.dart';
-import 'package:mobidic_flutter/view/list/component/word_card.dart';
-import 'package:mobidic_flutter/viewmodel/word_view_model.dart';
+import 'package:mobidic/model/word.dart';
+import 'package:mobidic/view/component/quick_action_tag.dart';
+import 'package:mobidic/view/component/word_dialog.dart';
+import 'package:mobidic/view/component/common_app_bar.dart';
+import 'package:mobidic/view/component/compact_action_button.dart';
+import 'package:mobidic/view/component/stat_card.dart';
+import 'package:mobidic/view/list/component/word_card.dart';
+import 'package:mobidic/viewmodel/word_view_model.dart';
 
 class WordListPage extends ConsumerStatefulWidget {
   const WordListPage({super.key});
@@ -52,10 +52,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
                 const Center(
                   child: Text(
                     '어떤 퀴즈를 풀어볼까요?',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -158,9 +155,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
     return Stack(
       children: [
         Scaffold(
-          appBar: CommonAppBar(
-            title: wordListState.currentVocab?.title ?? '-',
-          ),
+          appBar: CommonAppBar(title: wordListState.currentVocab?.title ?? '-'),
           extendBodyBehindAppBar: true,
           body: Container(
             decoration: const BoxDecoration(color: Colors.white),
@@ -175,7 +170,10 @@ class _WordListPageState extends ConsumerState<WordListPage> {
                       controller: searchController,
                       decoration: InputDecoration(
                         hintText: '단어를 검색하세요',
-                        prefixIcon: const Icon(Icons.search, color: Colors.green),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Colors.green,
+                        ),
                         filled: true,
                         fillColor: Colors.green[50],
                         contentPadding: const EdgeInsets.symmetric(vertical: 0),
@@ -189,7 +187,10 @@ class _WordListPageState extends ConsumerState<WordListPage> {
 
                   // 통계 대시보드
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
                     child: Row(
                       children: [
                         StatCard(
@@ -211,7 +212,10 @@ class _WordListPageState extends ConsumerState<WordListPage> {
 
                   // 퀵 액션 태그
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -220,7 +224,8 @@ class _WordListPageState extends ConsumerState<WordListPage> {
                           label: '발음',
                           icon: Icons.mic_rounded,
                           color: Colors.purple.shade600,
-                          onTap: () => handleTagAction('발음 체크', wordListViewModel),
+                          onTap: () =>
+                              handleTagAction('발음 체크', wordListViewModel),
                         ),
                         QuickActionTag(
                           label: '퀴즈',
@@ -234,18 +239,26 @@ class _WordListPageState extends ConsumerState<WordListPage> {
 
                   // 제어 바
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
                     child: Row(
                       children: [
                         Text(
                           '총 ${wordListState.showingWords.length}개의 단어',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade700,
+                          ),
                         ),
                         const Spacer(),
                         CompactActionButton(
                           onPressed: wordListViewModel.cycleSortOption,
                           icon: Icons.sort_rounded,
-                          label: wordListViewModel.sortOptions[wordListViewModel.currentSortIndex],
+                          label: wordListViewModel
+                              .sortOptions[wordListViewModel.currentSortIndex],
                           themeColor: Colors.green,
                         ),
                         const SizedBox(width: 8),
@@ -265,29 +278,43 @@ class _WordListPageState extends ConsumerState<WordListPage> {
                       onRefresh: wordListViewModel.loadData,
                       child: wordListState.showingWords.isNotEmpty
                           ? ListView.builder(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 10,
+                              ),
                               itemCount: wordListState.showingWords.length,
                               itemBuilder: (context, index) {
                                 final word = wordListState.showingWords[index];
                                 return WordCard(
                                   word: word,
                                   editMode: wordListState.editMode,
-                                  onToggleLearned: wordListViewModel.toggleWordIsLearned,
-                                  onTap: () => handleTagAction('플래시카드', wordListViewModel),
+                                  onToggleLearned:
+                                      wordListViewModel.toggleWordIsLearned,
+                                  onTap: () => handleTagAction(
+                                    '플래시카드',
+                                    wordListViewModel,
+                                  ),
                                   onEdit: () {
                                     showDialog(
                                       context: context,
-                                      builder: (context) => WordDialog(word: word),
+                                      builder: (context) =>
+                                          WordDialog(word: word),
                                     );
                                   },
-                                  onDelete: () => _showDeleteDialog(word, wordListViewModel),
+                                  onDelete: () => _showDeleteDialog(
+                                    word,
+                                    wordListViewModel,
+                                  ),
                                 );
                               },
                             )
                           : const Center(
                               child: Text(
                                 "단어를 추가해주세요.",
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                     ),
@@ -325,7 +352,10 @@ class _WordListPageState extends ConsumerState<WordListPage> {
         title: const Text('단어 삭제'),
         content: const Text('이 단어를 삭제할까요?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('아니오')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('아니오'),
+          ),
           TextButton(
             onPressed: () {
               wordListViewModel.deleteWord(word);

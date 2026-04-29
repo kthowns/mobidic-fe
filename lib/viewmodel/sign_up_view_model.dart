@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/dto/signup_dto.dart';
-import 'package:mobidic_flutter/exception/api_exception.dart';
-import 'package:mobidic_flutter/model/term.dart';
-import 'package:mobidic_flutter/repository/auth_repository.dart';
+import 'package:mobidic/dto/signup_dto.dart';
+import 'package:mobidic/exception/api_exception.dart';
+import 'package:mobidic/model/term.dart';
+import 'package:mobidic/repository/auth_repository.dart';
 
 final signUpStateProvider =
     StateNotifierProvider.autoDispose<SignUpViewModel, SignUpState>((ref) {
@@ -124,8 +124,10 @@ class SignUpViewModel extends StateNotifier<SignUpState> {
     }
 
     // 필수 약관 동의 확인
-    final requiredTermIds =
-        state.terms.where((t) => t.required).map((t) => t.id).toList();
+    final requiredTermIds = state.terms
+        .where((t) => t.required)
+        .map((t) => t.id)
+        .toList();
     for (final id in requiredTermIds) {
       if (!state.agreeTermIds.contains(id)) {
         state = state.copyWith(globalErrorText: '필수 약관에 모두 동의해주세요.');

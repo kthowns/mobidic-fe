@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:mobidic_flutter/model/definition.dart';
-import 'package:mobidic_flutter/type/part_of_speech.dart';
+import 'package:mobidic/model/definition.dart';
+import 'package:mobidic/type/part_of_speech.dart';
 
 class WordForm extends StatefulWidget {
   final String? initialExpression;
   final List<Definition>? initialDefinitions;
   final String errorMessage;
-  final void Function(String expression, List<Definition> definitions, List<Definition> removedDefinitions) onSave;
+  final void Function(
+    String expression,
+    List<Definition> definitions,
+    List<Definition> removedDefinitions,
+  )
+  onSave;
   final VoidCallback onCancel;
   final String title;
   final String submitLabel;
@@ -41,7 +46,8 @@ class _WordFormState extends State<WordForm> {
   void initState() {
     super.initState();
     _expressionController.text = widget.initialExpression ?? '';
-    if (widget.initialDefinitions != null && widget.initialDefinitions!.isNotEmpty) {
+    if (widget.initialDefinitions != null &&
+        widget.initialDefinitions!.isNotEmpty) {
       for (var def in widget.initialDefinitions!) {
         _definitions.add(def);
         _definitionControllers.add(TextEditingController(text: def.meaning));
@@ -54,11 +60,13 @@ class _WordFormState extends State<WordForm> {
 
   void _addDefinition({bool shouldFocus = true}) {
     setState(() {
-      _definitions.add(Definition(id: '', meaning: '', part: PartOfSpeech.NOUN));
+      _definitions.add(
+        Definition(id: '', meaning: '', part: PartOfSpeech.NOUN),
+      );
       _definitionControllers.add(TextEditingController());
       final newNode = FocusNode();
       _definitionFocusNodes.add(newNode);
-      
+
       if (shouldFocus) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           newNode.requestFocus();
@@ -113,7 +121,11 @@ class _WordFormState extends State<WordForm> {
                       color: widget.themeColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(Icons.translate_rounded, color: widget.themeColor, size: 24),
+                    child: Icon(
+                      Icons.translate_rounded,
+                      color: widget.themeColor,
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Text(
@@ -132,7 +144,10 @@ class _WordFormState extends State<WordForm> {
               TextField(
                 controller: _expressionController,
                 decoration: _buildInputDecoration('추가할 단어를 입력하세요'),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 24),
               Row(
@@ -141,11 +156,17 @@ class _WordFormState extends State<WordForm> {
                   _buildFieldLabel('뜻 목록'),
                   TextButton.icon(
                     onPressed: () => _addDefinition(),
-                    icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
+                    icon: const Icon(
+                      Icons.add_circle_outline_rounded,
+                      size: 18,
+                    ),
                     label: const Text('뜻 추가'),
                     style: TextButton.styleFrom(
                       foregroundColor: widget.themeColor,
-                      textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ],
@@ -180,12 +201,18 @@ class _WordFormState extends State<WordForm> {
                                 border: InputBorder.none,
                                 isDense: true,
                               ),
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                           if (_definitions.length > 1)
                             IconButton(
-                              icon: const Icon(Icons.remove_circle_outline_rounded, color: Colors.redAccent, size: 20),
+                              icon: const Icon(
+                                Icons.remove_circle_outline_rounded,
+                                color: Colors.redAccent,
+                                size: 20,
+                              ),
                               onPressed: () => _removeDefinition(index),
                               visualDensity: VisualDensity.compact,
                             ),
@@ -194,7 +221,14 @@ class _WordFormState extends State<WordForm> {
                       const Divider(height: 12),
                       Row(
                         children: [
-                          const Text('품사:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+                          const Text(
+                            '품사:',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const SizedBox(width: 8),
                           DropdownButton<PartOfSpeech>(
                             value: _definitions[index].part,
@@ -237,7 +271,11 @@ class _WordFormState extends State<WordForm> {
                   padding: const EdgeInsets.only(bottom: 12.0, left: 4),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 16),
+                      const Icon(
+                        Icons.error_outline_rounded,
+                        color: Colors.redAccent,
+                        size: 16,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -259,11 +297,16 @@ class _WordFormState extends State<WordForm> {
                       onPressed: widget.onCancel,
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: Text(
                         '취소',
-                        style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w700),
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
@@ -273,17 +316,21 @@ class _WordFormState extends State<WordForm> {
                       onPressed: widget.isLoading
                           ? null
                           : () => widget.onSave(
-                                _expressionController.text.trim(),
-                                _definitions,
-                                _removedDefinitions,
-                              ),
+                              _expressionController.text.trim(),
+                              _definitions,
+                              _removedDefinitions,
+                            ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: widget.themeColor,
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor: widget.themeColor.withOpacity(0.6),
+                        disabledBackgroundColor: widget.themeColor.withOpacity(
+                          0.6,
+                        ),
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: widget.isLoading
                           ? const SizedBox(
@@ -296,7 +343,9 @@ class _WordFormState extends State<WordForm> {
                             )
                           : Text(
                               widget.submitLabel,
-                              style: const TextStyle(fontWeight: FontWeight.w800),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                     ),
                   ),

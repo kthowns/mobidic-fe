@@ -3,8 +3,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/view/component/common_app_bar.dart';
-import 'package:mobidic_flutter/viewmodel/pronunciation_view_model.dart';
+import 'package:mobidic/view/component/common_app_bar.dart';
+import 'package:mobidic/viewmodel/pronunciation_view_model.dart';
 
 class PronunciationPage extends ConsumerStatefulWidget {
   const PronunciationPage({super.key});
@@ -46,7 +46,10 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
     ref.read(pronunciationStateProvider.notifier).startRecording();
     _volumeTimer = Timer.periodic(const Duration(milliseconds: 80), (_) {
       setState(() {
-        _barHeights = List.generate(10, (index) => 10.0 + _random.nextDouble() * 40.0);
+        _barHeights = List.generate(
+          10,
+          (index) => 10.0 + _random.nextDouble() * 40.0,
+        );
       });
     });
   }
@@ -107,7 +110,11 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
       color: Colors.orange.shade100,
       child: Row(
         children: [
-          Icon(Icons.info_outline_rounded, size: 18, color: Colors.orange.shade800),
+          Icon(
+            Icons.info_outline_rounded,
+            size: 18,
+            color: Colors.orange.shade800,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -130,17 +137,28 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
       children: [
         Text(
           '실전 발음 연습',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue.shade800),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue.shade800,
+          ),
         ),
         Text(
           '${state.currentWordIndex + 1} / ${state.words.length}',
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54),
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.black54,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildWordCard(PronunciationState state, PronunciationViewModel viewModel) {
+  Widget _buildWordCard(
+    PronunciationState state,
+    PronunciationViewModel viewModel,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(32),
@@ -148,7 +166,11 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
         ],
       ),
       child: Column(
@@ -156,12 +178,19 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
           Text(
             state.words.isNotEmpty ? state.currentWord.expression : "-",
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 42, fontWeight: FontWeight.w900, color: Color(0xFF2C3E50)),
+            style: const TextStyle(
+              fontSize: 42,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF2C3E50),
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             state.words.isNotEmpty
-                ? state.currentWord.definitions.take(2).map((d) => d.meaning).join(', ')
+                ? state.currentWord.definitions
+                      .take(2)
+                      .map((d) => d.meaning)
+                      .join(', ')
                 : "-",
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
@@ -183,7 +212,10 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
                   const SizedBox(width: 8),
                   Text(
                     '원어민 발음 듣기',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade700),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade700,
+                    ),
                   ),
                 ],
               ),
@@ -202,21 +234,31 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
       );
     }
 
-    Color scoreColor = state.score >= 80 ? Colors.green : (state.score >= 50 ? Colors.orange : Colors.red);
-    
+    Color scoreColor = state.score >= 80
+        ? Colors.green
+        : (state.score >= 50 ? Colors.orange : Colors.red);
+
     return Column(
       children: [
         if (state.score > 0.1) ...[
           Text(
             '발음 정확도: ${state.score.toInt()}점',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: scoreColor),
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: scoreColor,
+            ),
           ),
           const SizedBox(height: 8),
         ],
         Text(
           state.resultMessage,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade700,
+          ),
         ),
       ],
     );
@@ -227,20 +269,24 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(10, (i) => AnimatedContainer(
-            duration: const Duration(milliseconds: 100),
-            margin: const EdgeInsets.symmetric(horizontal: 2),
-            width: 4,
-            height: _barHeights[i],
-            decoration: BoxDecoration(
-              color: Colors.blue.shade400,
-              borderRadius: BorderRadius.circular(2),
+          children: List.generate(
+            10,
+            (i) => AnimatedContainer(
+              duration: const Duration(milliseconds: 100),
+              margin: const EdgeInsets.symmetric(horizontal: 2),
+              width: 4,
+              height: _barHeights[i],
+              decoration: BoxDecoration(
+                color: Colors.blue.shade400,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          )),
+          ),
         ),
         const SizedBox(height: 32),
         GestureDetector(
-          onLongPressStart: (_) => state.hasPermission ? onMicPressStart() : null,
+          onLongPressStart: (_) =>
+              state.hasPermission ? onMicPressStart() : null,
           onLongPressEnd: (_) => state.hasPermission ? onMicPressEnd() : null,
           child: Container(
             height: 90,
@@ -267,13 +313,20 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
         const SizedBox(height: 16),
         Text(
           state.hasPermission ? '길게 눌러서 말하기' : '마이크 권한이 필요합니다',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue.shade900),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue.shade900,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildNavigationButtons(PronunciationState state, PronunciationViewModel viewModel) {
+  Widget _buildNavigationButtons(
+    PronunciationState state,
+    PronunciationViewModel viewModel,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
       color: Colors.white,
@@ -288,7 +341,9 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
           _buildNavButton(
             icon: Icons.arrow_forward_ios_rounded,
             label: '다음 단어',
-            onTap: state.currentWordIndex < state.words.length - 1 ? viewModel.toNextWord : null,
+            onTap: state.currentWordIndex < state.words.length - 1
+                ? viewModel.toNextWord
+                : null,
             isRight: true,
           ),
         ],
@@ -296,16 +351,35 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
     );
   }
 
-  Widget _buildNavButton({required IconData icon, required String label, VoidCallback? onTap, bool isRight = false}) {
+  Widget _buildNavButton({
+    required IconData icon,
+    required String label,
+    VoidCallback? onTap,
+    bool isRight = false,
+  }) {
     final color = onTap != null ? Colors.blue.shade700 : Colors.grey.shade300;
     return InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: Row(
-          children: isRight 
-            ? [Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold)), const SizedBox(width: 8), Icon(icon, color: color, size: 18)]
-            : [Icon(icon, color: color, size: 18), const SizedBox(width: 8), Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold))],
+          children: isRight
+              ? [
+                  Text(
+                    label,
+                    style: TextStyle(color: color, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(icon, color: color, size: 18),
+                ]
+              : [
+                  Icon(icon, color: color, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: TextStyle(color: color, fontWeight: FontWeight.bold),
+                  ),
+                ],
         ),
       ),
     );
@@ -322,7 +396,12 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
             const SizedBox(height: 20),
             Text(
               state.isRating ? 'AI가 발음을 분석 중입니다...' : '잠시만 기다려주세요...',
-              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, decoration: TextDecoration.none),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                decoration: TextDecoration.none,
+              ),
             ),
           ],
         ),
@@ -337,11 +416,30 @@ class _PronunciationPageState extends ConsumerState<PronunciationPage>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.folder_open_rounded, size: 80, color: Colors.white54),
+            const Icon(
+              Icons.folder_open_rounded,
+              size: 80,
+              color: Colors.white54,
+            ),
             const SizedBox(height: 24),
-            const Text('단어장이 비어있습니다.', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold, decoration: TextDecoration.none)),
+            const Text(
+              '단어장이 비어있습니다.',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                decoration: TextDecoration.none,
+              ),
+            ),
             const SizedBox(height: 8),
-            const Text('학습할 단어를 먼저 추가해주세요.', style: TextStyle(color: Colors.white70, fontSize: 15, decoration: TextDecoration.none)),
+            const Text(
+              '학습할 단어를 먼저 추가해주세요.',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 15,
+                decoration: TextDecoration.none,
+              ),
+            ),
           ],
         ),
       ),

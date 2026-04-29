@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/api/api_url.dart';
-import 'package:mobidic_flutter/api/dio.dart';
-import 'package:mobidic_flutter/model/word_statistic.dart';
-import 'package:mobidic_flutter/repository/repository.dart';
+import 'package:mobidic/api/api_url.dart';
+import 'package:mobidic/api/dio.dart';
+import 'package:mobidic/model/word_statistic.dart';
+import 'package:mobidic/repository/repository.dart';
 
 final statisticRepositoryProvider = Provider<StatisticRepository>((ref) {
   final dio = ref.read(dioProvider);

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobidic_flutter/view/component/common_app_bar.dart';
-import 'package:mobidic_flutter/viewmodel/dictation_quiz_view_model.dart';
+import 'package:mobidic/view/component/common_app_bar.dart';
+import 'package:mobidic/viewmodel/dictation_quiz_view_model.dart';
 
 class DictationQuizPage extends ConsumerStatefulWidget {
   const DictationQuizPage({super.key});
@@ -58,7 +58,10 @@ class _DictationQuizPageState extends ConsumerState<DictationQuizPage> {
                         ),
                         child: dictationQuizState.isDone
                             ? _buildResultView(dictationQuizState)
-                            : _buildQuizView(dictationQuizState, dictationQuizViewModel),
+                            : _buildQuizView(
+                                dictationQuizState,
+                                dictationQuizViewModel,
+                              ),
                       ),
                     ),
                   ),
@@ -100,26 +103,31 @@ class _DictationQuizPageState extends ConsumerState<DictationQuizPage> {
     );
   }
 
-  Widget _buildQuizView(DictationQuizState dictationQuizState, DictationQuizViewModel dictationQuizViewModel) {
+  Widget _buildQuizView(
+    DictationQuizState dictationQuizState,
+    DictationQuizViewModel dictationQuizViewModel,
+  ) {
     return Stack(
       children: [
         // 카드 내용
         Column(
           children: [
-            Flexible(
-              flex: 1,
-              fit: FlexFit.loose,
-              child: Container(),
-            ),
+            Flexible(flex: 1, fit: FlexFit.loose, child: Container()),
             Flexible(
               flex: 2,
               fit: FlexFit.loose,
-              child: _buildFirstHalf(dictationQuizState, dictationQuizViewModel),
+              child: _buildFirstHalf(
+                dictationQuizState,
+                dictationQuizViewModel,
+              ),
             ),
             Flexible(
               flex: 4,
               fit: FlexFit.loose,
-              child: _buildSecondHalf(dictationQuizState, dictationQuizViewModel),
+              child: _buildSecondHalf(
+                dictationQuizState,
+                dictationQuizViewModel,
+              ),
             ),
           ],
         ),
@@ -152,7 +160,10 @@ class _DictationQuizPageState extends ConsumerState<DictationQuizPage> {
     );
   }
 
-  Widget _buildFirstHalf(DictationQuizState dictationQuizState, DictationQuizViewModel dictationQuizViewModel) {
+  Widget _buildFirstHalf(
+    DictationQuizState dictationQuizState,
+    DictationQuizViewModel dictationQuizViewModel,
+  ) {
     return GestureDetector(
       onTap: dictationQuizViewModel.speak,
       child: Container(
@@ -189,7 +200,10 @@ class _DictationQuizPageState extends ConsumerState<DictationQuizPage> {
     );
   }
 
-  Widget _buildSecondHalf(DictationQuizState dictationQuizState, DictationQuizViewModel dictationQuizViewModel) {
+  Widget _buildSecondHalf(
+    DictationQuizState dictationQuizState,
+    DictationQuizViewModel dictationQuizViewModel,
+  ) {
     return Column(
       children: [
         const SizedBox(height: 20),
@@ -198,24 +212,29 @@ class _DictationQuizPageState extends ConsumerState<DictationQuizPage> {
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: dictationQuizState.resultMessage.contains('정답') ? Colors.green : Colors.red,
+            color: dictationQuizState.resultMessage.contains('정답')
+                ? Colors.green
+                : Colors.red,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 20),
         const Text(
           "음성을 듣고 단어를 입력해주세요",
-          style: TextStyle(fontSize: 18, color: Colors.black54, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.black54,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 20),
         TextField(
           enabled: dictationQuizState.isButtonAvailable,
           controller: userAnswerController,
           maxLines: 1,
-          maxLength:
-              dictationQuizState.quizzes.isNotEmpty
-                  ? dictationQuizState.currentQuiz.stem.length
-                  : 10,
+          maxLength: dictationQuizState.quizzes.isNotEmpty
+              ? dictationQuizState.currentQuiz.stem.length
+              : 10,
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 30, color: Colors.black),
           decoration: InputDecoration(
@@ -233,15 +252,14 @@ class _DictationQuizPageState extends ConsumerState<DictationQuizPage> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed:
-                dictationQuizState.isButtonAvailable
-                    ? () {
-                      dictationQuizViewModel.checkAnswer(
-                        userAnswerController.text,
-                      );
-                      userAnswerController.text = '';
-                    }
-                    : null,
+            onPressed: dictationQuizState.isButtonAvailable
+                ? () {
+                    dictationQuizViewModel.checkAnswer(
+                      userAnswerController.text,
+                    );
+                    userAnswerController.text = '';
+                  }
+                : null,
             style: ElevatedButton.styleFrom(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -296,7 +314,9 @@ class _DictationQuizPageState extends ConsumerState<DictationQuizPage> {
                 backgroundColor: Colors.blue[600],
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: const Text(
                 "단어장으로 돌아가기",

@@ -1,4 +1,4 @@
-import 'package:mobidic_flutter/type/part_of_speech.dart';
+import 'package:mobidic/type/part_of_speech.dart';
 
 class Definition {
   final String id;

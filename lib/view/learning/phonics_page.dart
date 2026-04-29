@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/view/component/common_app_bar.dart';
+import 'package:mobidic/view/component/common_app_bar.dart';
 
 class PhonicsPage extends ConsumerStatefulWidget {
   const PhonicsPage({super.key});
@@ -93,11 +93,8 @@ class _PhonicsPageState extends ConsumerState<PhonicsPage> {
       width: 280,
       height: 80,
       child: ElevatedButton(
-        onPressed:
-            () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => page),
-            ),
+        onPressed: () =>
+            Navigator.push(context, MaterialPageRoute(builder: (_) => page)),
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
           padding: const EdgeInsets.all(12),

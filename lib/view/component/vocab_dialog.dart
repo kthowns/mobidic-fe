@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/model/vocab.dart';
-import 'package:mobidic_flutter/view/component/vocab_form.dart';
-import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
+import 'package:mobidic/model/vocab.dart';
+import 'package:mobidic/view/component/vocab_form.dart';
+import 'package:mobidic/viewmodel/vocab_view_model.dart';
 
 class VocabDialog extends ConsumerWidget {
   final Vocab? vocab;
@@ -13,7 +13,7 @@ class VocabDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final vocabListViewModel = ref.read(vocabListStateProvider.notifier);
     final vocabListState = ref.watch(vocabListStateProvider);
-    
+
     final isEdit = vocab != null;
 
     return VocabForm(
@@ -22,7 +22,9 @@ class VocabDialog extends ConsumerWidget {
       submitLabel: isEdit ? '저장' : '추가',
       initialTitle: vocab?.title,
       initialDescription: vocab?.description,
-      errorMessage: isEdit ? vocabListState.editingErrorMessage : vocabListState.addingErrorMessage,
+      errorMessage: isEdit
+          ? vocabListState.editingErrorMessage
+          : vocabListState.addingErrorMessage,
       isLoading: vocabListState.isLoading,
       onSave: (title, desc) async {
         if (title.isEmpty) {

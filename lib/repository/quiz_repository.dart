@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/api/api_url.dart';
-import 'package:mobidic_flutter/api/dio.dart';
-import 'package:mobidic_flutter/dto/quiz_rate_dto.dart';
-import 'package:mobidic_flutter/model/quiz.dart';
-import 'package:mobidic_flutter/repository/repository.dart';
-import 'package:mobidic_flutter/type/quiz_type.dart';
+import 'package:mobidic/api/api_url.dart';
+import 'package:mobidic/api/dio.dart';
+import 'package:mobidic/dto/quiz_rate_dto.dart';
+import 'package:mobidic/model/quiz.dart';
+import 'package:mobidic/repository/repository.dart';
+import 'package:mobidic/type/quiz_type.dart';
 
 final quizRepositoryProvider = Provider<QuizRepository>((ref) {
   final dio = ref.read(dioProvider);

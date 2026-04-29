@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobidic_flutter/viewmodel/sign_up_view_model.dart';
+import 'package:mobidic/viewmodel/sign_up_view_model.dart';
 
 class SignUpPage extends ConsumerStatefulWidget {
   const SignUpPage({super.key});
@@ -59,10 +59,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 decoration: InputDecoration(
                   labelText: '가입할 이메일을 입력하세요',
                   helperText: 'ex ) example@naver.com',
-                  errorText:
-                      signUpState.emailErrorText.isNotEmpty
-                          ? signUpState.emailErrorText
-                          : null,
+                  errorText: signUpState.emailErrorText.isNotEmpty
+                      ? signUpState.emailErrorText
+                      : null,
                   border: const OutlineInputBorder(),
                 ),
               ),
@@ -72,10 +71,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 decoration: InputDecoration(
                   labelText: '닉네임을 입력하세요',
                   helperText: '특수문자 제외 2~12자',
-                  errorText:
-                      signUpState.nicknameErrorText.isNotEmpty
-                          ? signUpState.nicknameErrorText
-                          : null,
+                  errorText: signUpState.nicknameErrorText.isNotEmpty
+                      ? signUpState.nicknameErrorText
+                      : null,
                   border: const OutlineInputBorder(),
                 ),
               ),
@@ -86,10 +84,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 decoration: InputDecoration(
                   labelText: '사용할 비밀번호를 입력하세요.',
                   helperText: '8자 이상 + 알파벳 + 숫자 ( - 와 = 제외 )',
-                  errorText:
-                      signUpState.passwordErrorText.isNotEmpty
-                          ? signUpState.passwordErrorText
-                          : null,
+                  errorText: signUpState.passwordErrorText.isNotEmpty
+                      ? signUpState.passwordErrorText
+                      : null,
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -110,10 +107,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 decoration: InputDecoration(
                   labelText: '한 번 더 입력하세요.',
                   helperText: '동일한 비밀번호를 입력하세요.',
-                  errorText:
-                      signUpState.confirmPasswordErrorText.isNotEmpty
-                          ? signUpState.confirmPasswordErrorText
-                          : null,
+                  errorText: signUpState.confirmPasswordErrorText.isNotEmpty
+                      ? signUpState.confirmPasswordErrorText
+                      : null,
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -141,25 +137,24 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
-                    children:
-                        signUpState.terms.map((term) {
-                          final isAgreed = signUpState.agreeTermIds.contains(
-                            term.id,
-                          );
-                          return CheckboxListTile(
-                            title: Text(
-                              "${term.type.label}${term.required ? ' (필수)' : ' (선택)'}",
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            value: isAgreed,
-                            onChanged: (_) {
-                              signUpViewModel.toggleTermAgreement(term.id);
-                            },
-                            controlAffinity: ListTileControlAffinity.leading,
-                            contentPadding: EdgeInsets.zero,
-                            dense: true,
-                          );
-                        }).toList(),
+                    children: signUpState.terms.map((term) {
+                      final isAgreed = signUpState.agreeTermIds.contains(
+                        term.id,
+                      );
+                      return CheckboxListTile(
+                        title: Text(
+                          "${term.type.label}${term.required ? ' (필수)' : ' (선택)'}",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        value: isAgreed,
+                        onChanged: (_) {
+                          signUpViewModel.toggleTermAgreement(term.id);
+                        },
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
+                        dense: true,
+                      );
+                    }).toList(),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -193,19 +188,18 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     showDialog(
                       barrierDismissible: false,
                       context: context,
-                      builder:
-                          (dialogContext) => AlertDialog(
-                            title: const Text('알림'),
-                            content: const Text('회원가입이 완료되었습니다!'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  context.go('/');
-                                },
-                                child: const Text('닫기'),
-                              ),
-                            ],
+                      builder: (dialogContext) => AlertDialog(
+                        title: const Text('알림'),
+                        content: const Text('회원가입이 완료되었습니다!'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              context.go('/');
+                            },
+                            child: const Text('닫기'),
                           ),
+                        ],
+                      ),
                     );
                   },
 

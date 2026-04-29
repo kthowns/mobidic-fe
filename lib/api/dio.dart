@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/data/secure_storage_data_source.dart';
-import 'package:mobidic_flutter/viewmodel/auth_view_model.dart';
+import 'package:mobidic/data/secure_storage_data_source.dart';
+import 'package:mobidic/viewmodel/auth_view_model.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   const String apiBaseUrl = String.fromEnvironment(
@@ -38,8 +38,9 @@ class AuthInterceptor extends Interceptor {
 
     if (requiresAuth) {
       try {
-        String? token =
-            await ref.read(secureStorageDataSourceProvider).readToken();
+        String? token = await ref
+            .read(secureStorageDataSourceProvider)
+            .readToken();
 
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';

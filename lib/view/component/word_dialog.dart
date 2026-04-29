@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/dto/def_dto.dart';
-import 'package:mobidic_flutter/dto/word_dto.dart';
-import 'package:mobidic_flutter/model/definition.dart';
-import 'package:mobidic_flutter/model/word.dart';
-import 'package:mobidic_flutter/view/component/word_form.dart';
-import 'package:mobidic_flutter/viewmodel/word_view_model.dart';
+import 'package:mobidic/dto/def_dto.dart';
+import 'package:mobidic/dto/word_dto.dart';
+import 'package:mobidic/model/definition.dart';
+import 'package:mobidic/model/word.dart';
+import 'package:mobidic/view/component/word_form.dart';
+import 'package:mobidic/viewmodel/word_view_model.dart';
 
 class WordDialog extends ConsumerWidget {
   final Word? word;
@@ -16,7 +16,7 @@ class WordDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final wordListViewModel = ref.read(wordListStateProvider.notifier);
     final wordListState = ref.watch(wordListStateProvider);
-    
+
     final isEdit = word != null;
 
     Future<void> handleSave(
@@ -64,7 +64,9 @@ class WordDialog extends ConsumerWidget {
         );
       } else {
         final defDtos = definitions
-            .map((d) => AddDefRequestDto(meaning: d.meaning.trim(), part: d.part))
+            .map(
+              (d) => AddDefRequestDto(meaning: d.meaning.trim(), part: d.part),
+            )
             .toList();
         hasError = await wordListViewModel.addWord(expression, defDtos);
       }
@@ -80,7 +82,9 @@ class WordDialog extends ConsumerWidget {
       submitLabel: isEdit ? '수정' : '추가',
       initialExpression: word?.expression,
       initialDefinitions: word?.definitions,
-      errorMessage: isEdit ? wordListState.editingErrorMessage : wordListState.addingErrorMessage,
+      errorMessage: isEdit
+          ? wordListState.editingErrorMessage
+          : wordListState.addingErrorMessage,
       isLoading: wordListState.isLoading,
       onSave: handleSave,
       onCancel: () {

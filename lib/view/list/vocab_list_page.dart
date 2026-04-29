@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobidic_flutter/view/component/common_app_bar.dart';
-import 'package:mobidic_flutter/view/component/compact_action_button.dart';
-import 'package:mobidic_flutter/view/component/vocab_dialog.dart';
-import 'package:mobidic_flutter/view/component/stat_card.dart';
-import 'package:mobidic_flutter/view/list/component/vocab_card.dart';
-import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
+import 'package:mobidic/view/component/common_app_bar.dart';
+import 'package:mobidic/view/component/compact_action_button.dart';
+import 'package:mobidic/view/component/vocab_dialog.dart';
+import 'package:mobidic/view/component/stat_card.dart';
+import 'package:mobidic/view/list/component/vocab_card.dart';
+import 'package:mobidic/viewmodel/vocab_view_model.dart';
 
 class VocabListPage extends ConsumerStatefulWidget {
   const VocabListPage({super.key});
@@ -199,9 +199,8 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                         CompactActionButton(
                           onPressed: vocabListViewModel.cycleSortOption,
                           icon: Icons.sort_rounded,
-                          label:
-                              vocabListViewModel.sortOptions[vocabListViewModel
-                                  .currentSortIndex],
+                          label: vocabListViewModel
+                              .sortOptions[vocabListViewModel.currentSortIndex],
                         ),
                         const SizedBox(width: 8),
                         CompactActionButton(
@@ -217,49 +216,46 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                   Expanded(
                     child: RefreshIndicator(
                       onRefresh: vocabListViewModel.loadData,
-                      child:
-                          vocabListState.showingVocabs.isNotEmpty
-                              ? ListView.builder(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 10,
-                                ),
-                                itemCount: vocabListState.showingVocabs.length,
-                                itemBuilder: (context, index) {
-                                  return VocabCard(
-                                    vocab: vocabListState.showingVocabs[index],
-                                    editMode: vocabListState.editMode,
-                                    onTagTap:
-                                        (tag) => handleTagAction(tag, index),
-                                    onEdit:
-                                        () => _showEditVocabDialog(
-                                          index,
-                                          vocabListState,
-                                          vocabListViewModel,
-                                        ),
-                                    onDelete:
-                                        () => _showDeleteDialog(
-                                          index,
-                                          vocabListState,
-                                          vocabListViewModel,
-                                        ),
-                                    onTap: () async {
-                                      vocabListViewModel.selectVocabAt(index);
-                                      await context.push('/vocabularies/words');
-                                      vocabListViewModel.loadData();
-                                    },
-                                  );
-                                },
-                              )
-                              : const Center(
-                                child: Text(
-                                  "단어장을 추가해주세요.",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                      child: vocabListState.showingVocabs.isNotEmpty
+                          ? ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 10,
+                              ),
+                              itemCount: vocabListState.showingVocabs.length,
+                              itemBuilder: (context, index) {
+                                return VocabCard(
+                                  vocab: vocabListState.showingVocabs[index],
+                                  editMode: vocabListState.editMode,
+                                  onTagTap: (tag) =>
+                                      handleTagAction(tag, index),
+                                  onEdit: () => _showEditVocabDialog(
+                                    index,
+                                    vocabListState,
+                                    vocabListViewModel,
                                   ),
+                                  onDelete: () => _showDeleteDialog(
+                                    index,
+                                    vocabListState,
+                                    vocabListViewModel,
+                                  ),
+                                  onTap: () async {
+                                    vocabListViewModel.selectVocabAt(index);
+                                    await context.push('/vocabularies/words');
+                                    vocabListViewModel.loadData();
+                                  },
+                                );
+                              },
+                            )
+                          : const Center(
+                              child: Text(
+                                "단어장을 추가해주세요.",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
+                            ),
                     ),
                   ),
                 ],
@@ -348,26 +344,25 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
   ) {
     showDialog(
       context: context,
-      builder:
-          (_) => AlertDialog(
-            title: const Text('단어장 삭제'),
-            content: const Text('이 단어장을 삭제할까요?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('아니오'),
-              ),
-              TextButton(
-                onPressed: () {
-                  vocabListViewModel.deleteVocab(
-                    vocabListState.showingVocabs[index],
-                  );
-                  Navigator.pop(context);
-                },
-                child: const Text('예'),
-              ),
-            ],
+      builder: (_) => AlertDialog(
+        title: const Text('단어장 삭제'),
+        content: const Text('이 단어장을 삭제할까요?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('아니오'),
           ),
+          TextButton(
+            onPressed: () {
+              vocabListViewModel.deleteVocab(
+                vocabListState.showingVocabs[index],
+              );
+              Navigator.pop(context);
+            },
+            child: const Text('예'),
+          ),
+        ],
+      ),
     );
   }
 }

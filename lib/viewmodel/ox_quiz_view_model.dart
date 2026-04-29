@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/model/quiz.dart';
-import 'package:mobidic_flutter/repository/quiz_repository.dart';
-import 'package:mobidic_flutter/type/quiz_type.dart';
-import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
+import 'package:mobidic/model/quiz.dart';
+import 'package:mobidic/repository/quiz_repository.dart';
+import 'package:mobidic/type/quiz_type.dart';
+import 'package:mobidic/viewmodel/vocab_view_model.dart';
 
 final oxQuizStateProvider =
     StateNotifierProvider.autoDispose<OxQuizViewModel, OxQuizState>((ref) {
@@ -83,14 +83,15 @@ class OxQuizViewModel extends StateNotifier<OxQuizState> {
         timer.cancel();
         return;
       }
-      
+
       if (state.isDone) {
         timer.cancel();
         _stopwatch.stop();
         return;
       }
 
-      final currentRemaining = state.expireSeconds - _stopwatch.elapsed.inSeconds;
+      final currentRemaining =
+          state.expireSeconds - _stopwatch.elapsed.inSeconds;
       state = state.copyWith(remainingSeconds: currentRemaining);
 
       if (state.remainingSeconds < 1) {
@@ -102,15 +103,12 @@ class OxQuizViewModel extends StateNotifier<OxQuizState> {
   }
 
   void _handleGlobalTimeout() {
-    state = state.copyWith(
-      isDone: true,
-      resultMessage: "시간 초과!",
-    );
+    state = state.copyWith(isDone: true, resultMessage: "시간 초과!");
   }
 
   Future<void> checkAnswer(bool userAnswer) async {
     if (state.currentQuiz.isSolved || state.isDone) return;
-    
+
     // 문제를 푸는 동안 타이머는 멈추지 않음
 
     final newList = [...state.quizzes];
@@ -125,7 +123,7 @@ class OxQuizViewModel extends StateNotifier<OxQuizState> {
         state.currentQuiz.token,
         userAnswer ? "1" : "0",
       );
-      
+
       if (!mounted) return;
 
       String correctAnswer = result.correctAnswer == "1" ? "O" : "X";
@@ -151,9 +149,9 @@ class OxQuizViewModel extends StateNotifier<OxQuizState> {
 
   void toNextWord() {
     if (!mounted || state.isDone) return;
-    
+
     state = state.copyWith(resultMessage: '');
-    
+
     if (state.currentQuizIndex >= state.quizzes.length - 1) {
       state = state.copyWith(isDone: true);
     } else {
@@ -189,10 +187,9 @@ class OxQuizState {
       !isDone &&
       !currentQuiz.isSolved;
 
-  Quiz get currentQuiz =>
-      quizzes.isNotEmpty
-          ? quizzes[currentQuizIndex]
-          : Quiz(token: '', stem: '', options: [], expMil: 100);
+  Quiz get currentQuiz => quizzes.isNotEmpty
+      ? quizzes[currentQuizIndex]
+      : Quiz(token: '', stem: '', options: [], expMil: 100);
 
   OxQuizState({
     this.quizzes = const [],

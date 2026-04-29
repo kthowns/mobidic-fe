@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobidic_flutter/view/component/common_app_bar.dart';
-import 'package:mobidic_flutter/viewmodel/blank_quiz_view_model.dart';
+import 'package:mobidic/view/component/common_app_bar.dart';
+import 'package:mobidic/viewmodel/blank_quiz_view_model.dart';
 
 class BlankQuizPage extends ConsumerStatefulWidget {
   const BlankQuizPage({super.key});
@@ -55,7 +55,10 @@ class _BlankQuizPageState extends ConsumerState<BlankQuizPage> {
                         ),
                         child: blankQuizState.isDone
                             ? _buildResultView(blankQuizState)
-                            : _buildQuizView(blankQuizState, blankQuizViewModel),
+                            : _buildQuizView(
+                                blankQuizState,
+                                blankQuizViewModel,
+                              ),
                       ),
                     ),
                   ),
@@ -96,14 +99,19 @@ class _BlankQuizPageState extends ConsumerState<BlankQuizPage> {
     );
   }
 
-  Widget _buildQuizView(BlankQuizState blankQuizState, BlankQuizViewModel blankQuizViewModel) {
+  Widget _buildQuizView(
+    BlankQuizState blankQuizState,
+    BlankQuizViewModel blankQuizViewModel,
+  ) {
     return Stack(
       children: [
         // 카드 내용
         Column(
           children: [
             Expanded(child: _buildFirstHalf(blankQuizState)),
-            Expanded(child: _buildSecondHalf(blankQuizState, blankQuizViewModel)),
+            Expanded(
+              child: _buildSecondHalf(blankQuizState, blankQuizViewModel),
+            ),
           ],
         ),
         // 진행률 우측 상단
@@ -142,7 +150,9 @@ class _BlankQuizPageState extends ConsumerState<BlankQuizPage> {
         Column(
           children: [
             Text(
-              blankQuizState.quizzes.isNotEmpty ? blankQuizState.currentQuiz.stem : "-",
+              blankQuizState.quizzes.isNotEmpty
+                  ? blankQuizState.currentQuiz.stem
+                  : "-",
               style: const TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
@@ -151,11 +161,10 @@ class _BlankQuizPageState extends ConsumerState<BlankQuizPage> {
             ),
             const Divider(height: 30, thickness: 1),
             Text(
-              blankQuizState.quizzes.isNotEmpty ? blankQuizState.currentQuiz.options.join(', ') : "-",
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
+              blankQuizState.quizzes.isNotEmpty
+                  ? blankQuizState.currentQuiz.options.join(', ')
+                  : "-",
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -164,7 +173,9 @@ class _BlankQuizPageState extends ConsumerState<BlankQuizPage> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: blankQuizState.resultMessage.contains('정답') ? Colors.green : Colors.red,
+                color: blankQuizState.resultMessage.contains('정답')
+                    ? Colors.green
+                    : Colors.red,
               ),
               textAlign: TextAlign.center,
             ),
@@ -175,20 +186,29 @@ class _BlankQuizPageState extends ConsumerState<BlankQuizPage> {
     );
   }
 
-  Widget _buildSecondHalf(BlankQuizState blankQuizState, BlankQuizViewModel blankQuizViewModel) {
+  Widget _buildSecondHalf(
+    BlankQuizState blankQuizState,
+    BlankQuizViewModel blankQuizViewModel,
+  ) {
     return Column(
       children: [
         const SizedBox(height: 20),
         const Text(
           "전체 단어를 입력해주세요",
-          style: TextStyle(fontSize: 20, color: Colors.black54, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 20,
+            color: Colors.black54,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 20),
         TextField(
           enabled: blankQuizState.isButtonAvailable,
           controller: userAnswerController,
           maxLines: 1,
-          maxLength: blankQuizState.quizzes.isNotEmpty ? blankQuizState.currentQuiz.stem.length : 10,
+          maxLength: blankQuizState.quizzes.isNotEmpty
+              ? blankQuizState.currentQuiz.stem.length
+              : 10,
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 30, color: Colors.black),
           decoration: InputDecoration(
@@ -266,7 +286,9 @@ class _BlankQuizPageState extends ConsumerState<BlankQuizPage> {
                 backgroundColor: Colors.blue[600],
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: const Text(
                 "단어장으로 돌아가기",

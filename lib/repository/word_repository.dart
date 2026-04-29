@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/api/api_url.dart';
-import 'package:mobidic_flutter/api/dio.dart';
-import 'package:mobidic_flutter/dto/def_dto.dart';
-import 'package:mobidic_flutter/dto/word_dto.dart';
-import 'package:mobidic_flutter/model/definition.dart';
-import 'package:mobidic_flutter/repository/repository.dart';
+import 'package:mobidic/api/api_url.dart';
+import 'package:mobidic/api/dio.dart';
+import 'package:mobidic/dto/def_dto.dart';
+import 'package:mobidic/dto/word_dto.dart';
+import 'package:mobidic/model/definition.dart';
+import 'package:mobidic/repository/repository.dart';
 
 import '../model/word.dart';
 

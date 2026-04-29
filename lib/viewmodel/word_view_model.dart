@@ -1,14 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/dto/def_dto.dart';
-import 'package:mobidic_flutter/dto/word_dto.dart';
-import 'package:mobidic_flutter/exception/api_exception.dart';
-import 'package:mobidic_flutter/model/definition.dart';
-import 'package:mobidic_flutter/model/vocab.dart';
-import 'package:mobidic_flutter/model/word.dart';
-import 'package:mobidic_flutter/repository/statistic_repository.dart';
-import 'package:mobidic_flutter/repository/word_repository.dart';
-import 'package:mobidic_flutter/viewmodel/vocab_view_model.dart';
+import 'package:mobidic/dto/def_dto.dart';
+import 'package:mobidic/dto/word_dto.dart';
+import 'package:mobidic/exception/api_exception.dart';
+import 'package:mobidic/model/definition.dart';
+import 'package:mobidic/model/vocab.dart';
+import 'package:mobidic/model/word.dart';
+import 'package:mobidic/repository/statistic_repository.dart';
+import 'package:mobidic/repository/word_repository.dart';
+import 'package:mobidic/viewmodel/vocab_view_model.dart';
 
 final wordListStateProvider =
     StateNotifierProvider.autoDispose<WordListViewModel, WordListState>((ref) {
@@ -214,16 +214,15 @@ class WordListViewModel extends StateNotifier<WordListState> {
     } else {
       final query = state.keyword.toLowerCase();
       state = state.copyWith(
-        showingWords:
-            state.words
-                .where(
-                  (w) =>
-                      w.expression.toLowerCase().contains(query) ||
-                      w.definitions.any(
-                        (def) => def.meaning.toLowerCase().contains(query),
-                      ),
-                )
-                .toList(),
+        showingWords: state.words
+            .where(
+              (w) =>
+                  w.expression.toLowerCase().contains(query) ||
+                  w.definitions.any(
+                    (def) => def.meaning.toLowerCase().contains(query),
+                  ),
+            )
+            .toList(),
       );
     }
     sort();

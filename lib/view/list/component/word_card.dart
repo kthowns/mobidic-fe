@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobidic_flutter/model/word.dart';
+import 'package:mobidic/model/word.dart';
 
 class WordCard extends StatelessWidget {
   final Word word;
@@ -78,21 +78,33 @@ class WordCard extends StatelessWidget {
                             InkWell(
                               onTap: () => onToggleLearned(word),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: word.isLearned ? Colors.green.shade50 : Colors.grey.shade50,
+                                  color: word.isLearned
+                                      ? Colors.green.shade50
+                                      : Colors.grey.shade50,
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
-                                    color: word.isLearned ? Colors.green.shade200 : Colors.grey.shade200,
+                                    color: word.isLearned
+                                        ? Colors.green.shade200
+                                        : Colors.grey.shade200,
                                   ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(
-                                      word.isLearned ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                                      word.isLearned
+                                          ? Icons.check_circle_rounded
+                                          : Icons
+                                                .radio_button_unchecked_rounded,
                                       size: 14,
-                                      color: word.isLearned ? Colors.green.shade700 : Colors.grey.shade400,
+                                      color: word.isLearned
+                                          ? Colors.green.shade700
+                                          : Colors.grey.shade400,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
@@ -100,7 +112,9 @@ class WordCard extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.bold,
-                                        color: word.isLearned ? Colors.green.shade700 : Colors.grey.shade500,
+                                        color: word.isLearned
+                                            ? Colors.green.shade700
+                                            : Colors.grey.shade500,
                                       ),
                                     ),
                                   ],
@@ -110,42 +124,47 @@ class WordCard extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 10),
-                        ...word.definitions.map((d) => Padding(
-                              padding: const EdgeInsets.only(bottom: 4),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    margin: const EdgeInsets.only(top: 6),
-                                    width: 4,
-                                    height: 4,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.grey,
-                                      shape: BoxShape.circle,
-                                    ),
+                        ...word.definitions.map(
+                          (d) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(top: 6),
+                                  width: 4,
+                                  height: 4,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.grey,
+                                    shape: BoxShape.circle,
                                   ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: RichText(
-                                      text: TextSpan(
-                                        style: const TextStyle(fontSize: 14, color: Colors.black87),
-                                        children: [
-                                          TextSpan(
-                                            text: '[${d.part.label}] ',
-                                            style: TextStyle(
-                                              color: Colors.blue.shade700,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                          TextSpan(text: d.meaning),
-                                        ],
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: RichText(
+                                    text: TextSpan(
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black87,
                                       ),
+                                      children: [
+                                        TextSpan(
+                                          text: '[${d.part.label}] ',
+                                          style: TextStyle(
+                                            color: Colors.blue.shade700,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        TextSpan(text: d.meaning),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
-                            )),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                         if (editMode) ...[
                           const SizedBox(height: 12),
                           const Divider(height: 1),
@@ -159,9 +178,17 @@ class WordCard extends StatelessWidget {
                                 onPressed: onEdit,
                               ),
                               TextButton.icon(
-                                icon: const Icon(Icons.delete_outline_rounded, size: 16),
-                                label: const Text('삭제', style: TextStyle(color: Colors.red)),
-                                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                icon: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  size: 16,
+                                ),
+                                label: const Text(
+                                  '삭제',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.red,
+                                ),
                                 onPressed: onDelete,
                               ),
                             ],

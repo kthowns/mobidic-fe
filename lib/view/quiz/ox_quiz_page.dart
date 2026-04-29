@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobidic_flutter/view/component/common_app_bar.dart';
-import 'package:mobidic_flutter/viewmodel/ox_quiz_view_model.dart';
+import 'package:mobidic/view/component/common_app_bar.dart';
+import 'package:mobidic/viewmodel/ox_quiz_view_model.dart';
 
 class OxQuizPage extends ConsumerStatefulWidget {
   const OxQuizPage({super.key});
@@ -90,7 +90,10 @@ class _OxQuizPageState extends ConsumerState<OxQuizPage> {
     );
   }
 
-  Widget _buildQuizView(OxQuizState oxQuizState, OxQuizViewModel oxQuizViewModel) {
+  Widget _buildQuizView(
+    OxQuizState oxQuizState,
+    OxQuizViewModel oxQuizViewModel,
+  ) {
     return Stack(
       children: [
         // 카드 내용
@@ -103,21 +106,20 @@ class _OxQuizPageState extends ConsumerState<OxQuizPage> {
                   Column(
                     children: [
                       Text(
-                        oxQuizState.quizzes.isNotEmpty ? oxQuizState.currentQuiz.stem : "-",
+                        oxQuizState.quizzes.isNotEmpty
+                            ? oxQuizState.currentQuiz.stem
+                            : "-",
                         style: const TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const Divider(
-                        height: 50,
-                        thickness: 1,
-                      ),
+                      const Divider(height: 50, thickness: 1),
                       Text(
-                        oxQuizState.quizzes.isNotEmpty ? oxQuizState.currentQuiz.options.join(', ') : "-",
-                        style: const TextStyle(
-                          fontSize: 28,
-                        ),
+                        oxQuizState.quizzes.isNotEmpty
+                            ? oxQuizState.currentQuiz.options.join(', ')
+                            : "-",
+                        style: const TextStyle(fontSize: 28),
                       ),
                       const SizedBox(height: 20),
                       Text(
@@ -125,7 +127,9 @@ class _OxQuizPageState extends ConsumerState<OxQuizPage> {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: oxQuizState.resultMessage.contains('정답') ? Colors.green : Colors.red,
+                          color: oxQuizState.resultMessage.contains('정답')
+                              ? Colors.green
+                              : Colors.red,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -142,7 +146,9 @@ class _OxQuizPageState extends ConsumerState<OxQuizPage> {
                     child: Padding(
                       padding: const EdgeInsets.all(10),
                       child: ElevatedButton(
-                        onPressed: oxQuizState.isButtonAvailable ? () => oxQuizViewModel.checkAnswer(true) : null,
+                        onPressed: oxQuizState.isButtonAvailable
+                            ? () => oxQuizViewModel.checkAnswer(true)
+                            : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue[100],
                           minimumSize: const Size.fromHeight(double.infinity),
@@ -152,10 +158,7 @@ class _OxQuizPageState extends ConsumerState<OxQuizPage> {
                         ),
                         child: const Text(
                           "O",
-                          style: TextStyle(
-                            fontSize: 30,
-                            color: Colors.black,
-                          ),
+                          style: TextStyle(fontSize: 30, color: Colors.black),
                         ),
                       ),
                     ),
@@ -164,7 +167,9 @@ class _OxQuizPageState extends ConsumerState<OxQuizPage> {
                     child: Padding(
                       padding: const EdgeInsets.all(10),
                       child: ElevatedButton(
-                        onPressed: oxQuizState.isButtonAvailable ? () => oxQuizViewModel.checkAnswer(false) : null,
+                        onPressed: oxQuizState.isButtonAvailable
+                            ? () => oxQuizViewModel.checkAnswer(false)
+                            : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.yellow[100],
                           minimumSize: const Size.fromHeight(double.infinity),
@@ -174,10 +179,7 @@ class _OxQuizPageState extends ConsumerState<OxQuizPage> {
                         ),
                         child: const Text(
                           "X",
-                          style: TextStyle(
-                            fontSize: 30,
-                            color: Colors.black,
-                          ),
+                          style: TextStyle(fontSize: 30, color: Colors.black),
                         ),
                       ),
                     ),
@@ -252,7 +254,9 @@ class _OxQuizPageState extends ConsumerState<OxQuizPage> {
                 backgroundColor: Colors.blue[600],
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: const Text(
                 "단어장으로 돌아가기",

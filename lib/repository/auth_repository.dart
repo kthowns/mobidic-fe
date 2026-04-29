@@ -1,13 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobidic_flutter/api/api_url.dart';
-import 'package:mobidic_flutter/api/dio.dart';
-import 'package:mobidic_flutter/data/secure_storage_data_source.dart';
-import 'package:mobidic_flutter/dto/login_dto.dart';
-import 'package:mobidic_flutter/dto/signup_dto.dart';
-import 'package:mobidic_flutter/model/term.dart';
-import 'package:mobidic_flutter/repository/repository.dart';
+import 'package:mobidic/api/api_url.dart';
+import 'package:mobidic/api/dio.dart';
+import 'package:mobidic/data/secure_storage_data_source.dart';
+import 'package:mobidic/dto/login_dto.dart';
+import 'package:mobidic/dto/signup_dto.dart';
+import 'package:mobidic/model/term.dart';
+import 'package:mobidic/repository/repository.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final secureStorageDataSource = ref.read(secureStorageDataSourceProvider);
