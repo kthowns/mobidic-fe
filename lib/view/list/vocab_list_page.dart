@@ -188,7 +188,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                     child: Row(
                       children: [
                         Text(
-                          '총 ${vocabListState.vocabs.length}개의 단어장',
+                          '총 ${vocabListState.showingVocabs.length}개의 단어장',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -218,7 +218,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                     child: RefreshIndicator(
                       onRefresh: vocabListViewModel.loadData,
                       child:
-                          vocabListState.vocabs.isNotEmpty
+                          vocabListState.showingVocabs.isNotEmpty
                               ? ListView.builder(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 20,

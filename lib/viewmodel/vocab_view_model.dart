@@ -59,7 +59,7 @@ class VocabListViewModel extends StateNotifier<VocabListState> {
   }
 
   void selectVocabAt(int index) {
-    state = state.copyWith(currentVocab: state.vocabs[index]);
+    state = state.copyWith(currentVocab: state.showingVocabs[index]);
   }
 
   final List<String> sortOptions = ['최신순', '이름순', '학습률순', '정답률순'];

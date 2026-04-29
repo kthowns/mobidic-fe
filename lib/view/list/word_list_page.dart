@@ -238,7 +238,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
                     child: Row(
                       children: [
                         Text(
-                          '총 ${wordListState.words.length}개의 단어',
+                          '총 ${wordListState.showingWords.length}개의 단어',
                           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
                         ),
                         const Spacer(),
@@ -263,7 +263,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
                   Expanded(
                     child: RefreshIndicator(
                       onRefresh: wordListViewModel.loadData,
-                      child: wordListState.words.isNotEmpty
+                      child: wordListState.showingWords.isNotEmpty
                           ? ListView.builder(
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                               itemCount: wordListState.showingWords.length,
