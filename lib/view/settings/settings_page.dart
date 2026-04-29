@@ -4,15 +4,21 @@ import 'package:go_router/go_router.dart';
 import 'package:mobidic/api/api_url.dart';
 import 'package:mobidic/view/component/common_app_bar.dart';
 import 'package:mobidic/viewmodel/auth_view_model.dart';
+import 'package:mobidic/viewmodel/version_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class SettingsPage extends ConsumerWidget {
+class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState createState() => _SettingPageState();
+}
+
+class _SettingPageState extends ConsumerState<SettingsPage> {
+  @override
+  Widget build(BuildContext context) {
+    final versionAsync = ref.watch(appVersionProvider);
     final authState = ref.watch(authViewModelProvider);
-    const String appVersion = '1.0.0'; // 추후 package_info_plus 등으로 자동화 가능
 
     void openUrl(String path) async {
       const String apiBaseUrl = String.fromEnvironment(
@@ -27,6 +33,8 @@ class SettingsPage extends ConsumerWidget {
     }
 
     void sendFeedback() async {
+      final appVersion = versionAsync.value ?? 'unknown';
+
       String encodeQueryParameters(Map<String, String> params) {
         return params.entries
             .map(
@@ -42,7 +50,7 @@ class SettingsPage extends ConsumerWidget {
         query: encodeQueryParameters(<String, String>{
           'subject': '[MOBIDIC 피드백] ',
           'body':
-              '앱 사용 중 불편한 점이나 제안 사항을 적어주세요.\n\n사용자 ID: ${authState.currentUser?.nickname ?? '비로그인'}\n앱 버전: $appVersion',
+              '앱 사용 중 불편한 점이나 제안 사항을 적어주세요.\n\n사용자 ID: ${authState.currentUser?.email ?? '비로그인'}\n앱 버전: $appVersion',
         }),
       );
 
@@ -95,7 +103,7 @@ class SettingsPage extends ConsumerWidget {
               leading: const Icon(Icons.feedback_outlined),
               title: const Text('의견 보내기'),
               subtitle: const Text('불편한 점이나 제안 사항을 보내주세요.'),
-              onTap: sendFeedback,
+              onTap: versionAsync.hasValue ? sendFeedback : null,
             ),
             ListTile(
               leading: const Icon(Icons.description_outlined),
@@ -110,12 +118,22 @@ class SettingsPage extends ConsumerWidget {
 
             const Divider(height: 40),
 
-            // 앱 정보 섹션
-            _buildSectionHeader('앱 정보'),
-            const ListTile(
-              leading: Icon(Icons.info_outline),
-              title: Text('앱 버전'),
-              trailing: Text(appVersion, style: TextStyle(color: Colors.grey)),
+            // 앱 정보 섹션_buildSectionHeader('앱 정보'),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('앱 버전'),
+              // versionAsync.when을 사용하여 상태별 UI 분기
+              trailing: versionAsync.when(
+                data: (version) =>
+                    Text(version, style: const TextStyle(color: Colors.grey)),
+                loading: () => const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                error: (err, stack) =>
+                    const Text('로드 실패', style: TextStyle(color: Colors.red)),
+              ),
             ),
           ],
         ),
