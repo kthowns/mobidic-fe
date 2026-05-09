@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobidic/view/auth/auth_guard.dart';
@@ -17,8 +18,17 @@ import 'package:mobidic/viewmodel/auth_view_model.dart';
 import 'package:mobidic/viewmodel/vocab_view_model.dart';
 
 final routerProvider = Provider((ref) {
+  // AuthViewModel의 상태를 GoRouter가 인식할 수 있는 Listenable로 변환
+  final listenable = ValueNotifier<AuthState>(ref.read(authViewModelProvider));
+
+  // 상태 변경 감시 및 Listenable 업데이트
+  ref.listen(authViewModelProvider, (previous, next) {
+    listenable.value = next;
+  });
+
   return GoRouter(
     initialLocation: '/',
+    refreshListenable: listenable,
     redirect: (context, state) {
       final authState = ref.read(authViewModelProvider);
       final whiteList = ['/', '/signup', '/v1/oauth2/kakao'];
