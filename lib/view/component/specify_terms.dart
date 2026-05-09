@@ -1,22 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:mobidic/api/api_url.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:mobidic/util/url_util.dart';
 
 class AgreementTerms extends StatelessWidget {
   const AgreementTerms({super.key});
-
-  void openUrl(String path) async {
-    const String apiBaseUrl = String.fromEnvironment(
-      'API_BASE_URL',
-      defaultValue: 'https://mobidic.kthowns.cloud',
-    );
-    final url = Uri.parse('$apiBaseUrl$path');
-
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.inAppWebView);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +21,7 @@ class AgreementTerms extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
               recognizer: TapGestureRecognizer()
-                ..onTap = () => openUrl(ApiUrl.termsService.url),
+                ..onTap = () => UrlUtil.openInAppWebView(ApiUrl.termsService.url),
             ),
             const TextSpan(text: ' 및 '),
             TextSpan(
@@ -43,7 +31,7 @@ class AgreementTerms extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
               recognizer: TapGestureRecognizer()
-                ..onTap = () => openUrl(ApiUrl.termsPrivacy.url),
+                ..onTap = () => UrlUtil.openInAppWebView(ApiUrl.termsPrivacy.url),
             ),
             const TextSpan(text: '에 동의합니다.'),
           ],

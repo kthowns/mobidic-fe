@@ -17,7 +17,7 @@ class AuthGuard extends ConsumerWidget {
             duration: Duration(seconds: 2),
           ),
         );
-        context.go('/'); // 로그아웃 되면 로그인 페이지로 강제 이동
+        context.go('/login'); // 로그아웃 되면 로그인 페이지로 강제 이동
       }
     });
 

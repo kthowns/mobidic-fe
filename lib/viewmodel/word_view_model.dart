@@ -12,9 +12,9 @@ import 'package:mobidic/viewmodel/vocab_view_model.dart';
 
 final wordListStateProvider =
     StateNotifierProvider.autoDispose<WordListViewModel, WordListState>((ref) {
-      final wordRepository = ref.read(wordRepositoryProvider);
-      final statisticRepository = ref.read(statisticRepositoryProvider);
-      final vocabListState = ref.read(vocabListStateProvider);
+      final wordRepository = ref.watch(wordRepositoryProvider);
+      final statisticRepository = ref.watch(statisticRepositoryProvider);
+      final vocabListState = ref.watch(vocabListStateProvider);
 
       return WordListViewModel(
         wordRepository,
