@@ -52,18 +52,22 @@ class AuthViewModel extends StateNotifier<AuthState> {
   Future<void> loadInitialData() async {
     startLoading();
 
-    if (state.currentUser != null) {
-      stopLoading();
-      return;
-    }
     try {
+      final isGuest = await _secureStorageDataSource.readGuestMode();
       final currentUser = await _userRepository.getMe();
-      state = state.copyWith(currentUser: currentUser);
+      state = state.copyWith(currentUser: currentUser, isGuestMode: isGuest);
     } catch (_) {
-      state = state.copyWith(currentUser: null);
+      final isGuest = await _secureStorageDataSource.readGuestMode();
+      state = state.copyWith(currentUser: null, isGuestMode: isGuest);
     } finally {
+      state = state.copyWith(isAutoLoginDone: true);
       stopLoading();
     }
+  }
+
+  Future<void> setGuestMode(bool isGuest) async {
+    await _secureStorageDataSource.saveGuestMode(isGuest);
+    state = state.copyWith(isGuestMode: isGuest);
   }
 
   Future<void> login(String username, String password) async {
@@ -160,22 +164,30 @@ class AuthState {
   final User? currentUser;
   final String loginErrorMessage;
   final bool isLoading;
+  final bool isAutoLoginDone;
+  final bool isGuestMode;
 
   const AuthState({
     this.currentUser,
     this.loginErrorMessage = '',
     this.isLoading = false,
+    this.isAutoLoginDone = false,
+    this.isGuestMode = false,
   });
 
   AuthState copyWith({
     User? currentUser,
     String? loginErrorMessage,
     bool? isLoading,
+    bool? isAutoLoginDone,
+    bool? isGuestMode,
   }) {
     return AuthState(
       currentUser: currentUser ?? this.currentUser,
       loginErrorMessage: loginErrorMessage ?? this.loginErrorMessage,
       isLoading: isLoading ?? this.isLoading,
+      isAutoLoginDone: isAutoLoginDone ?? this.isAutoLoginDone,
+      isGuestMode: isGuestMode ?? this.isGuestMode,
     );
   }
 }

@@ -5,7 +5,7 @@ import 'package:mobidic/api/api_url.dart';
 import 'package:mobidic/view/component/common_app_bar.dart';
 import 'package:mobidic/viewmodel/auth_view_model.dart';
 import 'package:mobidic/viewmodel/version_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:mobidic/util/url_util.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -19,18 +19,6 @@ class _SettingPageState extends ConsumerState<SettingsPage> {
   Widget build(BuildContext context) {
     final versionAsync = ref.watch(appVersionProvider);
     final authState = ref.watch(authViewModelProvider);
-
-    void openUrl(String path) async {
-      const String apiBaseUrl = String.fromEnvironment(
-        'API_BASE_URL',
-        defaultValue: 'https://mobidic.kthowns.cloud',
-      );
-      final url = Uri.parse('$apiBaseUrl$path');
-
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.inAppWebView);
-      }
-    }
 
     void sendFeedback() async {
       final appVersion = versionAsync.value ?? 'unknown';
@@ -54,15 +42,7 @@ class _SettingPageState extends ConsumerState<SettingsPage> {
         }),
       );
 
-      if (await canLaunchUrl(emailLaunchUri)) {
-        await launchUrl(emailLaunchUri);
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('메일 앱을 열 수 없습니다.')));
-        }
-      }
+      UrlUtil.openExternalApp(emailLaunchUri.toString());
     }
 
     return Scaffold(
@@ -78,22 +58,34 @@ class _SettingPageState extends ConsumerState<SettingsPage> {
             ListTile(
               leading: const Icon(Icons.person_outline),
               title: const Text('현재 계정'),
-              subtitle: Text(authState.currentUser?.nickname ?? '정보 없음'),
+              subtitle: Text(authState.currentUser?.nickname ?? '비로그인 상태'),
             ),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.redAccent),
-              title: const Text(
-                '로그아웃',
-                style: TextStyle(color: Colors.redAccent),
+            if (authState.currentUser != null)
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.redAccent),
+                title: const Text(
+                  '로그아웃',
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+                onTap: () async {
+                  await ref.read(authViewModelProvider.notifier).logout();
+                  ref.invalidate(authViewModelProvider);
+                  if (context.mounted) {
+                    context.go('/welcome');
+                  }
+                },
+              )
+            else
+              ListTile(
+                leading: const Icon(Icons.login, color: Colors.blueAccent),
+                title: const Text(
+                  '로그인',
+                  style: TextStyle(color: Colors.blueAccent),
+                ),
+                onTap: () {
+                  context.push('/login');
+                },
               ),
-              onTap: () async {
-                await ref.read(authViewModelProvider.notifier).logout();
-                ref.invalidate(authViewModelProvider);
-                if (context.mounted) {
-                  context.go('/');
-                }
-              },
-            ),
 
             const Divider(height: 40),
 
@@ -108,17 +100,18 @@ class _SettingPageState extends ConsumerState<SettingsPage> {
             ListTile(
               leading: const Icon(Icons.description_outlined),
               title: const Text('서비스 이용약관'),
-              onTap: () => openUrl(ApiUrl.termsService.url),
+              onTap: () => UrlUtil.openInAppWebView(ApiUrl.termsService.url),
             ),
             ListTile(
               leading: const Icon(Icons.privacy_tip_outlined),
               title: const Text('개인정보처리방침'),
-              onTap: () => openUrl(ApiUrl.termsPrivacy.url),
+              onTap: () => UrlUtil.openInAppWebView(ApiUrl.termsPrivacy.url),
             ),
 
             const Divider(height: 40),
 
-            // 앱 정보 섹션_buildSectionHeader('앱 정보'),
+            // 앱 정보 섹션
+            _buildSectionHeader('앱 정보'),
             ListTile(
               leading: const Icon(Icons.info_outline),
               title: const Text('앱 버전'),

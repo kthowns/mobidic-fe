@@ -160,19 +160,32 @@ class CommonAppBar extends ConsumerWidget implements PreferredSizeWidget {
                 if (currentLocation != '/settings') context.push('/settings');
               },
             ),
-            _buildMenuItem(
-              context,
-              icon: Icons.logout_rounded,
-              title: '로그아웃',
-              subtitle: '로그아웃 하고 로그인 페이지로 돌아가기',
-              color: Colors.red.shade600,
-              onTap: () async {
-                Navigator.pop(context);
-                await ref.read(authViewModelProvider.notifier).logout();
-                ref.invalidate(authViewModelProvider);
-                if (context.mounted) context.go('/');
-              },
-            ),
+            if (authState.currentUser != null)
+              _buildMenuItem(
+                context,
+                icon: Icons.logout_rounded,
+                title: '로그아웃',
+                subtitle: '로그아웃 하고 로그인 페이지로 돌아가기',
+                color: Colors.red.shade600,
+                onTap: () async {
+                  Navigator.pop(context);
+                  await ref.read(authViewModelProvider.notifier).logout();
+                  ref.invalidate(authViewModelProvider);
+                  if (context.mounted) context.go('/welcome');
+                },
+              )
+            else
+              _buildMenuItem(
+                context,
+                icon: Icons.login_rounded,
+                title: '로그인',
+                subtitle: '로그인 하고 더 많은 기능을 이용해보세요',
+                color: Colors.blue.shade800,
+                onTap: () {
+                  Navigator.pop(context);
+                  context.push('/login');
+                },
+              ),
             const SizedBox(height: 20),
           ],
         ),

@@ -30,11 +30,11 @@ class KakaoLoginPageState extends ConsumerState<KakaoLoginPage> {
           if (isError) {
             context.go('/vocabularies');
           } else {
-            context.go('/');
+            context.go('/vocabularies');
           }
         }
       } catch (e) {
-        if (mounted) context.go('/');
+        if (mounted) context.go('/welcome');
       }
     });
   }

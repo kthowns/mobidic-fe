@@ -65,6 +65,7 @@ class SignUpViewModel extends StateNotifier<SignUpState> {
 
     if (validate(email, nickname, password, confirmPassword)) return;
 
+    state = state.copyWith(isLoading: true);
     try {
       await _authRepository.signup(
         SignupRequest(
@@ -80,6 +81,8 @@ class SignUpViewModel extends StateNotifier<SignUpState> {
     } catch (e) {
       debugPrint("Just Exception!! : $e");
       state = state.copyWith(globalErrorText: '회원 가입 오류 (Error code: 500)');
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -147,6 +150,7 @@ class SignUpState {
   final String globalErrorText;
   final bool isPasswordVisible;
   final bool isConfirmPasswordVisible;
+  final bool isLoading;
   final List<Term> terms;
   final List<int> agreeTermIds;
 
@@ -158,6 +162,7 @@ class SignUpState {
     this.globalErrorText = '',
     this.isPasswordVisible = false,
     this.isConfirmPasswordVisible = false,
+    this.isLoading = false,
     this.terms = const [],
     this.agreeTermIds = const [],
   });
@@ -170,6 +175,7 @@ class SignUpState {
     String? globalErrorText,
     bool? isPasswordVisible,
     bool? isConfirmPasswordVisible,
+    bool? isLoading,
     List<Term>? terms,
     List<int>? agreeTermIds,
   }) {
@@ -183,6 +189,7 @@ class SignUpState {
       isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible,
       isConfirmPasswordVisible:
           isConfirmPasswordVisible ?? this.isConfirmPasswordVisible,
+      isLoading: isLoading ?? this.isLoading,
       terms: terms ?? this.terms,
       agreeTermIds: agreeTermIds ?? this.agreeTermIds,
     );

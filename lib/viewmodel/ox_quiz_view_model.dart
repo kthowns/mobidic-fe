@@ -8,8 +8,8 @@ import 'package:mobidic/viewmodel/vocab_view_model.dart';
 
 final oxQuizStateProvider =
     StateNotifierProvider.autoDispose<OxQuizViewModel, OxQuizState>((ref) {
-      final quizRepository = ref.read(quizRepositoryProvider);
-      final vocabListState = ref.read(vocabListStateProvider);
+      final quizRepository = ref.watch(quizRepositoryProvider);
+      final vocabListState = ref.watch(vocabListStateProvider);
 
       return OxQuizViewModel(quizRepository, vocabListState);
     });
