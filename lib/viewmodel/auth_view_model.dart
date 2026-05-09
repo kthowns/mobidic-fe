@@ -3,30 +3,50 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic/data/secure_storage_data_source.dart';
 import 'package:mobidic/dto/login_dto.dart';
 import 'package:mobidic/exception/api_exception.dart';
+import 'package:mobidic/provider/auth_status_provider.dart';
 import 'package:mobidic/repository/auth_repository.dart';
 import 'package:mobidic/repository/user_repository.dart';
 
 import 'package:mobidic/model/user.dart';
 
-final authViewModelProvider = StateNotifierProvider((ref) {
-  final authRepository = ref.read(authRepositoryProvider);
-  final userRepository = ref.read(userRepositoryProvider);
-  final secureStorageDataSource = ref.read(secureStorageDataSourceProvider);
+final authViewModelProvider =
+    StateNotifierProvider<AuthViewModel, AuthState>((ref) {
+      final authRepository = ref.read(authRepositoryProvider);
+      final userRepository = ref.read(userRepositoryProvider);
+      final secureStorageDataSource = ref.read(secureStorageDataSourceProvider);
 
-  return AuthViewModel(authRepository, userRepository, secureStorageDataSource);
-});
+      return AuthViewModel(
+        ref,
+        authRepository,
+        userRepository,
+        secureStorageDataSource,
+      );
+    });
 
 class AuthViewModel extends StateNotifier<AuthState> {
+  final Ref _ref;
   final AuthRepository _authRepository;
   final UserRepository _userRepository;
   final SecureStorageDataSource _secureStorageDataSource;
 
   AuthViewModel(
+    this._ref,
     this._authRepository,
     this._userRepository,
     this._secureStorageDataSource,
   ) : super(AuthState()) {
+    _listenToAuthSignals();
     loadInitialData();
+  }
+
+  void _listenToAuthSignals() {
+    _ref.listen(authSignalProvider, (previous, next) {
+      if (next == AuthSignal.unauthorized) {
+        clientLogout();
+        // 신호를 처리했으므로 초기화합니다.
+        _ref.read(authSignalProvider.notifier).state = null;
+      }
+    });
   }
 
   Future<void> loadInitialData() async {

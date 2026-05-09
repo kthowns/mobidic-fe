@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic/data/secure_storage_data_source.dart';
-import 'package:mobidic/viewmodel/auth_view_model.dart';
+import 'package:mobidic/provider/auth_status_provider.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   const String apiBaseUrl = String.fromEnvironment(
@@ -57,8 +57,8 @@ class AuthInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == 401) {
-      final authViewModel = ref.read(authViewModelProvider.notifier);
-      await authViewModel.clientLogout();
+      // 직접 AuthViewModel을 호출하는 대신 신호를 보냅니다.
+      ref.read(authSignalProvider.notifier).state = AuthSignal.unauthorized;
     }
 
     handler.next(err);

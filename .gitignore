@@ -444,3 +444,6 @@ obj/
 !/gradle/wrapper/gradle-wrapper.jar
 
 # End of https://www.toptal.com/developers/gitignore/api/androidstudio,flutter,intellij+all,visualstudiocode,eclipse,kotlin,java,gradle,dart
+
+# Custom Ignores
+document/*
