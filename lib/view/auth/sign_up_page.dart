@@ -41,23 +41,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                '함께해서 기뻐요!',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF01579B),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'MOBIDIC에서 더 스마트하게 단어를 공부해보세요.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-              ),
-              const SizedBox(height: 48),
-
+              const SizedBox(height: 16),
               _buildTextField(
                 controller: newIdController,
                 label: '이메일 주소',
