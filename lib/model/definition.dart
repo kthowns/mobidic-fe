@@ -19,4 +19,10 @@ class Definition {
     meaning: json['meaning'],
     part: parsePart(json['part']),
   );
+
+  factory Definition.fromJsonLocal(Map<String, dynamic> json) => Definition(
+    id: json['id'].toString(), // SQLite의 INTEGER ID를 String으로 변환
+    meaning: json['meaning'],
+    part: parsePart(json['part_of_speech']),
+  );
 }

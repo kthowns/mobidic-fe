@@ -11,6 +11,17 @@ final secureStorageDataSourceProvider = Provider<SecureStorageDataSource>((
 
 class SecureStorageDataSource {
   static const _tokenKey = 'jwt_token';
+  static const _guestModeKey = 'is_guest_mode';
+
+  Future<void> saveGuestMode(bool isGuest) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_guestModeKey, isGuest);
+  }
+
+  Future<bool> readGuestMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_guestModeKey) ?? false;
+  }
 
   Future<void> saveToken(String token) async {
     if (kIsWeb) {
