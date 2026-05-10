@@ -8,6 +8,7 @@ import 'package:mobidic/view/component/common_app_bar.dart';
 import 'package:mobidic/view/component/compact_action_button.dart';
 import 'package:mobidic/view/component/stat_card.dart';
 import 'package:mobidic/view/list/component/word_card.dart';
+import 'package:mobidic/viewmodel/auth_view_model.dart';
 import 'package:mobidic/viewmodel/word_view_model.dart';
 
 class WordListPage extends ConsumerStatefulWidget {
@@ -27,7 +28,13 @@ class _WordListPageState extends ConsumerState<WordListPage> {
   }
 
   void handleTagAction(String label, WordListViewModel viewModel) async {
+    final isGuest = ref.read(authViewModelProvider).isGuestMode;
+
     if (label == '퀴즈') {
+      if (isGuest) {
+        _showMemberOnlyDialog();
+        return;
+      }
       showModalBottomSheet(
         context: context,
         shape: const RoundedRectangleBorder(
@@ -98,6 +105,10 @@ class _WordListPageState extends ConsumerState<WordListPage> {
         },
       );
     } else if (label == '발음 체크') {
+      if (isGuest) {
+        _showMemberOnlyDialog();
+        return;
+      }
       await context.push('/vocabularies/pronunciation');
       viewModel.loadData();
     } else if (label == '플래시카드') {
@@ -147,6 +158,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
   Widget build(BuildContext context) {
     final wordListViewModel = ref.read(wordListStateProvider.notifier);
     final wordListState = ref.watch(wordListStateProvider);
+    final isGuest = ref.watch(authViewModelProvider).isGuestMode;
 
     searchController.addListener(() {
       wordListViewModel.setSearchKeyword(searchController.text);
@@ -198,6 +210,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
                           value: wordListState.learningRate,
                           icon: Icons.psychology_rounded,
                           color: Colors.green.shade600,
+                          isLocked: isGuest,
                         ),
                         const SizedBox(width: 12),
                         StatCard(
@@ -205,6 +218,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
                           value: wordListState.accuracy,
                           icon: Icons.spellcheck_rounded,
                           color: Colors.orange.shade700,
+                          isLocked: isGuest,
                         ),
                       ],
                     ),
@@ -220,6 +234,13 @@ class _WordListPageState extends ConsumerState<WordListPage> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
+                        QuickActionTag(
+                          label: '카드',
+                          icon: Icons.style_rounded,
+                          color: Colors.blue.shade600,
+                          onTap: () =>
+                              handleTagAction('플래시카드', wordListViewModel),
+                        ),
                         QuickActionTag(
                           label: '발음',
                           icon: Icons.mic_rounded,
@@ -362,6 +383,29 @@ class _WordListPageState extends ConsumerState<WordListPage> {
               Navigator.pop(context);
             },
             child: const Text('예'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showMemberOnlyDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Row(
+          children: [
+            Icon(Icons.lock_outline_rounded, color: Colors.blue),
+            SizedBox(width: 10),
+            Text('회원 전용 기능', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: const Text('이 기능은 회원 전용입니다.\n로그인 후 더 많은 기능을 이용해보세요!'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('확인', style: TextStyle(color: Colors.blue)),
           ),
         ],
       ),
