@@ -90,6 +90,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
       state = state.copyWith(
         currentUser: await _userRepository.getMe(),
         loginErrorMessage: '',
+        isAutoLoginDone: true,
       );
       stopLoading();
     } on ApiException catch (e) {
@@ -112,10 +113,11 @@ class AuthViewModel extends StateNotifier<AuthState> {
     state = state.copyWith(loginErrorMessage: '');
     try {
       debugPrint('Attempting login with accessToken: $accessToken');
-      _secureStorageDataSource.saveToken(accessToken);
+      await _secureStorageDataSource.saveToken(accessToken);
       state = state.copyWith(
         currentUser: await _userRepository.getMe(),
         loginErrorMessage: '',
+        isAutoLoginDone: true,
       );
       stopLoading();
     } on ApiException catch (e) {
