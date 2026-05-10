@@ -79,6 +79,12 @@ class WordLocalDataSource implements WordDataSource {
           'meaning': def.meaning,
         });
       }
+
+      // 단어장 테이블의 단어 수 증가
+      await txn.execute(
+        'UPDATE vocabularies SET word_count = word_count + 1 WHERE id = ?',
+        [vocabId],
+      );
     });
   }
 
@@ -120,7 +126,29 @@ class WordLocalDataSource implements WordDataSource {
   @override
   Future<void> deleteWord(String wordId) async {
     final db = await _dbHelper.database;
-    await db.delete('words', where: 'id = ?', whereArgs: [wordId]);
+
+    await db.transaction((txn) async {
+      // 삭제 전 해당 단어의 vocab_id 조회
+      final List<Map<String, dynamic>> maps = await txn.query(
+        'words',
+        columns: ['vocab_id'],
+        where: 'id = ?',
+        whereArgs: [wordId],
+      );
+
+      if (maps.isNotEmpty) {
+        final String vocabId = maps.first['vocab_id'];
+
+        // 단어 삭제 (ON DELETE CASCADE로 인해 뜻도 자동 삭제됨)
+        await txn.delete('words', where: 'id = ?', whereArgs: [wordId]);
+
+        // 단어장 테이블의 단어 수 감소
+        await txn.execute(
+          'UPDATE vocabularies SET word_count = MAX(0, word_count - 1) WHERE id = ?',
+          [vocabId],
+        );
+      }
+    });
   }
 
   @override

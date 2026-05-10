@@ -5,6 +5,7 @@ class StatCard extends StatelessWidget {
   final double value;
   final IconData icon;
   final Color color;
+  final bool isLocked;
 
   const StatCard({
     super.key,
@@ -12,6 +13,7 @@ class StatCard extends StatelessWidget {
     required this.value,
     required this.icon,
     required this.color,
+    this.isLocked = false,
   });
 
   @override
@@ -36,7 +38,7 @@ class StatCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, size: 16, color: color),
+                Icon(icon, size: 16, color: isLocked ? Colors.grey : color),
                 const SizedBox(width: 6),
                 Text(
                   label,
@@ -49,30 +51,46 @@ class StatCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: LinearProgressIndicator(
-                      value: value.clamp(0.0, 1.0),
-                      backgroundColor: color.withOpacity(0.1),
-                      color: color,
-                      minHeight: 6,
+            if (isLocked)
+              Row(
+                children: [
+                  const Icon(Icons.lock_outline_rounded, size: 14, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    '회원 전용',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade500,
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '${(value * 100).toInt()}%',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: color,
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: value.clamp(0.0, 1.0),
+                        backgroundColor: color.withOpacity(0.1),
+                        color: color,
+                        minHeight: 6,
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${(value * 100).toInt()}%',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
