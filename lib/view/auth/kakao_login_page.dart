@@ -28,7 +28,7 @@ class KakaoLoginPageState extends ConsumerState<KakaoLoginPage> {
               .loginErrorMessage
               .isNotEmpty;
           if (isError) {
-            context.go('/vocabularies');
+            context.go('/welcome');
           } else {
             context.go('/vocabularies');
           }

@@ -34,6 +34,11 @@ final routerProvider = Provider((ref) {
       final authState = ref.read(authViewModelProvider);
       final location = state.uri.path;
 
+      // 카카오 로그인 콜백 경로는 초기화 여부와 관계없이 진입 허용
+      if (location == '/v1/oauth2/kakao') {
+        return null;
+      }
+
       // 1. 초기화(자동 로그인 체크)가 완료되지 않았으면 스플래시 화면 유지
       if (!authState.isAutoLoginDone) {
         return '/splash';
