@@ -6,6 +6,7 @@ import 'package:mobidic/view/component/compact_action_button.dart';
 import 'package:mobidic/view/component/vocab_dialog.dart';
 import 'package:mobidic/view/component/stat_card.dart';
 import 'package:mobidic/view/list/component/vocab_card.dart';
+import 'package:mobidic/viewmodel/auth_view_model.dart';
 import 'package:mobidic/viewmodel/vocab_view_model.dart';
 
 class VocabListPage extends ConsumerStatefulWidget {
@@ -28,13 +29,21 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
   Widget build(BuildContext context) {
     final vocabListViewModel = ref.read(vocabListStateProvider.notifier);
     final vocabListState = ref.watch(vocabListStateProvider);
+    final isGuest = ref.watch(authViewModelProvider).isGuestMode;
 
     searchController.addListener(() {
       vocabListViewModel.setSearchQuery(searchController.text);
     });
 
     void handleTagAction(String label, int index) async {
+      final isGuest = ref.read(authViewModelProvider).isGuestMode;
+
       if (label == '퀴즈') {
+        if (isGuest) {
+          _showMemberOnlyDialog();
+          return;
+        }
+
         showModalBottomSheet(
           context: context,
           shape: const RoundedRectangleBorder(
@@ -111,6 +120,11 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
           },
         );
       } else if (label == '발음 체크') {
+        if (isGuest) {
+          _showMemberOnlyDialog();
+          return;
+        }
+
         vocabListViewModel.selectVocabAt(index);
         await context.push('/vocabularies/pronunciation');
         vocabListViewModel.loadData();
@@ -167,6 +181,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                           value: vocabListState.avgLearningRate,
                           icon: Icons.trending_up,
                           color: Colors.blue.shade600,
+                          isLocked: isGuest,
                         ),
                         const SizedBox(width: 12),
                         StatCard(
@@ -174,6 +189,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                           value: vocabListState.avgAccuracy,
                           icon: Icons.check_circle_outline,
                           color: Colors.orange.shade700,
+                          isLocked: isGuest,
                         ),
                       ],
                     ),
@@ -360,6 +376,29 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
               Navigator.pop(context);
             },
             child: const Text('예'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showMemberOnlyDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Row(
+          children: [
+            Icon(Icons.lock_outline_rounded, color: Colors.blue),
+            SizedBox(width: 10),
+            Text('회원 전용 기능', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: const Text('이 기능은 회원 전용입니다.\n로그인 후 더 많은 기능을 이용해보세요!'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('확인', style: TextStyle(color: Colors.blue)),
           ),
         ],
       ),
