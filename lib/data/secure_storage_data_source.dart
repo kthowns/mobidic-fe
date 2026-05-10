@@ -25,9 +25,12 @@ class SecureStorageDataSource {
 
   Future<void> saveToken(String token) async {
     if (kIsWeb) {
+      debugPrint('SecureStorage: Web detected. Saving token to SharedPreferences.');
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_tokenKey, token);
+      final success = await prefs.setString(_tokenKey, token);
+      debugPrint('SecureStorage: Save ${success ? 'successful' : 'failed'}. Key: flutter.$_tokenKey');
     } else {
+      debugPrint('SecureStorage: Mobile detected. Saving token to FlutterSecureStorage.');
       const storage = FlutterSecureStorage();
       await storage.write(key: _tokenKey, value: token);
     }
@@ -36,7 +39,9 @@ class SecureStorageDataSource {
   Future<String?> readToken() async {
     if (kIsWeb) {
       final prefs = await SharedPreferences.getInstance();
-      return prefs.getString(_tokenKey);
+      final token = prefs.getString(_tokenKey);
+      debugPrint('SecureStorage: Reading token from Web. Found: ${token != null ? 'YES' : 'NO'}');
+      return token;
     } else {
       const storage = FlutterSecureStorage();
       return await storage.read(key: _tokenKey);
