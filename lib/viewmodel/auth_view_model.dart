@@ -86,11 +86,13 @@ class AuthViewModel extends StateNotifier<AuthState> {
         LoginRequest(email: username, password: password),
       );
       debugPrint('Login successful: ${response.accessToken}');
-      _secureStorageDataSource.saveToken(response.accessToken);
+      await _secureStorageDataSource.saveToken(response.accessToken);
+      await _secureStorageDataSource.saveGuestMode(false);
       state = state.copyWith(
         currentUser: await _userRepository.getMe(),
         loginErrorMessage: '',
         isAutoLoginDone: true,
+        isGuestMode: false,
       );
       stopLoading();
     } on ApiException catch (e) {
@@ -114,10 +116,12 @@ class AuthViewModel extends StateNotifier<AuthState> {
     try {
       debugPrint('Attempting login with accessToken: $accessToken');
       await _secureStorageDataSource.saveToken(accessToken);
+      await _secureStorageDataSource.saveGuestMode(false);
       state = state.copyWith(
         currentUser: await _userRepository.getMe(),
         loginErrorMessage: '',
         isAutoLoginDone: true,
+        isGuestMode: false,
       );
       stopLoading();
     } on ApiException catch (e) {
@@ -142,14 +146,19 @@ class AuthViewModel extends StateNotifier<AuthState> {
   Future<void> logout() async {
     startLoading();
     await _authRepository.logout();
-    clientLogout();
+    await clientLogout();
     stopLoading();
   }
 
   Future<void> clientLogout() async {
     startLoading();
     await _secureStorageDataSource.deleteToken();
-    state = state.copyWith(currentUser: null, loginErrorMessage: '');
+    await _secureStorageDataSource.saveGuestMode(false);
+    state = state.copyWith(
+      currentUser: null,
+      loginErrorMessage: '',
+      isGuestMode: false,
+    );
     stopLoading();
   }
 
