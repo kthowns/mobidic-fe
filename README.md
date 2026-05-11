@@ -24,10 +24,11 @@
 - Flutter 기반 크로스 플랫폼 전환 (iOS/Android 대응)
 - Whisper STT 모델 기반 영어 발음 체크 기능 구현 및 Flask 서버 연동
 
-### **Phase 3: Optimization & Modernization (2026.02)**
+### **Phase 3: Optimization & Modernization (2026.02 - Present)**
 - Flutter 아키텍처 개편 (Riverpod, GoRouter 도입)
 - 백엔드 리팩토링 및 쿼리 성능 개선, 프리셋 구현
 - QueryDSL 도입을 통한 조회 최적화 및 소셜 인증(Kakao OAuth2) 구현
+- **UI/UX 고도화**: 사용자 중심의 인터랙티브 컴포넌트(자석 모드 FAB 등) 도입 및 비회원 모드 안정화
 
 ---
 
@@ -55,3 +56,19 @@
 - **최적화:** 
     - 수동 테스트를 통해 리소스 대비 성능이 가장 적합한 모델 버전 결정
     - Gunicorn 기반의 Flask 서버 구성을 통해 모델 서빙 리소스 사용 최적화
+
+### 4. 사용자 중심 UI/UX: 자석 모드 FAB (Magnetic FAB)
+- **문제 상황:** 리스트가 긴 화면에서 고정된 FloatingActionButton(FAB)이 특정 콘텐츠를 가리거나, 한 손 조작 시 엄지손가락이 닿지 않아 불편함 발생
+- **해결 방안:**
+    - **Draggable & Animation:** 사용자가 원하는 위치로 FAB를 드래그할 수 있도록 구현
+    - **Magnet Effect:** 드래그가 끝나면 화면의 좌/우 가장자리 중 가까운 곳으로 부드럽게 달라붙는 자석 효과를 적용하여 조작 편의성 제공
+- **결과:** 화면 가림 문제를 사용자가 직접 해결할 수 있게 되었으며, 한 손 조작성이 대폭 향상됨
+
+---
+
+## 📝 Patch Notes (패치 노트)
+
+### **v1.10.4 (2026.05.11)**
+- **Feature**: 사용자가 직접 위치를 이동할 수 있는 **자석 모드 FAB** 도입 (단어장/단어 목록 페이지)
+- **Bug Fix**: 비회원 모드 이용 후 로그인 시, 기능 잠김(Locked) 상태가 해제되지 않던 데이터 동기화 오류 수정
+- **Internal**: `AuthViewModel` 상태 관리 로직 최적화 및 앱 버전 업데이트 (`1.10.4+13`)
