@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobidic/model/word.dart';
+import 'package:mobidic/view/component/draggable_fab.dart';
 import 'package:mobidic/view/component/quick_action_tag.dart';
 import 'package:mobidic/view/component/word_dialog.dart';
 import 'package:mobidic/view/component/common_app_bar.dart';
@@ -169,188 +170,194 @@ class _WordListPageState extends ConsumerState<WordListPage> {
         Scaffold(
           appBar: CommonAppBar(title: wordListState.currentVocab?.title ?? '-'),
           extendBodyBehindAppBar: true,
-          body: Container(
-            decoration: const BoxDecoration(color: Colors.white),
-            child: SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 검색창
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
-                    child: TextField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        hintText: '단어를 검색하세요',
-                        prefixIcon: const Icon(
-                          Icons.search,
-                          color: Colors.green,
-                        ),
-                        filled: true,
-                        fillColor: Colors.green[50],
-                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // 통계 대시보드
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        StatCard(
-                          label: '단어 암기율',
-                          value: wordListState.learningRate,
-                          icon: Icons.psychology_rounded,
-                          color: Colors.green.shade600,
-                          isLocked: isGuest,
-                        ),
-                        const SizedBox(width: 12),
-                        StatCard(
-                          label: '퀴즈 정답률',
-                          value: wordListState.accuracy,
-                          icon: Icons.spellcheck_rounded,
-                          color: Colors.orange.shade700,
-                          isLocked: isGuest,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // 퀵 액션 태그
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 8,
-                    ),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        QuickActionTag(
-                          label: '카드',
-                          icon: Icons.style_rounded,
-                          color: Colors.blue.shade600,
-                          onTap: () =>
-                              handleTagAction('플래시카드', wordListViewModel),
-                        ),
-                        QuickActionTag(
-                          label: '발음',
-                          icon: Icons.mic_rounded,
-                          color: Colors.purple.shade600,
-                          onTap: () =>
-                              handleTagAction('발음 체크', wordListViewModel),
-                        ),
-                        QuickActionTag(
-                          label: '퀴즈',
-                          icon: Icons.extension_rounded,
-                          color: Colors.orange.shade700,
-                          onTap: () => handleTagAction('퀴즈', wordListViewModel),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // 제어 바
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        Text(
-                          '총 ${wordListState.showingWords.length}개의 단어',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade700,
+          body: Stack(
+            children: [
+              Container(
+                decoration: const BoxDecoration(color: Colors.white),
+                child: SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 검색창
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
+                        child: TextField(
+                          controller: searchController,
+                          decoration: InputDecoration(
+                            hintText: '단어를 검색하세요',
+                            prefixIcon: const Icon(
+                              Icons.search,
+                              color: Colors.green,
+                            ),
+                            filled: true,
+                            fillColor: Colors.green[50],
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 0),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide.none,
+                            ),
                           ),
                         ),
-                        const Spacer(),
-                        CompactActionButton(
-                          onPressed: wordListViewModel.cycleSortOption,
-                          icon: Icons.sort_rounded,
-                          label: wordListViewModel
-                              .sortOptions[wordListViewModel.currentSortIndex],
-                          themeColor: Colors.green,
-                        ),
-                        const SizedBox(width: 8),
-                        CompactActionButton(
-                          onPressed: wordListViewModel.toggleEditMode,
-                          icon: Icons.edit_note_rounded,
-                          label: '편집',
-                          isActive: wordListState.editMode,
-                          themeColor: Colors.green,
-                        ),
-                      ],
-                    ),
-                  ),
+                      ),
 
-                  Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: wordListViewModel.loadData,
-                      child: wordListState.showingWords.isNotEmpty
-                          ? ListView.builder(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 10,
-                              ),
-                              itemCount: wordListState.showingWords.length,
-                              itemBuilder: (context, index) {
-                                final word = wordListState.showingWords[index];
-                                return WordCard(
-                                  word: word,
-                                  editMode: wordListState.editMode,
-                                  onToggleLearned:
-                                      wordListViewModel.toggleWordIsLearned,
-                                  onEdit: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) =>
-                                          WordDialog(word: word),
-                                    );
-                                  },
-                                  onDelete: () => _showDeleteDialog(
-                                    word,
-                                    wordListViewModel,
-                                  ),
-                                );
-                              },
-                            )
-                          : const Center(
-                              child: Text(
-                                "단어를 추가해주세요.",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                      // 통계 대시보드
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          children: [
+                            StatCard(
+                              label: '단어 암기율',
+                              value: wordListState.learningRate,
+                              icon: Icons.psychology_rounded,
+                              color: Colors.green.shade600,
+                              isLocked: isGuest,
+                            ),
+                            const SizedBox(width: 12),
+                            StatCard(
+                              label: '퀴즈 정답률',
+                              value: wordListState.accuracy,
+                              icon: Icons.spellcheck_rounded,
+                              color: Colors.orange.shade700,
+                              isLocked: isGuest,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // 퀵 액션 태그
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            QuickActionTag(
+                              label: '카드',
+                              icon: Icons.style_rounded,
+                              color: Colors.blue.shade600,
+                              onTap: () =>
+                                  handleTagAction('플래시카드', wordListViewModel),
+                            ),
+                            QuickActionTag(
+                              label: '발음',
+                              icon: Icons.mic_rounded,
+                              color: Colors.purple.shade600,
+                              onTap: () =>
+                                  handleTagAction('발음 체크', wordListViewModel),
+                            ),
+                            QuickActionTag(
+                              label: '퀴즈',
+                              icon: Icons.extension_rounded,
+                              color: Colors.orange.shade700,
+                              onTap: () =>
+                                  handleTagAction('퀴즈', wordListViewModel),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // 제어 바
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              '총 ${wordListState.showingWords.length}개의 단어',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade700,
                               ),
                             ),
-                    ),
+                            const Spacer(),
+                            CompactActionButton(
+                              onPressed: wordListViewModel.cycleSortOption,
+                              icon: Icons.sort_rounded,
+                              label: wordListViewModel.sortOptions[
+                                  wordListViewModel.currentSortIndex],
+                              themeColor: Colors.green,
+                            ),
+                            const SizedBox(width: 8),
+                            CompactActionButton(
+                              onPressed: wordListViewModel.toggleEditMode,
+                              icon: Icons.edit_note_rounded,
+                              label: '편집',
+                              isActive: wordListState.editMode,
+                              themeColor: Colors.green,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: wordListViewModel.loadData,
+                          child: wordListState.showingWords.isNotEmpty
+                              ? ListView.builder(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 10,
+                                  ),
+                                  itemCount: wordListState.showingWords.length,
+                                  itemBuilder: (context, index) {
+                                    final word =
+                                        wordListState.showingWords[index];
+                                    return WordCard(
+                                      word: word,
+                                      editMode: wordListState.editMode,
+                                      onToggleLearned:
+                                          wordListViewModel.toggleWordIsLearned,
+                                      onEdit: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) =>
+                                              WordDialog(word: word),
+                                        );
+                                      },
+                                      onDelete: () => _showDeleteDialog(
+                                        word,
+                                        wordListViewModel,
+                                      ),
+                                    );
+                                  },
+                                )
+                              : const Center(
+                                  child: Text(
+                                    "단어를 추가해주세요.",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => const WordDialog(),
-              );
-            },
-            backgroundColor: Colors.green[600],
-            foregroundColor: Colors.white,
-            elevation: 4,
-            child: const Icon(Icons.add_rounded, size: 30),
+              DraggableFab(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => const WordDialog(),
+                  );
+                },
+                backgroundColor: Colors.green[600],
+                foregroundColor: Colors.white,
+                child: const Icon(Icons.add_rounded, size: 30),
+              ),
+            ],
           ),
         ),
         if (wordListState.isLoading)

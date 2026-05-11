@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobidic/view/component/common_app_bar.dart';
 import 'package:mobidic/view/component/compact_action_button.dart';
+import 'package:mobidic/view/component/draggable_fab.dart';
 import 'package:mobidic/view/component/vocab_dialog.dart';
 import 'package:mobidic/view/component/stat_card.dart';
 import 'package:mobidic/view/list/component/vocab_card.dart';
@@ -140,151 +141,157 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
         Scaffold(
           appBar: const CommonAppBar(showHome: false),
           extendBodyBehindAppBar: true,
-          body: Container(
-            decoration: const BoxDecoration(color: Colors.white),
-            child: SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 검색창
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
-                    child: TextField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        hintText: '단어장 이름을 검색하세요',
-                        prefixIcon: const Icon(
-                          Icons.search,
-                          color: Colors.blue,
-                        ),
-                        filled: true,
-                        fillColor: Colors.blue[50],
-                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // 통계 대시보드
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        StatCard(
-                          label: '학습 진행률',
-                          value: vocabListState.avgLearningRate,
-                          icon: Icons.trending_up,
-                          color: Colors.blue.shade600,
-                          isLocked: isGuest,
-                        ),
-                        const SizedBox(width: 12),
-                        StatCard(
-                          label: '퀴즈 정답률',
-                          value: vocabListState.avgAccuracy,
-                          icon: Icons.check_circle_outline,
-                          color: Colors.orange.shade700,
-                          isLocked: isGuest,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // 제어 바
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        Text(
-                          '총 ${vocabListState.showingVocabs.length}개의 단어장',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade700,
+          body: Stack(
+            children: [
+              Container(
+                decoration: const BoxDecoration(color: Colors.white),
+                child: SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 검색창
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
+                        child: TextField(
+                          controller: searchController,
+                          decoration: InputDecoration(
+                            hintText: '단어장 이름을 검색하세요',
+                            prefixIcon: const Icon(
+                              Icons.search,
+                              color: Colors.blue,
+                            ),
+                            filled: true,
+                            fillColor: Colors.blue[50],
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 0),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide.none,
+                            ),
                           ),
                         ),
-                        const Spacer(),
-                        CompactActionButton(
-                          onPressed: vocabListViewModel.cycleSortOption,
-                          icon: Icons.sort_rounded,
-                          label: vocabListViewModel
-                              .sortOptions[vocabListViewModel.currentSortIndex],
-                        ),
-                        const SizedBox(width: 8),
-                        CompactActionButton(
-                          onPressed: vocabListViewModel.toggleEditMode,
-                          icon: Icons.edit_note_rounded,
-                          label: '편집',
-                          isActive: vocabListState.editMode,
-                        ),
-                      ],
-                    ),
-                  ),
+                      ),
 
-                  Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: vocabListViewModel.loadData,
-                      child: vocabListState.showingVocabs.isNotEmpty
-                          ? ListView.builder(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 10,
-                              ),
-                              itemCount: vocabListState.showingVocabs.length,
-                              itemBuilder: (context, index) {
-                                return VocabCard(
-                                  vocab: vocabListState.showingVocabs[index],
-                                  editMode: vocabListState.editMode,
-                                  isLocked: isGuest,
-                                  onTagTap: (tag) =>
-                                      handleTagAction(tag, index),
-                                  onEdit: () => _showEditVocabDialog(
-                                    index,
-                                    vocabListState,
-                                    vocabListViewModel,
-                                  ),
-                                  onDelete: () => _showDeleteDialog(
-                                    index,
-                                    vocabListState,
-                                    vocabListViewModel,
-                                  ),
-                                  onTap: () async {
-                                    vocabListViewModel.selectVocabAt(index);
-                                    await context.push('/vocabularies/words');
-                                    vocabListViewModel.loadData();
-                                  },
-                                );
-                              },
-                            )
-                          : const Center(
-                              child: Text(
-                                "단어장을 추가해주세요.",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                      // 통계 대시보드
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          children: [
+                            StatCard(
+                              label: '학습 진행률',
+                              value: vocabListState.avgLearningRate,
+                              icon: Icons.trending_up,
+                              color: Colors.blue.shade600,
+                              isLocked: isGuest,
+                            ),
+                            const SizedBox(width: 12),
+                            StatCard(
+                              label: '퀴즈 정답률',
+                              value: vocabListState.avgAccuracy,
+                              icon: Icons.check_circle_outline,
+                              color: Colors.orange.shade700,
+                              isLocked: isGuest,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // 제어 바
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              '총 ${vocabListState.showingVocabs.length}개의 단어장',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade700,
                               ),
                             ),
-                    ),
+                            const Spacer(),
+                            CompactActionButton(
+                              onPressed: vocabListViewModel.cycleSortOption,
+                              icon: Icons.sort_rounded,
+                              label: vocabListViewModel.sortOptions[
+                                  vocabListViewModel.currentSortIndex],
+                            ),
+                            const SizedBox(width: 8),
+                            CompactActionButton(
+                              onPressed: vocabListViewModel.toggleEditMode,
+                              icon: Icons.edit_note_rounded,
+                              label: '편집',
+                              isActive: vocabListState.editMode,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: vocabListViewModel.loadData,
+                          child: vocabListState.showingVocabs.isNotEmpty
+                              ? ListView.builder(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 10,
+                                  ),
+                                  itemCount: vocabListState.showingVocabs.length,
+                                  itemBuilder: (context, index) {
+                                    return VocabCard(
+                                      vocab:
+                                          vocabListState.showingVocabs[index],
+                                      editMode: vocabListState.editMode,
+                                      isLocked: isGuest,
+                                      onTagTap: (tag) =>
+                                          handleTagAction(tag, index),
+                                      onEdit: () => _showEditVocabDialog(
+                                        index,
+                                        vocabListState,
+                                        vocabListViewModel,
+                                      ),
+                                      onDelete: () => _showDeleteDialog(
+                                        index,
+                                        vocabListState,
+                                        vocabListViewModel,
+                                      ),
+                                      onTap: () async {
+                                        vocabListViewModel.selectVocabAt(index);
+                                        await context
+                                            .push('/vocabularies/words');
+                                        vocabListViewModel.loadData();
+                                      },
+                                    );
+                                  },
+                                )
+                              : const Center(
+                                  child: Text(
+                                    "단어장을 추가해주세요.",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => _showAddVocabDialog(vocabListViewModel),
-            backgroundColor: Colors.blue[600],
-            foregroundColor: Colors.white,
-            elevation: 4,
-            child: const Icon(Icons.add_rounded, size: 30),
+              DraggableFab(
+                onPressed: () => _showAddVocabDialog(vocabListViewModel),
+                backgroundColor: Colors.blue[600],
+                foregroundColor: Colors.white,
+                child: const Icon(Icons.add_rounded, size: 30),
+              ),
+            ],
           ),
         ),
         if (vocabListState.isLoading)
