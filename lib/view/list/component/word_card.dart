@@ -5,7 +5,7 @@ class WordCard extends StatelessWidget {
   final Word word;
   final bool editMode;
   final Function(Word) onToggleLearned;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -14,7 +14,7 @@ class WordCard extends StatelessWidget {
     required this.word,
     this.editMode = false,
     required this.onToggleLearned,
-    required this.onTap,
+    this.onTap,
     required this.onEdit,
     required this.onDelete,
   });

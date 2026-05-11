@@ -243,6 +243,7 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                                 return VocabCard(
                                   vocab: vocabListState.showingVocabs[index],
                                   editMode: vocabListState.editMode,
+                                  isLocked: isGuest,
                                   onTagTap: (tag) =>
                                       handleTagAction(tag, index),
                                   onEdit: () => _showEditVocabDialog(

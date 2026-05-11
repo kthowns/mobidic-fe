@@ -5,6 +5,7 @@ import 'package:mobidic/view/component/quick_action_tag.dart';
 class VocabCard extends StatelessWidget {
   final Vocab vocab;
   final bool editMode;
+  final bool isLocked;
   final Function(String) onTagTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -14,6 +15,7 @@ class VocabCard extends StatelessWidget {
     super.key,
     required this.vocab,
     this.editMode = false,
+    this.isLocked = false,
     required this.onTagTap,
     required this.onEdit,
     required this.onDelete,
@@ -142,23 +144,42 @@ class VocabCard extends StatelessWidget {
                                           color: Colors.grey,
                                         ),
                                       ),
-                                      Text(
-                                        '${(progress * 100).toInt()}%',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold,
-                                          color: color,
+                                      if (isLocked)
+                                        const Row(
+                                          children: [
+                                            Icon(Icons.lock_outline_rounded,
+                                                size: 11, color: Colors.grey),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              '회원 전용',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      else
+                                        Text(
+                                          '${(progress * 100).toInt()}%',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: color,
+                                          ),
                                         ),
-                                      ),
                                     ],
                                   ),
                                   const SizedBox(height: 4),
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(10),
                                     child: LinearProgressIndicator(
-                                      value: progress.clamp(0.0, 1.0),
+                                      value: isLocked
+                                          ? 0
+                                          : progress.clamp(0.0, 1.0),
                                       backgroundColor: color.withOpacity(0.1),
-                                      color: color,
+                                      color: isLocked ? Colors.grey : color,
                                       minHeight: 6,
                                     ),
                                   ),

@@ -311,10 +311,6 @@ class _WordListPageState extends ConsumerState<WordListPage> {
                                   editMode: wordListState.editMode,
                                   onToggleLearned:
                                       wordListViewModel.toggleWordIsLearned,
-                                  onTap: () => handleTagAction(
-                                    '플래시카드',
-                                    wordListViewModel,
-                                  ),
                                   onEdit: () {
                                     showDialog(
                                       context: context,
