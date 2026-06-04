@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobidic/view/component/specify_terms.dart';
-import 'package:mobidic/viewmodel/auth_view_model.dart';
 
 class WelcomePage extends ConsumerWidget {
   const WelcomePage({super.key});
@@ -74,13 +73,8 @@ class WelcomePage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton(
-                    onPressed: () async {
-                      await ref
-                          .read(authViewModelProvider.notifier)
-                          .setGuestMode(true);
-                      if (context.mounted) {
-                        context.go('/vocabularies');
-                      }
+                    onPressed: () {
+                      context.go('/vocabularies');
                     },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF01579B),
