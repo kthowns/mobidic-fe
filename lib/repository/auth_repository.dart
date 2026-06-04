@@ -74,14 +74,10 @@ class AuthRepository extends Repository {
 
     return await dioRequest(
       url: url,
-      action:
-          () => _dio.get(
-            url,
-            queryParameters: {
-              if (kDebugMode && platform == "web") 'isDev': true,
-              'platform': platform,
-            },
-          ),
+      action: () => _dio.get(
+        url,
+        queryParameters: {if (kDebugMode) 'isDev': true, 'platform': platform},
+      ),
       fromJson: (json) => json['url'],
     );
   }

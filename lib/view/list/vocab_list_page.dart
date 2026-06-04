@@ -30,14 +30,15 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
   Widget build(BuildContext context) {
     final vocabListViewModel = ref.read(vocabListStateProvider.notifier);
     final vocabListState = ref.watch(vocabListStateProvider);
-    final isGuest = ref.watch(authViewModelProvider).isGuestMode;
+    final authState = ref.watch(authViewModelProvider);
+    final isGuest = authState.isGuest;
 
     searchController.addListener(() {
       vocabListViewModel.setSearchQuery(searchController.text);
     });
 
     void handleTagAction(String label, int index) async {
-      final isGuest = ref.read(authViewModelProvider).isGuestMode;
+      final isGuest = ref.read(authViewModelProvider).isGuest;
 
       if (label == '퀴즈') {
         if (isGuest) {
@@ -199,6 +200,46 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                         ),
                       ),
 
+                      // 비회원 경고 문구
+                      if (isGuest)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 4,
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.orange.shade100),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  size: 16,
+                                  color: Colors.orange.shade800,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    '비회원 이용 시 앱을 삭제하면 데이터가 함께 소멸됩니다.',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.orange.shade800,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
                       // 제어 바
                       Padding(
                         padding: const EdgeInsets.symmetric(
@@ -219,8 +260,10 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                             CompactActionButton(
                               onPressed: vocabListViewModel.cycleSortOption,
                               icon: Icons.sort_rounded,
-                              label: vocabListViewModel.sortOptions[
-                                  vocabListViewModel.currentSortIndex],
+                              label:
+                                  vocabListViewModel
+                                      .sortOptions[vocabListViewModel
+                                      .currentSortIndex],
                             ),
                             const SizedBox(width: 8),
                             CompactActionButton(
@@ -242,7 +285,8 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                                     horizontal: 20,
                                     vertical: 10,
                                   ),
-                                  itemCount: vocabListState.showingVocabs.length,
+                                  itemCount:
+                                      vocabListState.showingVocabs.length,
                                   itemBuilder: (context, index) {
                                     return VocabCard(
                                       vocab:
@@ -263,8 +307,9 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                                       ),
                                       onTap: () async {
                                         vocabListViewModel.selectVocabAt(index);
-                                        await context
-                                            .push('/vocabularies/words');
+                                        await context.push(
+                                          '/vocabularies/words',
+                                        );
                                         vocabListViewModel.loadData();
                                       },
                                     );
@@ -286,7 +331,10 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
                 ),
               ),
               DraggableFab(
-                onPressed: () => _showAddVocabDialog(vocabListViewModel),
+                onPressed: () => showDialog(
+                  context: context,
+                  builder: (context) => const VocabDialog(),
+                ),
                 backgroundColor: Colors.blue[600],
                 foregroundColor: Colors.white,
                 child: const Icon(Icons.add_rounded, size: 30),
@@ -342,10 +390,6 @@ class _VocabListPageState extends ConsumerState<VocabListPage> {
         ),
       ),
     );
-  }
-
-  void _showAddVocabDialog(VocabListViewModel vocabListViewModel) {
-    showDialog(context: context, builder: (context) => const VocabDialog());
   }
 
   void _showEditVocabDialog(

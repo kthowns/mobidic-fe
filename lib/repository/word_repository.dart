@@ -12,9 +12,8 @@ import 'package:mobidic/viewmodel/auth_view_model.dart';
 
 final wordDataSourceProvider = Provider<WordDataSource>((ref) {
   final authState = ref.watch(authViewModelProvider);
-  final isLoggedIn = authState.currentUser != null;
 
-  if (isLoggedIn) {
+  if (authState.isLoggedIn) {
     final dio = ref.read(dioProvider);
     return WordRemoteDataSource(dio);
   } else {

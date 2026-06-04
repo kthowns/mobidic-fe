@@ -47,21 +47,21 @@ final routerProvider = Provider((ref) {
       // 2. 스플래시 완료 후 분기 로직
       if (location == '/splash') {
         // 로그인된 사용자 -> 메인으로
-        if (authState.currentUser != null) {
+        if (authState.isLoggedIn) {
           return '/vocabularies';
         }
-        // 로그인되지 않은 모든 사용자 -> 웰컴 페이지로
-        return '/welcome';
+        // 로그인되지 않은 모든 사용자 -> 메인으로 (비회원 모드)
+        return '/vocabularies';
       }
 
       // 3. 루트(/) 진입 시 처리
       if (location == '/') {
-        return authState.currentUser != null ? '/vocabularies' : '/welcome';
+        return authState.isLoggedIn ? '/vocabularies' : '/welcome';
       }
 
       final whiteList = ['/welcome', '/login', '/signup', '/v1/oauth2/kakao'];
       final isWhiteList = whiteList.contains(location);
-      final isLoggedIn = authState.currentUser != null;
+      final isLoggedIn = authState.isLoggedIn;
 
       // 4. 로그인 상태에서 로그인/웰컴 페이지 접근 시 메인으로 리다이렉트
       if (isLoggedIn && (location == '/login' || location == '/welcome')) {

@@ -29,7 +29,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
   }
 
   void handleTagAction(String label, WordListViewModel viewModel) async {
-    final isGuest = ref.read(authViewModelProvider).isGuestMode;
+    final isGuest = ref.read(authViewModelProvider).isGuest;
 
     if (label == '퀴즈') {
       if (isGuest) {
@@ -159,7 +159,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
   Widget build(BuildContext context) {
     final wordListViewModel = ref.read(wordListStateProvider.notifier);
     final wordListState = ref.watch(wordListStateProvider);
-    final isGuest = ref.watch(authViewModelProvider).isGuestMode;
+    final isGuest = ref.watch(authViewModelProvider).isGuest;
 
     searchController.addListener(() {
       wordListViewModel.setSearchKeyword(searchController.text);

@@ -60,7 +60,7 @@ class _SettingPageState extends ConsumerState<SettingsPage> {
               title: const Text('현재 계정'),
               subtitle: Text(authState.currentUser?.nickname ?? '비로그인 상태'),
             ),
-            if (authState.currentUser != null)
+            if (authState.isLoggedIn)
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.redAccent),
                 title: const Text(

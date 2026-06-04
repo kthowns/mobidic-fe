@@ -9,9 +9,8 @@ import 'package:mobidic/viewmodel/auth_view_model.dart';
 
 final statisticDataSourceProvider = Provider<StatisticDataSource>((ref) {
   final authState = ref.watch(authViewModelProvider);
-  final isLoggedIn = authState.currentUser != null;
 
-  if (isLoggedIn) {
+  if (authState.isLoggedIn) {
     final dio = ref.read(dioProvider);
     return StatisticRemoteDataSource(dio);
   } else {

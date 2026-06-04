@@ -53,21 +53,14 @@ class AuthViewModel extends StateNotifier<AuthState> {
     startLoading();
 
     try {
-      final isGuest = await _secureStorageDataSource.readGuestMode();
       final currentUser = await _userRepository.getMe();
-      state = state.copyWith(currentUser: currentUser, isGuestMode: isGuest);
+      state = state.copyWith(currentUser: currentUser);
     } catch (_) {
-      final isGuest = await _secureStorageDataSource.readGuestMode();
-      state = state.copyWith(currentUser: null, isGuestMode: isGuest);
+      state = state.copyWith(currentUser: null);
     } finally {
       state = state.copyWith(isAutoLoginDone: true);
       stopLoading();
     }
-  }
-
-  Future<void> setGuestMode(bool isGuest) async {
-    await _secureStorageDataSource.saveGuestMode(isGuest);
-    state = state.copyWith(isGuestMode: isGuest);
   }
 
   Future<void> login(String username, String password) async {
@@ -87,12 +80,10 @@ class AuthViewModel extends StateNotifier<AuthState> {
       );
       debugPrint('Login successful: ${response.accessToken}');
       await _secureStorageDataSource.saveToken(response.accessToken);
-      await _secureStorageDataSource.saveGuestMode(false);
       state = state.copyWith(
         currentUser: await _userRepository.getMe(),
         loginErrorMessage: '',
         isAutoLoginDone: true,
-        isGuestMode: false,
       );
       stopLoading();
     } on ApiException catch (e) {
@@ -116,12 +107,10 @@ class AuthViewModel extends StateNotifier<AuthState> {
     try {
       debugPrint('Attempting login with accessToken: $accessToken');
       await _secureStorageDataSource.saveToken(accessToken);
-      await _secureStorageDataSource.saveGuestMode(false);
       state = state.copyWith(
         currentUser: await _userRepository.getMe(),
         loginErrorMessage: '',
         isAutoLoginDone: true,
-        isGuestMode: false,
       );
       stopLoading();
     } on ApiException catch (e) {
@@ -153,11 +142,9 @@ class AuthViewModel extends StateNotifier<AuthState> {
   Future<void> clientLogout() async {
     startLoading();
     await _secureStorageDataSource.deleteToken();
-    await _secureStorageDataSource.saveGuestMode(false);
     state = state.copyWith(
       currentUser: null,
       loginErrorMessage: '',
-      isGuestMode: false,
     );
     stopLoading();
   }
@@ -176,14 +163,15 @@ class AuthState {
   final String loginErrorMessage;
   final bool isLoading;
   final bool isAutoLoginDone;
-  final bool isGuestMode;
+
+  bool get isGuest => currentUser == null;
+  bool get isLoggedIn => currentUser != null;
 
   const AuthState({
     this.currentUser,
     this.loginErrorMessage = '',
     this.isLoading = false,
     this.isAutoLoginDone = false,
-    this.isGuestMode = false,
   });
 
   AuthState copyWith({
@@ -191,14 +179,12 @@ class AuthState {
     String? loginErrorMessage,
     bool? isLoading,
     bool? isAutoLoginDone,
-    bool? isGuestMode,
   }) {
     return AuthState(
       currentUser: currentUser ?? this.currentUser,
       loginErrorMessage: loginErrorMessage ?? this.loginErrorMessage,
       isLoading: isLoading ?? this.isLoading,
       isAutoLoginDone: isAutoLoginDone ?? this.isAutoLoginDone,
-      isGuestMode: isGuestMode ?? this.isGuestMode,
     );
   }
 }
