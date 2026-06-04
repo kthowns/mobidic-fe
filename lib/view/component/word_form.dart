@@ -101,8 +101,45 @@ class _WordFormState extends State<WordForm> {
     super.dispose();
   }
 
+  bool get _hasChanges {
+    // 1. 단어 제목 변경 확인
+    if (_expressionController.text.trim() !=
+        (widget.initialExpression ?? '').trim()) {
+      return true;
+    }
+
+    // 2. 삭제된 뜻이 있는지 확인
+    if (_removedDefinitions.isNotEmpty) {
+      return true;
+    }
+
+    // 3. 기존 뜻 수정 또는 새 뜻 추가 확인
+    final initialDefs = widget.initialDefinitions ?? [];
+
+    // 개수가 다르면 (새로 추가된 뜻이 있으면) 변경된 것
+    if (_definitions.length != initialDefs.length) {
+      return true;
+    }
+
+    // 개수가 같을 때 내용 비교
+    for (int i = 0; i < _definitions.length; i++) {
+      final current = _definitions[i];
+      final initial = initialDefs[i];
+
+      if (current.meaning.trim() != initial.meaning.trim() ||
+          current.part != initial.part) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final bool canSubmit =
+        !widget.isLoading && (widget.initialExpression == null || _hasChanges);
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Container(
@@ -143,6 +180,7 @@ class _WordFormState extends State<WordForm> {
               const SizedBox(height: 8),
               TextField(
                 controller: _expressionController,
+                onChanged: (_) => setState(() {}),
                 decoration: _buildInputDecoration('추가할 단어를 입력하세요'),
                 style: const TextStyle(
                   fontSize: 18,
@@ -190,11 +228,13 @@ class _WordFormState extends State<WordForm> {
                               controller: _definitionControllers[index],
                               focusNode: _definitionFocusNodes[index],
                               onChanged: (value) {
-                                _definitions[index] = Definition(
-                                  id: _definitions[index].id,
-                                  meaning: value,
-                                  part: _definitions[index].part,
-                                );
+                                setState(() {
+                                  _definitions[index] = Definition(
+                                    id: _definitions[index].id,
+                                    meaning: value,
+                                    part: _definitions[index].part,
+                                  );
+                                });
                               },
                               decoration: const InputDecoration(
                                 hintText: '뜻을 입력하세요',
@@ -313,19 +353,18 @@ class _WordFormState extends State<WordForm> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: widget.isLoading
-                          ? null
-                          : () => widget.onSave(
-                              _expressionController.text.trim(),
-                              _definitions,
-                              _removedDefinitions,
-                            ),
+                      onPressed: canSubmit
+                          ? () => widget.onSave(
+                                _expressionController.text.trim(),
+                                _definitions,
+                                _removedDefinitions,
+                              )
+                          : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: widget.themeColor,
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor: widget.themeColor.withOpacity(
-                          0.6,
-                        ),
+                        disabledBackgroundColor: Colors.grey.shade300,
+                        disabledForegroundColor: Colors.grey.shade500,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(

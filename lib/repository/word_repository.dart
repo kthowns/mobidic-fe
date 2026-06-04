@@ -5,7 +5,6 @@ import 'package:mobidic/data/remote/word_remote_data_source.dart';
 import 'package:mobidic/data/word_data_source.dart';
 import 'package:mobidic/dto/def_dto.dart';
 import 'package:mobidic/dto/word_dto.dart';
-import 'package:mobidic/model/definition.dart';
 import 'package:mobidic/model/word.dart';
 import 'package:mobidic/repository/repository.dart';
 import 'package:mobidic/viewmodel/auth_view_model.dart';
@@ -45,10 +44,9 @@ class WordRepository extends Repository {
 
   Future<void> updateWord(
     String wordId,
-    AddWordRequestDto word,
-    List<Definition> defs,
+    UpdateWordAndDefinitionsRequestDto word,
   ) async {
-    await _dataSource.updateWord(wordId, word, defs);
+    await _dataSource.updateWord(wordId, word);
   }
 
   Future<void> deleteWord(String wordId) async {

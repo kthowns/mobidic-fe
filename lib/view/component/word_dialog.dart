@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic/dto/def_dto.dart';
-import 'package:mobidic/dto/word_dto.dart';
 import 'package:mobidic/model/definition.dart';
 import 'package:mobidic/model/word.dart';
 import 'package:mobidic/view/component/word_form.dart';
@@ -55,10 +54,9 @@ class WordDialog extends ConsumerWidget {
 
       bool hasError;
       if (isEdit) {
-        final wordDto = AddWordRequestDto(expression: expression);
         hasError = await wordListViewModel.updateWord(
           word!.id,
-          wordDto,
+          expression,
           definitions,
           removedDefinitions,
         );

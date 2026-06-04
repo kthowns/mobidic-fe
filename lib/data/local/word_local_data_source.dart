@@ -91,12 +91,12 @@ class WordLocalDataSource implements WordDataSource {
   @override
   Future<void> updateWord(
     String wordId,
-    AddWordRequestDto word,
-    List<Definition> defs,
+    UpdateWordAndDefinitionsRequestDto word,
   ) async {
     final db = await _dbHelper.database;
 
     await db.transaction((txn) async {
+      // 1. 단어 제목 수정
       await txn.update(
         'words',
         {'expression': word.expression},
@@ -104,21 +104,28 @@ class WordLocalDataSource implements WordDataSource {
         whereArgs: [wordId],
       );
 
-      for (var def in defs) {
-        if (def.id.isEmpty) {
-          await txn.insert('definitions', {
-            'word_id': wordId,
-            'part_of_speech': def.part.name,
-            'meaning': def.meaning,
-          });
-        } else {
-          await txn.update(
-            'definitions',
-            {'part_of_speech': def.part.name, 'meaning': def.meaning},
-            where: 'id = ?',
-            whereArgs: [int.parse(def.id)],
-          );
-        }
+      // 2. 기존 뜻 수정
+      for (var def in word.updatingDefinitions) {
+        await txn.update(
+          'definitions',
+          {'part_of_speech': def.part.name, 'meaning': def.meaning},
+          where: 'id = ?',
+          whereArgs: [def.id],
+        );
+      }
+
+      // 3. 새 뜻 추가
+      for (var def in word.addingDefinitions) {
+        await txn.insert('definitions', {
+          'word_id': wordId,
+          'part_of_speech': def.part.name,
+          'meaning': def.meaning,
+        });
+      }
+
+      // 4. 뜻 삭제
+      for (var defId in word.deletingDefinitions) {
+        await txn.delete('definitions', where: 'id = ?', whereArgs: [defId]);
       }
     });
   }

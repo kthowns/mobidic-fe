@@ -31,7 +31,11 @@ enum ApiUrl {
   deleteDefinition("/api/definitions/{definitionId}", "definitionId"),
 
   // 퀴즈 관련 서비스
-  getQuizzes("/api/vocabularies/{vocabularyId}/quizzes", "vocabularyId"),
+  getOxQuizzes("/api/vocabularies/{vocabularyId}/quizzes/ox", "vocabularyId"),
+  getBlankQuizzes(
+    "/api/vocabularies/{vocabularyId}/quizzes/blank",
+    "vocabularyId",
+  ),
   rateQuiz("/api/quizzes/rate", null),
 
   // 발음 체크 관련 서비스
