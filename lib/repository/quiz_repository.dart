@@ -19,7 +19,12 @@ class QuizRepository extends Repository {
   QuizRepository(this._dio);
 
   Future<List<Quiz>> getQuizzes(String vocabId, QuizType type) async {
-    final url = '${ApiUrl.getQuizzes.withId(vocabId)}/${type.name}';
+    final url = switch (type) {
+      QuizType.OX => ApiUrl.getOxQuizzes.withId(vocabId),
+      QuizType.BLANK => ApiUrl.getBlankQuizzes.withId(vocabId),
+      QuizType.DICTATION =>
+        '${ApiUrl.vocabularies.url}/$vocabId/quizzes/dictation', // Spec might be missing this, keeping a fallback pattern or check
+    };
 
     return await dioRequestToList(
       url: url,

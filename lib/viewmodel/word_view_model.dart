@@ -163,7 +163,7 @@ class WordListViewModel extends StateNotifier<WordListState> {
 
   Future<bool> updateWord(
     String wordId,
-    AddWordRequestDto word,
+    String expression,
     List<Definition> defs,
     List<Definition> removingDefs,
   ) async {
@@ -171,13 +171,35 @@ class WordListViewModel extends StateNotifier<WordListState> {
 
     try {
       startLoading();
-      if (removingDefs.isNotEmpty) {
-        for (Definition def in removingDefs) {
-          await _wordRepository.deleteDef(def.id);
-        }
-      }
 
-      await _wordRepository.updateWord(wordId, word, defs);
+      final updatingDefinitions =
+          defs
+              .where((d) => d.id.isNotEmpty)
+              .map(
+                (d) => UpdateDefinitionRequestDto(
+                  id: d.id,
+                  meaning: d.meaning,
+                  part: d.part,
+                ),
+              )
+              .toList();
+
+      final addingDefinitions =
+          defs
+              .where((d) => d.id.isEmpty)
+              .map((d) => AddDefRequestDto(meaning: d.meaning, part: d.part))
+              .toList();
+
+      final deletingDefinitions = removingDefs.map((d) => d.id).toList();
+
+      final request = UpdateWordAndDefinitionsRequestDto(
+        expression: expression,
+        updatingDefinitions: updatingDefinitions,
+        addingDefinitions: addingDefinitions,
+        deletingDefinitions: deletingDefinitions,
+      );
+
+      await _wordRepository.updateWord(wordId, request);
 
       await loadData();
       return false;

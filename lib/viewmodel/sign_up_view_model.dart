@@ -115,9 +115,9 @@ class SignUpViewModel extends StateNotifier<SignUpState> {
     }
 
     if (!RegExp(
-      r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,128}$",
+      r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,128}$",
     ).hasMatch(password)) {
-      state = state.copyWith(passwordErrorText: '비밀번호 조건이 맞지 않습니다.');
+      state = state.copyWith(passwordErrorText: '비밀번호는 영문, 숫자, 특수문자를 포함한 8자 이상이어야 합니다.');
       return true;
     }
 

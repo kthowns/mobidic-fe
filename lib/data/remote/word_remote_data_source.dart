@@ -4,7 +4,6 @@ import 'package:mobidic/data/word_data_source.dart';
 import 'package:mobidic/dto/def_dto.dart';
 import 'package:mobidic/dto/word_dto.dart';
 import 'package:mobidic/exception/api_exception.dart';
-import 'package:mobidic/model/definition.dart';
 import 'package:mobidic/model/word.dart';
 
 /// API(서버)로부터 단어 데이터를 가져오는 구현체입니다.
@@ -45,22 +44,15 @@ class WordRemoteDataSource implements WordDataSource {
   ) async {
     final url = ApiUrl.addWord.withId(vocabId);
     try {
-      final response = await _dio.post(
+      await _dio.post(
         url,
         options: Options(extra: {'auth': true}),
-        data: AddWordRequestDto(expression: expression).toJson(),
+        data:
+            AddWordRequestDto(
+              expression: expression,
+              definitions: definitions,
+            ).toJson(),
       );
-
-      final String wordId = response.data['data']['id'];
-
-      for (var def in definitions) {
-        final defUrl = ApiUrl.addDefinition.withId(wordId);
-        await _dio.post(
-          defUrl,
-          options: Options(extra: {'auth': true}),
-          data: def.toJson(),
-        );
-      }
     } on DioException catch (e) {
       throw _handleApiException(e);
     }
@@ -69,8 +61,7 @@ class WordRemoteDataSource implements WordDataSource {
   @override
   Future<void> updateWord(
     String wordId,
-    AddWordRequestDto word,
-    List<Definition> defs,
+    UpdateWordAndDefinitionsRequestDto word,
   ) async {
     final url = ApiUrl.updateWord.withId(wordId);
     try {
@@ -79,26 +70,6 @@ class WordRemoteDataSource implements WordDataSource {
         options: Options(extra: {'auth': true}),
         data: word.toJson(),
       );
-
-      for (var def in defs) {
-        if (def.id.isEmpty) {
-          final addDefUrl = ApiUrl.addDefinition.withId(wordId);
-          await _dio.post(
-            addDefUrl,
-            options: Options(extra: {'auth': true}),
-            data:
-                AddDefRequestDto(meaning: def.meaning, part: def.part).toJson(),
-          );
-        } else {
-          final updateDefUrl = ApiUrl.updateDefinition.withId(def.id);
-          await _dio.patch(
-            updateDefUrl,
-            options: Options(extra: {'auth': true}),
-            data:
-                AddDefRequestDto(meaning: def.meaning, part: def.part).toJson(),
-          );
-        }
-      }
     } on DioException catch (e) {
       throw _handleApiException(e);
     }
