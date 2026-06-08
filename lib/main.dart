@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_update/in_app_update.dart';
-import 'package:mobidic/view/router/router.dart';
+import 'package:mobidic/global/router/router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

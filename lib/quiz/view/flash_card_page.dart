@@ -1,0 +1,261 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_card_swiper/flutter_card_swiper.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic/global/view/component/common_app_bar.dart';
+import 'package:mobidic/dictionary/viewmodel/word_view_model.dart';
+
+class FlashCardPage extends ConsumerStatefulWidget {
+  const FlashCardPage({super.key});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _FlashCardPageState();
+}
+
+class _FlashCardPageState extends ConsumerState<FlashCardPage> {
+  final CardSwiperController cardSwiperController = CardSwiperController();
+  final int quizColor = 0xFFb3e5fc;
+  bool wordVisibility = true;
+  bool defVisibility = false;
+
+  @override
+  void dispose() {
+    cardSwiperController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final wordListState = ref.watch(wordListStateProvider);
+
+    debugPrint("FlashCardPage. Words : ${wordListState.words}");
+
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: const CommonAppBar(title: '플래시카드'),
+      body: Stack(
+        children: [
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFFb3e5fc), Color(0xFF81d4fa)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // 카드 내용
+                  if (wordListState.words.isNotEmpty)
+                    Expanded(
+                      child: CardSwiper(
+                        controller: cardSwiperController,
+                        isLoop: false,
+                        cardBuilder: (context, index, hPer, vPer) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0,
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 6,
+                                    offset: Offset(2, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Stack(
+                                children: [
+                                  // 카드 내용
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // 영단어 영역
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text(
+                                            '영단어',
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(
+                                              wordVisibility
+                                                  ? Icons.visibility
+                                                  : Icons.visibility_off,
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                wordVisibility =
+                                                    !wordVisibility;
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 20),
+                                      Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          Text(
+                                            wordListState
+                                                .words[index]
+                                                .expression,
+                                            style: const TextStyle(
+                                              fontSize: 36,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          if (!wordVisibility)
+                                            Positioned.fill(
+                                              child: Container(
+                                                color: Colors.blue[100],
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      const Divider(height: 50, thickness: 1),
+                                      // 뜻 영역
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text(
+                                            '뜻',
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(
+                                              defVisibility
+                                                  ? Icons.visibility
+                                                  : Icons.visibility_off,
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                defVisibility = !defVisibility;
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 20),
+                                      Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          Text(
+                                            wordListState
+                                                .words[index]
+                                                .definitions
+                                                .map(
+                                                  (d) =>
+                                                      "${d.meaning} (${d.part.label})",
+                                                )
+                                                .join(", "),
+                                            style: const TextStyle(
+                                              fontSize: 28,
+                                            ),
+                                          ),
+                                          if (!defVisibility)
+                                            Positioned.fill(
+                                              child: Container(
+                                                color: Colors.blue[100],
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  // 진행률 우측 상단
+                                  Positioned(
+                                    top: 0,
+                                    right: 0,
+                                    child: Text(
+                                      '${index + 1}/${wordListState.words.length}',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        cardsCount: wordListState.words.length,
+                        numberOfCardsDisplayed: wordListState.words.length >= 3
+                            ? 3
+                            : wordListState.words.length,
+                      ),
+                    ),
+
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 30.0, top: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios),
+                          iconSize: 32,
+                          onPressed: cardSwiperController.undo,
+                        ),
+                        const SizedBox(width: 40),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_forward_ios),
+                          iconSize: 32,
+                          onPressed: () {
+                            cardSwiperController.swipe(
+                              CardSwiperDirection.right,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (wordListState.words.isEmpty)
+            Container(
+              color: const Color(0x80000000), // 배경 어둡게
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    //Icon(Icons.help_outline, size: 64, color: Colors.white70),
+                    SizedBox(height: 16),
+                    Text(
+                      '단어장이 비어있습니다.',
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      '단어장에 단어를 추가해보세요!',
+                      style: TextStyle(color: Colors.white54, fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}

@@ -1,0 +1,27 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic/global/api/api_url.dart';
+import 'package:mobidic/global/api/dio.dart';
+import 'package:mobidic/user/model/user.dart';
+import 'package:mobidic/global/repository/base_repository.dart';
+
+final userRepositoryProvider = Provider<UserRepository>((ref) {
+  final dio = ref.read(dioProvider);
+  return UserRepository(dio);
+});
+
+class UserRepository extends Repository {
+  final Dio _dio;
+
+  UserRepository(this._dio);
+
+  Future<User> getMe() async {
+    final url = ApiUrl.me.url;
+
+    return await dioRequest<User>(
+      url: url,
+      action: () => _dio.get(url, options: Options(extra: {'auth': true})),
+      fromJson: User.fromJson,
+    );
+  }
+}
