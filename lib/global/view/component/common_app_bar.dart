@@ -169,9 +169,8 @@ class CommonAppBar extends ConsumerWidget implements PreferredSizeWidget {
                 color: Colors.red.shade600,
                 onTap: () async {
                   Navigator.pop(context);
-                  await ref.read(authViewModelProvider.notifier).logout();
+                  await ref.read(authViewModelProvider.notifier).clientLogout();
                   ref.invalidate(authViewModelProvider);
-                  if (context.mounted) context.go('/welcome');
                 },
               )
             else

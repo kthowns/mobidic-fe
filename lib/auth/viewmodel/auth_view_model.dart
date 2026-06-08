@@ -132,13 +132,6 @@ class AuthViewModel extends StateNotifier<AuthState> {
     return await _authRepository.getKakaoLoginUrl();
   }
 
-  Future<void> logout() async {
-    startLoading();
-    await _authRepository.logout();
-    await clientLogout();
-    stopLoading();
-  }
-
   Future<void> clientLogout() async {
     startLoading();
     await _secureStorageDataSource.deleteToken();

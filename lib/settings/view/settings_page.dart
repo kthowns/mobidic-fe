@@ -68,11 +68,8 @@ class _SettingPageState extends ConsumerState<SettingsPage> {
                   style: TextStyle(color: Colors.redAccent),
                 ),
                 onTap: () async {
-                  await ref.read(authViewModelProvider.notifier).logout();
+                  await ref.read(authViewModelProvider.notifier).clientLogout();
                   ref.invalidate(authViewModelProvider);
-                  if (context.mounted) {
-                    context.go('/welcome');
-                  }
                 },
               )
             else

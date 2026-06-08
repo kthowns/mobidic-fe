@@ -5,7 +5,6 @@ import 'package:mobidic/auth/view/kakao_login_page.dart';
 import 'package:mobidic/auth/view/log_in_page.dart';
 import 'package:mobidic/auth/view/sign_up_page.dart';
 import 'package:mobidic/auth/view/splash_page.dart';
-import 'package:mobidic/auth/view/welcome_page.dart';
 import 'package:mobidic/phonics/view/phonics_page.dart';
 import 'package:mobidic/pronunciation/view/pronunciation_page.dart';
 import 'package:mobidic/dictionary/view/vocab_list_page.dart';
@@ -56,15 +55,15 @@ final routerProvider = Provider((ref) {
 
       // 3. 루트(/) 진입 시 처리
       if (location == '/') {
-        return authState.isLoggedIn ? '/vocabularies' : '/welcome';
+        return '/vocabularies';
       }
 
-      final whiteList = ['/welcome', '/login', '/signup', '/v1/oauth2/kakao'];
+      final whiteList = ['/login', '/signup', '/v1/oauth2/kakao'];
       final isWhiteList = whiteList.contains(location);
       final isLoggedIn = authState.isLoggedIn;
 
       // 4. 로그인 상태에서 로그인/웰컴 페이지 접근 시 메인으로 리다이렉트
-      if (isLoggedIn && (location == '/login' || location == '/welcome')) {
+      if (isLoggedIn && (location == '/login' || location == '/signup')) {
         return '/vocabularies';
       }
 
@@ -85,7 +84,6 @@ final routerProvider = Provider((ref) {
     },
     routes: [
       GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
-      GoRoute(path: '/welcome', builder: (context, state) => const WelcomePage()),
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       GoRoute(path: '/signup', builder: (context, state) => const SignUpPage()),
       GoRoute(
@@ -111,10 +109,7 @@ final routerProvider = Provider((ref) {
             path: 'words',
             builder: (context, state) => const WordListPage(),
           ),
-          GoRoute(
-            path: 'ox',
-            builder: (context, state) => const OxQuizPage(),
-          ),
+          GoRoute(path: 'ox', builder: (context, state) => const OxQuizPage()),
           GoRoute(
             path: 'blank',
             builder: (context, state) => const BlankQuizPage(),
