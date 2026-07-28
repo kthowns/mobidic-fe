@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/ait/toss_bridge.dart';
 
 final secureStorageDataSourceProvider = Provider<SecureStorageDataSource>((
   ref,
@@ -9,41 +10,48 @@ final secureStorageDataSourceProvider = Provider<SecureStorageDataSource>((
   return SecureStorageDataSource();
 });
 
+/// 순수 Key-Value 기반 영구 저장소 Data Source
 class SecureStorageDataSource {
-  static const _tokenKey = 'jwt_token';
-
-  Future<void> saveToken(String token) async {
-    if (kIsWeb) {
-      debugPrint('SecureStorage: Web detected. Saving token to SharedPreferences.');
-      final prefs = await SharedPreferences.getInstance();
-      final success = await prefs.setString(_tokenKey, token);
-      debugPrint('SecureStorage: Save ${success ? 'successful' : 'failed'}. Key: flutter.$_tokenKey');
-    } else {
-      debugPrint('SecureStorage: Mobile detected. Saving token to FlutterSecureStorage.');
+  /// 범용 Key-Value 저장
+  Future<void> save(String key, String value) async {
+    if (!kIsWeb) {
+      // 1. 모바일 앱 (안드로이드 / iOS) -> FlutterSecureStorage
       const storage = FlutterSecureStorage();
-      await storage.write(key: _tokenKey, value: token);
+      await storage.write(key: key, value: value);
+    } else if (TossBridge.isTossEnvironment) {
+      // 2. 앱인토스 웹뷰 환경 -> 토스 네이티브 Storage SDK
+      final success = await TossBridge.saveStorage(key, value);
+      debugPrint('SecureStorage (Toss): Save ${success ? 'successful' : 'failed'} for key: $key');
+    } else {
+      // 3. 순수 웹 브라우저 (Chrome, Safari 등) -> SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(key, value);
     }
   }
 
-  Future<String?> readToken() async {
-    if (kIsWeb) {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString(_tokenKey);
-      debugPrint('SecureStorage: Reading token from Web. Found: ${token != null ? 'YES' : 'NO'}');
-      return token;
-    } else {
+  /// 범용 Key-Value 읽기
+  Future<String?> read(String key) async {
+    if (!kIsWeb) {
       const storage = FlutterSecureStorage();
-      return await storage.read(key: _tokenKey);
+      return await storage.read(key: key);
+    } else if (TossBridge.isTossEnvironment) {
+      return await TossBridge.readStorage(key);
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(key);
     }
   }
 
-  Future<void> deleteToken() async {
-    if (kIsWeb) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_tokenKey);
-    } else {
+  /// 범용 Key-Value 삭제
+  Future<void> delete(String key) async {
+    if (!kIsWeb) {
       const storage = FlutterSecureStorage();
-      await storage.delete(key: _tokenKey);
+      await storage.delete(key: key);
+    } else if (TossBridge.isTossEnvironment) {
+      await TossBridge.deleteStorage(key);
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(key);
     }
   }
 }
