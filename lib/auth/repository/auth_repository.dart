@@ -64,7 +64,9 @@ class AuthRepository extends Repository {
   Future<String> getKakaoLoginUrl() async {
     final url = ApiUrl.kakaoLoginUrl.url;
     String platform = "web";
-    if (defaultTargetPlatform == TargetPlatform.android) {
+    if(kIsWeb) {
+      platform = "web";
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
       platform = "android";
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       platform = "ios";

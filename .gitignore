@@ -334,6 +334,9 @@ gradle-app.setting
 # Java heap dump
 *.hprof
 
+# TOSS AIT
+apps-in-toss/**
+
 ### AndroidStudio ###
 # Covers files to be ignored for android development using Android Studio.
 
