@@ -13,13 +13,11 @@ final authViewModelProvider =
     StateNotifierProvider<AuthViewModel, AuthState>((ref) {
       final authRepository = ref.read(authRepositoryProvider);
       final userRepository = ref.read(userRepositoryProvider);
-      final secureStorageDataSource = ref.read(secureStorageDataSourceProvider);
 
       return AuthViewModel(
         ref,
         authRepository,
         userRepository,
-        secureStorageDataSource,
       );
     });
 
@@ -27,13 +25,11 @@ class AuthViewModel extends StateNotifier<AuthState> {
   final Ref _ref;
   final AuthRepository _authRepository;
   final UserRepository _userRepository;
-  final SecureStorageDataSource _secureStorageDataSource;
 
   AuthViewModel(
     this._ref,
     this._authRepository,
     this._userRepository,
-    this._secureStorageDataSource,
   ) : super(AuthState()) {
     _listenToAuthSignals();
     loadInitialData();
@@ -79,7 +75,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
         LoginRequest(email: username, password: password),
       );
       debugPrint('Login successful: ${response.accessToken}');
-      await _secureStorageDataSource.saveToken(response.accessToken);
+      await _authRepository.saveAccessToken(response.accessToken);
       state = state.copyWith(
         currentUser: await _userRepository.getMe(),
         loginErrorMessage: '',
@@ -106,7 +102,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
     state = state.copyWith(loginErrorMessage: '');
     try {
       debugPrint('Attempting login with accessToken: $accessToken');
-      await _secureStorageDataSource.saveToken(accessToken);
+      await _authRepository.saveAccessToken(accessToken);
       state = state.copyWith(
         currentUser: await _userRepository.getMe(),
         loginErrorMessage: '',
@@ -134,7 +130,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
 
   Future<void> clientLogout() async {
     startLoading();
-    await _secureStorageDataSource.deleteToken();
+    await _authRepository.deleteAccessToken();
     state = state.copyWith(
       currentUser: null,
       loginErrorMessage: '',

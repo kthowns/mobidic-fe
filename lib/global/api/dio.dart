@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobidic/auth/repository/auth_repository.dart';
 import 'package:mobidic/global/data/secure_storage_data_source.dart';
 import 'package:mobidic/auth/provider/auth_status_provider.dart';
 
@@ -47,8 +48,8 @@ void onRequest(
   if (requiresAuth) {
     try {
       String? token = await ref
-          .read(secureStorageDataSourceProvider)
-          .readToken();
+          .read(authRepositoryProvider)
+          .getAccessToken();
 
       debugPrint('Retrieved Token: ${token != null ? 'EXISTS (${token.substring(0, 10)}...)' : 'NULL'}');
 
