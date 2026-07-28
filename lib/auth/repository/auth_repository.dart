@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobidic/global/api/api_url.dart';
 import 'package:mobidic/global/api/dio.dart';
+import 'package:mobidic/global/constants/storage_key.dart';
 import 'package:mobidic/global/data/secure_storage_data_source.dart';
 import 'package:mobidic/auth/dto/login_dto.dart';
 import 'package:mobidic/auth/dto/signup_dto.dart';
@@ -58,7 +59,7 @@ class AuthRepository extends Repository {
       action: () => _dio.post(url, options: Options(extra: {'auth': true})),
     );
 
-    await _secureStorageDataSource.deleteToken();
+    await deleteAccessToken();
   }
 
   Future<String> getKakaoLoginUrl() async {
@@ -84,14 +85,21 @@ class AuthRepository extends Repository {
     );
   }
 
+  Future<void> saveAccessToken(String token) async {
+    await _secureStorageDataSource.save(StorageKey.jwtToken.key, token);
+  }
+
   Future<String?> getAccessToken() async {
     try {
-      String? token = await _secureStorageDataSource.readToken();
-
+      String? token = await _secureStorageDataSource.read(StorageKey.jwtToken.key);
       return token;
     } catch (e) {
       debugPrint('토큰 읽기 실패: $e');
       throw Exception('토큰을 읽는 중 오류가 발생했습니다.');
     }
+  }
+
+  Future<void> deleteAccessToken() async {
+    await _secureStorageDataSource.delete(StorageKey.jwtToken.key);
   }
 }
