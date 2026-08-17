@@ -1,4 +1,5 @@
 import 'dart:js_interop';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @JS('Ait')
 external AitObject? get _aitObject;
@@ -38,6 +39,7 @@ extension type GraniteStorage._(JSObject _) implements JSObject {
 @JS()
 extension type TossObject._(JSObject _) implements JSObject {
   external void closeApp();
+  external void closeView();
 }
 
 /// 웹 / 앱인토스 웹뷰 전용 TossBridge 정석 구현체
@@ -51,7 +53,12 @@ class TossBridgeImpl {
     if (isTossEnvironment) {
       try {
         final toss = _tossObject as TossObject?;
-        toss?.closeApp();
+        try {
+          toss?.closeView();
+        } catch (_) {}
+        try {
+          toss?.closeApp();
+        } catch (_) {}
       } catch (_) {}
     }
   }
@@ -69,9 +76,16 @@ class TossBridgeImpl {
         await graniteStorage.setItem(key.toJS, value.toJS).toDart;
         return true;
       }
-      return false;
+
+      final prefs = await SharedPreferences.getInstance();
+      return await prefs.setString(key, value);
     } catch (e) {
-      return false;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        return await prefs.setString(key, value);
+      } catch (_) {
+        return false;
+      }
     }
   }
 
@@ -83,14 +97,23 @@ class TossBridgeImpl {
 
       if (aitStorage != null) {
         final result = await aitStorage.getItem(key.toJS).toDart;
-        return result?.toDart;
+        final val = result?.toDart;
+        if (val != null && val.isNotEmpty) return val;
       } else if (graniteStorage != null) {
         final result = await graniteStorage.getItem(key.toJS).toDart;
-        return result?.toDart;
+        final val = result?.toDart;
+        if (val != null && val.isNotEmpty) return val;
       }
-      return null;
+
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(key);
     } catch (e) {
-      return null;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        return prefs.getString(key);
+      } catch (_) {
+        return null;
+      }
     }
   }
 
@@ -105,6 +128,14 @@ class TossBridgeImpl {
       } else if (graniteStorage != null) {
         await graniteStorage.removeItem(key.toJS).toDart;
       }
-    } catch (_) {}
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(key);
+    } catch (_) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove(key);
+      } catch (_) {}
+    }
   }
 }
