@@ -19,9 +19,13 @@ class SecureStorageDataSource {
       const storage = FlutterSecureStorage();
       await storage.write(key: key, value: value);
     } else if (TossBridge.isTossEnvironment) {
-      // 2. 앱인토스 웹뷰 환경 -> 토스 네이티브 Storage SDK
+      // 2. 앱인토스 웹뷰 환경 -> 토스 네이티브 Storage SDK (미지원 시 SharedPreferences 자동 폴백)
       final success = await TossBridge.saveStorage(key, value);
-      debugPrint('SecureStorage (Toss): Save ${success ? 'successful' : 'failed'} for key: $key');
+      if (!success) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(key, value);
+      }
+      debugPrint('SecureStorage (Toss): Save ${success ? 'successful (Native)' : 'successful (SharedPreferences Fallback)'} for key: $key');
     } else {
       // 3. 순수 웹 브라우저 (Chrome, Safari 등) -> SharedPreferences
       final prefs = await SharedPreferences.getInstance();
@@ -35,7 +39,10 @@ class SecureStorageDataSource {
       const storage = FlutterSecureStorage();
       return await storage.read(key: key);
     } else if (TossBridge.isTossEnvironment) {
-      return await TossBridge.readStorage(key);
+      final value = await TossBridge.readStorage(key);
+      if (value != null && value.isNotEmpty) return value;
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(key);
     } else {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(key);
@@ -49,6 +56,8 @@ class SecureStorageDataSource {
       await storage.delete(key: key);
     } else if (TossBridge.isTossEnvironment) {
       await TossBridge.deleteStorage(key);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(key);
     } else {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(key);
